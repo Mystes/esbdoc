@@ -5,4 +5,9 @@ dist
 bower_components
 .sass-cache
 .editorconfig
+.DS_Store
 node_modules
+
+target
+.idea
+*.iml
