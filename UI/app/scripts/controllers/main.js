@@ -89,6 +89,7 @@ angular.module('esbdocPocApp')
             g.addNode(key, { label: key });
             if($scope.esbDoc.resources[key] && nodeTypeStyles[$scope.esbDoc.resources[key].type]) {
               g.node(key).style = nodeTypeStyles[$scope.esbDoc.resources[key].type];
+              g.node(key).class = $scope.esbDoc.resources[key].type;
             }
           }
 
@@ -125,16 +126,49 @@ angular.module('esbdocPocApp')
       zoomG = centerG.append('g');
 
       // Set initial zoom to 75%.
-      var initialScale = 0.75
+      var initialScale = 1;
       var zoom = dagreD3.zoom.panAndZoom(zoomG);
       dagreD3.zoom(svg, zoom);
       // We must set the zoom and then trigger the zoom event to synchronize D3 and
       // the DOM.
       zoom.scale(initialScale).event(svg);
 
+
+      var oldDrawNodes = renderer.drawNodes();
+      renderer.drawNodes(function(g, svg) {
+        var svgNodes = oldDrawNodes(g, svg);
+
+        // Set the title on each of the nodes and use tipsy to display the tooltip on hover
+        svgNodes.attr('class', function(d) { return g.node(d).class;})
+                .attr('onClick', function(d) { return 'selected.resource = "' + d + '"';})
+                .each(function(d) {
+                  angular.element(this).on('click', function(e) {
+                    console.log(e, angular.element(e.target).scope(), d);
+                    angular.element(e.target).scope().selected.resource = d;
+                    angular.element(e.target).scope().$apply();
+                  });
+                });
+
+        return svgNodes;
+      });
+
+
       var layout2 = renderer.layout(layout).run(g, zoomG);
 
       // Center the graph
+//      var xCenterOffset = (svg.attr('width') - layout2.graph().width * initialScale) / 2;
+//      centerG.attr('transform', 'translate(' + xCenterOffset + ', 20)');
+//      svg.attr('height', layout2.graph().height * initialScale + 40);
+
+        zoomG.attr('transform', 'translate(' + layout2.graph().width / 2 + ',' + layout2.graph().height / 2 + ')');
+//        console.log(parseInt(svg.style("width")), layout2.graph().width);
+        zoom.scale(parseInt(svg.style("width")) / layout2.graph().width).event(svg);
+
+//        centerG.attr('transform', 'translate(' + layout2.graph().width / 2 + ',' + layout2.graph().height / 2 + ')');
+
+//      console.log(zoomG);
+//      console.log('transform', 'translate(' + layout2.graph().width / 2 + ',' + layout2.graph().height / 2 + ')');
+//      zoomG.attr('transform', 'translate(' + layout2.graph().width / 2 + ',' + layout2.graph().height / 2 + ')');
 //      var xCenterOffset = (svg.attr('width') - layout2.graph().width * initialScale) / 2;
 //      centerG.attr('transform', 'translate(' + xCenterOffset + ', 20)');
 //      svg.attr('height', layout2.graph().height * initialScale + 40);
