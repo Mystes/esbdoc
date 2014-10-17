@@ -1,4 +1,7 @@
-<div class="container-fluid" ng-init="selected.resource = ''; search = '';">
+<div ng-if="!esbDoc">
+  <h3>No ESB Doc datafile found. Please store file in the same folder as this file with the name ESBDOCDATA.js</h3>
+</div>
+<div ng-if="esbDoc" class="container-fluid" ng-init="selected.resource = ''; search = '';">
   <div class="row">
     <div class="col-lg-2">
       <div style="border-bottom: 3px solid #39f; margin-bottom: 1em; padding: 0.5em; background: #9cf;">

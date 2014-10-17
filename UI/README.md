@@ -18,9 +18,17 @@ https://www.npmjs.org/doc/README.html
 
 (use sudo if unsuccessfull otherwise)
 
+> sudo gem install sass
+
+> sudo gem install compass
+
 > npm install
 
-> npm install -g grunt-cli
+> npm update
+
+> npm install -g bower grunt-cli
+
+> bower install
 
 ### Run via grunt
 
