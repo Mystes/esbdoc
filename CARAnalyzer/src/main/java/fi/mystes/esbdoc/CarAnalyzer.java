@@ -475,12 +475,12 @@ public class CarAnalyzer {
 
                     OMElement receivesElement = descriptionElement.getFirstChildWithName(RECEIVES_Q);
                     if (receivesElement != null) {
-                        receives = getArticleInterfaceInfo(receivesElement);
+                        receives = getArtifactInterfaceInfo(receivesElement);
                     }
 
                     OMElement returnsElement = descriptionElement.getFirstChildWithName(RETURNS_Q);
                     if (returnsElement != null) {
-                        receives = getArticleInterfaceInfo(returnsElement);
+                        returns = getArtifactInterfaceInfo(returnsElement);
                     }
 
                     if (purpose != null || receives != null || returns != null) {
@@ -493,7 +493,7 @@ public class CarAnalyzer {
         return null;
     }
 
-    private Artifact.ArtifactInterfaceInfo getArticleInterfaceInfo(OMElement infoElement) {
+    private Artifact.ArtifactInterfaceInfo getArtifactInterfaceInfo(OMElement infoElement) {
         Artifact.ArtifactInterfaceInfo aii = new Artifact.ArtifactInterfaceInfo();
         String description = infoElement.getText();
         if (description != null) {
