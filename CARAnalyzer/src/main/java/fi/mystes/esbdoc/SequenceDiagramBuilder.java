@@ -83,7 +83,7 @@ public class SequenceDiagramBuilder {
      */
     public static void main(String[] args){
     	
-	    String result = new SequenceDiagramBuilder("/home/kreshnikg/Applications/wso2esb-4.5.1").buildPipe(args[4]);
+	    String result = new SequenceDiagramBuilder("/home/kreshnikg/Applications/wso2esb-4.5.1").buildPipe(args[6]);
 	    System.out.println(result);
     }
     
@@ -149,11 +149,22 @@ public class SequenceDiagramBuilder {
 				} catch (Exception e) {
 					//e.printStackTrace();
 				}
-			} 
+			}
+			// handler proxy's target's inSequence/outSequence
+			else if (qName.equals("target") && elementHandler.getClass().isAssignableFrom(ProxyHandler.class)) {
+				// handle inSequennce/outSequence attributes
+				if (attributes.getValue("inSequence") != null){
+					callSequenceOnDemand(attributes.getValue("inSequence"));
+				}
+				
+				if (attributes.getValue("outSequence") != null){
+					callSequenceOnDemand(attributes.getValue("outSequence"));
+				}
+			}
 			// handle filter
 			else if(qName.equals("filter")) {
 				createAndPrepareElementHandler(FilterHandler.class, new Object[]{attributes});
-			} 
+			}
 			// handle fitler's else
 			else if(qName.equals("else")) {
 				createAndPrepareElementHandler(FilterElseHandler.class, null);
@@ -169,10 +180,24 @@ public class SequenceDiagramBuilder {
 			// handle switch's default
 			else if(qName.equals("default")) {
 				createAndPrepareElementHandler(SwitchDefaultHandler.class, null);
-			} 
+			}
+			// handle faultsequence as filter
+			else if(qName.equals("faultsequence")) {
+				AttributesImpl attrs = new AttributesImpl();
+				attrs.addAttribute(null, "xpath", "xpath", null, "SOAP fault occurred");
+				createAndPrepareElementHandler(FilterHandler.class, new Object[]{attrs});
+			}
 			// handle iterate
 			else if(qName.equals("iterate")) {
 				createAndPrepareElementHandler(IterateHandler.class, new Object[]{attributes});
+			}
+			// target of iterate
+			else if (qName.equals("target") && elementHandler.getClass().isAssignableFrom(IterateHandler.class)) {
+				// handle sequence attributes
+				if (attributes.getValue("sequence") != null){
+					callSequenceOnDemand(attributes.getValue("sequence"));
+				}
+				
 			}
 			// handle simple iterator (custom)
 			else if (qName.equals("property") && attributes.getValue("name") != null) {
@@ -227,7 +252,8 @@ public class SequenceDiagramBuilder {
 					&& !qName.equals("else") 
 					&& !qName.equals("class") 
 					&& !(qName.equals("spring") && simpleIteratorAttributes == null)
-					&& !qName.equals("proxy") 
+					&& !qName.equals("proxy")
+					&& !(qName.equals("target")) 
 					&& !qName.equals("store"))) {
 				if (elementHandler != null && elementHandler.getParent() != null) {
 					elementHandler = elementHandler.getParent();
