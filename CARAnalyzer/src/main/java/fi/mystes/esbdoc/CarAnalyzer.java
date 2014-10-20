@@ -57,6 +57,7 @@ public class CarAnalyzer {
     private static final javax.xml.namespace.QName RECEIVES_Q = new javax.xml.namespace.QName("http://ws.apache.org/ns/synapse", "receives");
     private static final javax.xml.namespace.QName RETURNS_Q = new javax.xml.namespace.QName("http://ws.apache.org/ns/synapse", "returns");
     private static final javax.xml.namespace.QName FIELD_Q = new javax.xml.namespace.QName("http://ws.apache.org/ns/synapse", "field");
+    private static final javax.xml.namespace.QName EXAMPLE_Q = new javax.xml.namespace.QName("http://ws.apache.org/ns/synapse", "example");
 
     private static final javax.xml.namespace.QName DESCRIPTION_Q = new javax.xml.namespace.QName("description");
     private static final javax.xml.namespace.QName PATH_Q = new javax.xml.namespace.QName("path");
@@ -294,7 +295,7 @@ public class CarAnalyzer {
             generator.writeStringField("description", aii.description);
         }
 
-        if (aii.fields != null && !aii.fields.isEmpty()) {
+        if (aii.fields != null) {
             generator.writeArrayFieldStart("fields");
             for (Artifact.ArtifactIntefaceField f : aii.fields) {
                 generator.writeStartObject();
@@ -304,6 +305,10 @@ public class CarAnalyzer {
                 generator.writeEndObject();
             }
             generator.writeEndArray();
+        }
+
+        if (aii.example != null) {
+            generator.writeStringField("example", aii.example);
         }
     }
 
@@ -501,6 +506,22 @@ public class CarAnalyzer {
 
             if (!description.isEmpty()) {
                 aii.description = description;
+            }
+        }
+
+        OMElement exampleElement = infoElement.getFirstChildWithName(EXAMPLE_Q);
+        if (exampleElement != null) {
+            exampleElement = exampleElement.getFirstElement();
+
+            if (exampleElement != null) {
+                String example = exampleElement.toString();
+                if (example != null) {
+                    example = example.trim();
+
+                    if (!example.isEmpty()) {
+                        aii.example = example;
+                    }
+                }
             }
         }
 
@@ -863,6 +884,7 @@ public class CarAnalyzer {
         @JsonInclude(JsonInclude.Include.NON_NULL)
         private static class ArtifactInterfaceInfo {
             private String description;
+            private String example;
 
             private List<ArtifactIntefaceField> fields;
 
