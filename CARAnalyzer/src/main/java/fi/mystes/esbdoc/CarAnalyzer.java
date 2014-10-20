@@ -239,27 +239,31 @@ public class CarAnalyzer {
 
         generator.writeObjectFieldStart("forward");
         for (Map.Entry<Artifact, Set<Dependency>> entry : forwardDependencyMap.entrySet()) {
-            generator.writeObjectFieldStart(entry.getKey().getName());
+            generator.writeArrayFieldStart(entry.getKey().getName());
+
             for (Dependency d : entry.getValue()) {
+                // Currently only Artifacts are included in the JSON output
                 if (d.getDependency() instanceof Artifact) {
-                    generator.writeObjectFieldStart(((Artifact)d.getDependency()).getName());
+                    generator.writeStartObject();
+                    generator.writeStringField("target", ((Artifact)d.getDependency()).getName());
                     generator.writeStringField("type", d.getType().toString());
                     generator.writeEndObject();
                 }
             }
-            generator.writeEndObject();
+            generator.writeEndArray();
         }
         generator.writeEndObject();
 
         generator.writeObjectFieldStart("reverse");
         for (Map.Entry<Artifact, Set<Dependency>> entry : reverseDependencyMap.entrySet()) {
-            generator.writeObjectFieldStart(entry.getKey().getName());
+            generator.writeArrayFieldStart(entry.getKey().getName());
             for (Dependency d : entry.getValue()) {
-                generator.writeObjectFieldStart(d.dependent.getName());
+                generator.writeStartObject();
+                generator.writeStringField("source", d.dependent.getName());
                 generator.writeStringField("type", d.getType().toString());
                 generator.writeEndObject();
             }
-            generator.writeEndObject();
+            generator.writeEndArray();
         }
         generator.writeEndObject();
 
