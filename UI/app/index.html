@@ -48,8 +48,18 @@
             <div ng-if="selected.resource">
               <h1>{{esbDoc.resources[selected.resource].type ? esbDoc.resources[selected.resource].type : 'Resource'}}: {{esbDoc.resources[selected.resource].humanizedName}}</h1>
               <p><big>{{esbDoc.resources[selected.resource].purpose}}</big></p>
-              <p><b>Receives:</b> {{esbDoc.resources[selected.resource].receives}}</p>
-              <p><b>Returns:</b> {{esbDoc.resources[selected.resource].returns}}</p>
+              <p><b>Receives:</b> {{esbDoc.resources[selected.resource].receives.description}}</p>
+              <ul ng-if="esbDoc.resources[selected.resource].receives.fields">
+                <li ng-repeat="field in esbDoc.resources[selected.resource].receives.fields">
+                  {{field.path}} : {{field.description}}<span ng-if="field.optional !== true">*</span>
+                </li>
+              </ul>
+              <p><b>Returns:</b> {{esbDoc.resources[selected.resource].returns.description}}</p>
+              <ul ng-if="esbDoc.resources[selected.resource].returns.fields">
+                <li ng-repeat="field in esbDoc.resources[selected.resource].returns.fields">
+                  {{field.path}} : {{field.description}}<span ng-if="field.optional !== true">*</span>
+                </li>
+              </ul>
             </div>
 
             <svg ng-if="selected.resource" id="dagre">
