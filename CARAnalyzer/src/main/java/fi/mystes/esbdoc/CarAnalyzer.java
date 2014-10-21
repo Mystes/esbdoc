@@ -64,7 +64,6 @@ public class CarAnalyzer {
     private static final javax.xml.namespace.QName OPTIONAL_Q = new javax.xml.namespace.QName("optional");
 
     private static final String[] IGNORED_ARTIFACT_TYPE_STRINGS = {
-            "registry/resource",
             "synapse/local-entry"
     };
 
@@ -108,6 +107,9 @@ public class CarAnalyzer {
     private static final String CUSTOM_CALLOUT_XPATH_STRING = "//s:customCallout/@serviceURL";
 
     private static final String ENDPOINT_ADDRESS_XPATH_STRING = "/s:endpoint/s:address/@uri";
+
+    private static final String SCRIPT_RESOURCE_XPATH_STRING = "//s:script/@key";
+    private static final String XSLT_RESOURCE_XPATH_STRING = "//s:xslt/@key";
 
     // There is a potential point of discontinuity here since it can be quite non-trivial to determine the destination of a message stored in a message store
     private static final String STORE_XPATH_STRING = "//s:store/@messageStore";
@@ -440,13 +442,18 @@ public class CarAnalyzer {
 
         String artifactFilePath = artifactFilenameXPath.evaluateSingle().toString();
 
-        String artifactName = getRealNameForArtifact(carFile.toString() + dependencyDirectory + artifactFilePath);
-
-        Artifact.ArtifactDescription description = getArtifactDescription(carFile.toString() + dependencyDirectory + artifactFilePath);
-
         String artifactTypeString = artifactFileXml.getAttributeValue(TYPE_Q);
 
         Artifact.ArtifactType artifactType = Artifact.ArtifactType.getArtifactTypeByTypeString(artifactTypeString);
+
+        String artifactName = null;
+        if (artifactType == Artifact.ArtifactType.RESOURCE) {
+            artifactName = dependencyName;
+        } else {
+            artifactName = getRealNameForArtifact(carFile.toString() + dependencyDirectory + artifactFilePath);
+        }
+
+        Artifact.ArtifactDescription description = getArtifactDescription(carFile.toString() + dependencyDirectory + artifactFilePath);
 
         if (artifactType == null && !IGNORED_ARTIFACT_TYPES.contains(artifactTypeString)) {
             log.warn("Unrecognized artifact type: " + artifactTypeString);
@@ -680,6 +687,11 @@ public class CarAnalyzer {
                     return getArtifactFromHttpUri(uri);
                 } else if ("jms".equals(scheme)) {
                     return getArtifactFromJsmUri(uri);
+                } else if ("gov".equals(scheme) || "conf".equals(scheme)) {
+                    return getArtifactFromRegistyUri(uri);
+                }
+                else {
+                    System.out.println("Unrecognized URI scheme for URI: " + uri.toString());
                 }
             } catch (URISyntaxException e) {
                 System.out.println("Unparseable URI: " + str);
@@ -700,6 +712,10 @@ public class CarAnalyzer {
         return str.replace('\\', '/');
     }
 
+    private Artifact getArtifactFromRegistyUri(URI uri) {
+        return getArtifactFromPath(uri.getSchemeSpecificPart());
+    }
+
     /**
      * Attemps to find a dependency by examining the URI path
      *
@@ -715,7 +731,15 @@ public class CarAnalyzer {
      * @return
      */
     private Artifact getArtifactFromHttpUri(URI uri) {
-        String path = uri.getPath();
+        return getArtifactFromPath(uri.getPath());
+    }
+
+    /**
+     * Attemps to resolve an Artifact's name from a path String one path element at a time
+     * @param path
+     * @return
+     */
+    private Artifact getArtifactFromPath(String path) {
         String[] pathComponents = path.split("/");
         // Attempt to find an artifact from URL components
         for (String pathComponent : pathComponents) {
@@ -918,6 +942,7 @@ public class CarAnalyzer {
             SEQUENCE("synapse/sequence", "sequence"),
             ENDPOINT("synapse/endpoint", "endpoint"),
             API("synapse/api", "api"),
+            RESOURCE("registry/resource", "resource"),
             MESSAGE_PROCESSOR("synapse/message-processors", "messageProcessor"),
             MESSAGE_STORE("synapse/message-store", "messageStore"),
             TASK("synapse/task", "task"),
@@ -970,6 +995,7 @@ public class CarAnalyzer {
             CALL("call", CALL_ENDPOINT_XPATH_STRING, CALL_ADDRESS_XPATH_STRING),
             CALLOUT("callout", CALLOUT_XPATH_STRING, CUSTOM_CALLOUT_XPATH_STRING),
             ENDPOINT("endpoint", ENDPOINT_ADDRESS_XPATH_STRING),
+            REGISTRY("registry", SCRIPT_RESOURCE_XPATH_STRING, XSLT_RESOURCE_XPATH_STRING),
             STORE("store", STORE_XPATH_STRING),
             MESSAGE_PROCESSOR_STORE("messageStore", MESSAGE_PROCESSOR_STORE_XPATH_STRING),
             TASK_INJECT("inject", TASK_TARGET_XPATH_STRING),
