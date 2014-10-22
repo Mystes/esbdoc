@@ -16,7 +16,11 @@ https://www.npmjs.org/doc/README.html
 
 ### Install project dependencies and Grunt
 
+cd into the UI directory
+
 (use sudo if unsuccessfull otherwise)
+
+(if you have just updated to Mac OS X yosemite, this might help: xcode-select --install)
 
 > sudo gem install sass
 
@@ -26,7 +30,7 @@ https://www.npmjs.org/doc/README.html
 
 > npm update
 
-> npm install -g bower grunt-cli
+> sudo npm install -g bower grunt-cli
 
 > bower install
 
