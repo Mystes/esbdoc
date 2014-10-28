@@ -18,6 +18,7 @@ package fi.mystes.esbdoc;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -40,46 +41,29 @@ public class MyMojo
      */
     private File outputDirectory;
 
-    private File carPath
+    /**
+     * @parameter
+     */
+    private File carPath;
 
     public void execute()
         throws MojoExecutionException
     {
-        System.out.println("BLAABLAA")
-        File f = outputDirectory;
+        System.out.println("BLAABLAA");
 
 
-        if ( !f.exists() )
+        if ( !outputDirectory.exists() )
         {
-            f.mkdirs();
+            outputDirectory.mkdirs();
         }
 
-        File touch = new File( f, "touch.txt" );
+        File carFile = new File( outputDirectory, carPath.getName() );
 
-        FileWriter w = null;
-        try
-        {
-            w = new FileWriter( touch );
+        try {
+            FileUtils.copyFile(carPath, carFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-            w.write( "touch.txt" );
-        }
-        catch ( IOException e )
-        {
-            throw new MojoExecutionException( "Error creating file " + touch, e );
-        }
-        finally
-        {
-            if ( w != null )
-            {
-                try
-                {
-                    w.close();
-                }
-                catch ( IOException e )
-                {
-                    // ignore
-                }
-            }
-        }
     }
 }
