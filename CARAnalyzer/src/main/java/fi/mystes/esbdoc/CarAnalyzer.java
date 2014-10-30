@@ -69,6 +69,10 @@ public class CarAnalyzer {
     private static final QName SOAPUI_TEST_CASE_Q = new QName("http://eviware.com/soapui/config", "testCase");
     private static final QName SOAPUI_TEST_STEP_Q = new QName("http://eviware.com/soapui/config", "testStep");
     private static final QName SOAPUI_ENDPOINT_Q = new QName("http://eviware.com/soapui/config", "endpoint");
+    private static final QName SOAPUI_PROPERTIES_Q = new QName("http://eviware.com/soapui/config", "properties");
+    private static final QName SOAPUI_PROPERTY_Q = new QName("http://eviware.com/soapui/config", "property");
+    private static final QName SOAPUI_VALUE_Q = new QName("http://eviware.com/soapui/config", "value");
+    private static final QName SOAPUI_NAME_Q = new QName("http://eviware.com/soapui/config", "name");
 
     private static final String[] IGNORED_ARTIFACT_TYPE_STRINGS = {
             "synapse/local-entry"
@@ -149,6 +153,8 @@ public class CarAnalyzer {
     private SortedMap<Artifact, Set<Dependency>> reverseDependencyMap = new TreeMap<Artifact, Set<Dependency>>();
 
     private SortedMap<String, Set<TestProject>> testsMap = new TreeMap<String, Set<TestProject>>();
+
+    private List<String> forbiddenArtifactNames = new ArrayList<String>(Arrays.asList("services"));
 
     private FileSystemManager fsm;
 
@@ -294,12 +300,12 @@ public class CarAnalyzer {
         generator.writeObjectFieldStart("tests");
         for (Map.Entry<String, Set<TestProject>> entry : testsMap.entrySet()) {
             generator.writeArrayFieldStart(entry.getKey());
-            for (TestProject d : entry.getValue()) {
+            for (TestProject p : entry.getValue()) {
                 generator.writeStartObject();
-                generator.writeStringField("project", d.getName());
-                generator.writeStringField("filename", d.getFilename());
+                generator.writeStringField("project", p.getName());
+                generator.writeStringField("filename", p.getFilename());
                 generator.writeArrayFieldStart("suites");
-                for (TestSuite s : d.getTestSuites()) {
+                for (TestSuite s : p.getTestSuites()) {
                     generator.writeStartObject();
                     generator.writeStringField("name", s.getName());
                     generator.writeArrayFieldStart("cases");
@@ -480,7 +486,9 @@ public class CarAnalyzer {
                     addTestProjectForArtifact(artifact, project);
 
                     // Add also test references to all forward dependencies
-                    addTestsToForwardDependencies(artifact, project);
+                    // List is created to keep track that we are adding references to certain artifact only once
+                    List<String> artifactList = new ArrayList<String>();
+                    addTestsToForwardDependencies(artifact, project, artifactList);
                 }
             }
         }
@@ -495,36 +503,54 @@ public class CarAnalyzer {
      * @throws SaxonApiException
      */
     private SortedMap<String, Set<TestSuite>> buildTestSuiteMap(XdmNode soapUIProjectRoot) throws IOException, SaxonApiException {
+        SortedMap<String, String> testProjectPropertiesMap = new TreeMap<String, String>();
+        processProperties(soapUIProjectRoot, testProjectPropertiesMap, TestProject.PropertyType.PROJECT);
+
         XdmSequenceIterator testSuites = soapUIProjectRoot.axisIterator(Axis.DESCENDANT, SOAPUI_TEST_SUITE_Q);
         SortedMap<String, Set<TestSuite>> testSuiteMap = new TreeMap<String, Set<TestSuite>>();
 
         // let's start going through all the test suites in project file
         while (testSuites.hasNext()) {
             XdmItem testSuite = testSuites.next();
+
             if (testSuite instanceof XdmNode) {
+                XdmNode testSuiteNode = (XdmNode) testSuite;
+                SortedMap<String, String> testSuitePropertiesMap = new TreeMap<String, String>(testProjectPropertiesMap);
+
+                processProperties(testSuiteNode, testSuitePropertiesMap, TestProject.PropertyType.TEST_SUITE);
 
                 // iterate through all the test cases under test suite
-                XdmSequenceIterator testCases = ((XdmNode) testSuite).axisIterator(Axis.DESCENDANT, SOAPUI_TEST_CASE_Q);
+                XdmSequenceIterator testCases = testSuiteNode.axisIterator(Axis.DESCENDANT, SOAPUI_TEST_CASE_Q);
                 SortedMap<String, Set<TestCase>> testCaseMap = new TreeMap<String, Set<TestCase>>();
 
                 while (testCases.hasNext()) {
                     XdmItem testCase = testCases.next();
                     if (testCase instanceof XdmNode) {
+                        XdmNode testCaseNode = (XdmNode) testCase;
 
                         // iterate through all the test steps under test cases
-                        XdmSequenceIterator testSteps = ((XdmNode) testCase).axisIterator(Axis.DESCENDANT, SOAPUI_TEST_STEP_Q);
+                        XdmSequenceIterator testSteps = testCaseNode.axisIterator(Axis.DESCENDANT, SOAPUI_TEST_STEP_Q);
                         while (testSteps.hasNext()) {
                             XdmItem testStep = testSteps.next();
                             if (testStep instanceof XdmNode) {
+                                XdmNode testStepNode = (XdmNode) testStep;
 
                                 // if endpoint found and it matches an artifact, add it to the map
-                                XdmSequenceIterator endpoints = ((XdmNode) testStep).axisIterator(Axis.DESCENDANT, SOAPUI_ENDPOINT_Q);
+                                XdmSequenceIterator endpoints = testStepNode.axisIterator(Axis.DESCENDANT, SOAPUI_ENDPOINT_Q);
                                 if (endpoints.hasNext()) {
+                                    SortedMap<String, String> testCasePropertiesMap = new TreeMap<String, String>();
+
+                                    // combine project, test suite and test case properties
+                                    processProperties(testCaseNode, testCasePropertiesMap, TestProject.PropertyType.TEST_CASE);
+                                    testCasePropertiesMap.putAll(testSuitePropertiesMap);
+
                                     XdmNode endpoint = (XdmNode) endpoints.next();
                                     if (endpoint.getNodeKind() == XdmNodeKind.ELEMENT) {
-                                        Artifact fact = getArtifactFromString(endpoint.getStringValue());
+
+                                        String propertyHandledEndpoint = replaceTestPropertyInUrl(endpoint.getStringValue(), testCasePropertiesMap);
+                                        Artifact fact = getArtifactFromString(propertyHandledEndpoint);
                                         if (fact != null) {
-                                            TestCase c = new TestCase(((XdmNode) testCase).getAttributeValue(NAME_Q));
+                                            TestCase c = new TestCase(testCaseNode.getAttributeValue(NAME_Q));
                                             if (!testCaseMap.containsKey(fact.getName())) {
                                                 HashSet<TestCase> cases = new HashSet<TestCase>();
                                                 testCaseMap.put(fact.getName(), cases);
@@ -557,18 +583,79 @@ public class CarAnalyzer {
     }
 
     /**
+     * This method receives node that has properties-node child (soapui-project, testSuite or testCase). Method goes through
+     * all property elements and add keys and values to given map
+     * @param propertiesParent
+     * @param currentPropertiesMap
+     * @param type
+     */
+    private void processProperties(XdmNode propertiesParent, SortedMap<String, String> currentPropertiesMap, TestProject.PropertyType type) {
+        // if TestSuite has properties
+        if (propertiesParent.axisIterator(Axis.CHILD, SOAPUI_PROPERTIES_Q).hasNext()) {
+            XdmNode propertiesNode = (XdmNode) propertiesParent.axisIterator(Axis.CHILD, SOAPUI_PROPERTIES_Q).next();
+
+            XdmSequenceIterator propertyNodes = propertiesNode.axisIterator(Axis.CHILD, SOAPUI_PROPERTY_Q);
+            SortedMap<String, String> propertiesMap = new TreeMap<String, String>();
+
+            while (propertyNodes.hasNext()) {
+                XdmNode property = (XdmNode) propertyNodes.next();
+
+                XdmNode name = getChild(property, SOAPUI_NAME_Q);
+                XdmNode value = getChild(property, SOAPUI_VALUE_Q);
+
+                if (value != null) {
+                    // it's a test case property
+                    String key;
+                    if (TestProject.PropertyType.TEST_CASE == type) {
+                        key = "${#TestCase#" + name.getStringValue() + "}";
+                    } else if (TestProject.PropertyType.TEST_SUITE == type) {
+                        key = "${#TestSuite#" + name.getStringValue() + "}";
+                    } else {
+                        key = "${#Project#" + name.getStringValue() + "}";
+                    }
+
+                    currentPropertiesMap.put(key, value.getStringValue());
+                }
+            }
+        }
+    }
+
+    private String replaceTestPropertyInUrl(String url, SortedMap<String, String> propertiesMap) {
+        if (url.contains("${")) {
+            String key = url.substring(url.indexOf("${"), url.indexOf("}") + 1);
+            String value = propertiesMap.get(key);
+            String newUrl = url.replace(key,value);
+            return newUrl;
+        }
+        return url;
+    }
+
+    private XdmNode getChild(XdmNode parent, QName childName) {
+        XdmSequenceIterator iter = parent.axisIterator(Axis.CHILD, childName);
+        if (iter.hasNext()) {
+            return (XdmNode)iter.next();
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * Adds given TestProject to all forward dependencies of given artifact.
      * @param artifactName
      * @param project
+     * @param artifactList recursion keeps track of added artifacts with given list. Artifact is only processed if it has not been processed before (= not in the given list)
      */
-    private void addTestsToForwardDependencies(String artifactName, TestProject project) {
+    private void addTestsToForwardDependencies(String artifactName, TestProject project, List<String> artifactList) {
         Artifact artifact = getArtifactFromString(artifactName);
         if (forwardDependencyMap.containsKey(artifact)) {
             for (Dependency d : forwardDependencyMap.get(artifact)) {
                 if (d.getDependency() instanceof Artifact) {
                     Artifact a = (Artifact) d.getDependency();
-                    addTestProjectForArtifact(a.getName(),project);
-                    addTestsToForwardDependencies(a.getName(),project);
+                    if (!artifactList.contains(a.getName())) {
+                        addTestProjectForArtifact(a.getName(), project);
+                        artifactList.add(a.getName());
+                        addTestsToForwardDependencies(a.getName(), project, artifactList);
+                    }
                 }
             }
         }
@@ -669,7 +756,13 @@ public class CarAnalyzer {
             return null;
         }
 
-        return new Artifact(artifactName, dependencyVersion, artifactType, dependencyDirectory + artifactFilePath, carFile.toString(), description);
+        // some artifact names might be forbidden. Like in some projects there is a "services" resources in use in registry.
+        // That name is bad for url parsing because "services" is found in every url
+        if (!forbiddenArtifactNames.contains(artifactName)) {
+            return new Artifact(artifactName, dependencyVersion, artifactType, dependencyDirectory + artifactFilePath, carFile.toString(), description);
+        } else {
+            return null;
+        }
     }
 
     private Artifact.ArtifactDescription getArtifactDescription(String artifactFilePath) throws IOException, JaxenException {
@@ -1188,6 +1281,27 @@ public class CarAnalyzer {
      * Represents a single TestProject
      */
     public static class TestProject implements Comparable<TestProject> {
+
+        public enum PropertyType {
+            PROJECT("Project"),
+            TEST_SUITE("TestSuite"),
+            TEST_CASE("TestCase");
+
+            final String prefixString;
+
+            public String getPrefixString() {
+                return prefixString;
+            }
+
+            PropertyType(String prefixString) {
+                this.prefixString = prefixString;
+            }
+
+            @Override
+            public String toString() {
+                return prefixString;
+            }
+        }
 
         private final String name;
         private final String filename;
