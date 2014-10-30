@@ -65,6 +65,7 @@ public class CarAnalyzer {
     private static final javax.xml.namespace.QName PATH_Q = new javax.xml.namespace.QName("path");
     private static final javax.xml.namespace.QName OPTIONAL_Q = new javax.xml.namespace.QName("optional");
 
+    private static final QName SOAPUI_PROJECT_Q = new QName("http://eviware.com/soapui/config", "soapui-project");
     private static final QName SOAPUI_TEST_SUITE_Q = new QName("http://eviware.com/soapui/config", "testSuite");
     private static final QName SOAPUI_TEST_CASE_Q = new QName("http://eviware.com/soapui/config", "testCase");
     private static final QName SOAPUI_TEST_STEP_Q = new QName("http://eviware.com/soapui/config", "testStep");
@@ -137,7 +138,7 @@ public class CarAnalyzer {
             "  [carFiles]: comma-separated list of car file names\n" +
             "  [outputFile]: full name of the output file WITHOUT extension.\n" +
             "                Two files will be created, one with a .txt extension and another with a .json extension.\n" +
-            "  [soapUIFiles]: comma-separated list of SoapUI file names. (Optional argument)";
+            "  [soapUIFolders]: comma-separated list of SoapUI folder names. (Optional argument)";
 
     private AXIOMXPath xpath;
 
@@ -410,28 +411,47 @@ public class CarAnalyzer {
 
     /**
      * Returns a list of Apache VFS FileObjects pointing to the parameter SoapUI test files
-     * @param testFileNames a semicolon separated list of car file paths
+     * @param testFileFolderNames a semicolon separated list of car file paths
      * @return
      * @throws FileSystemException
      */
-    private List<FileObject> getTestFileObjects(String testFileNames) throws FileSystemException {
-        if (testFileNames != null) {
-            log.info(testFileNames);
-            String[] testFileNameArray = testFileNames.split(FILE_SEPARATOR);
-            List<FileObject> testFileObjects = new ArrayList<FileObject>(testFileNameArray.length);
+    private List<FileObject> getTestFileObjects(String testFileFolderNames) throws FileSystemException, IOException, SaxonApiException {
+        if (testFileFolderNames != null) {
+            String[] testFileFolderArray = testFileFolderNames.split(FILE_SEPARATOR);
+            List<FileObject> testFileObjects = new ArrayList<FileObject>();
 
-            for (String testFileName : testFileNameArray) {
-                File f = new File(testFileName);
+            for (String testFolderName : testFileFolderArray) {
+                File f = new File(testFolderName);
                 if (f.exists()) {
-                    testFileObjects.add(fsm.resolveFile(f.getAbsolutePath()));
+                    File[] listOfFiles = f.listFiles();
+                    for (File file : listOfFiles) {
+                        if (file.getName().contains(".xml") && isSoapUIFile(fsm.resolveFile(file.getAbsolutePath()))) {
+                            testFileObjects.add(fsm.resolveFile(file.getAbsolutePath()));
+                        }
+                    }
                 } else {
-                    log.warn(MessageFormat.format("The specified SoapUI file [{0}] does not exist.", testFileName));
+                    log.warn(MessageFormat.format("The specified SoapUI folder [{0}] does not exist.", testFolderName));
                 }
             }
 
             return testFileObjects;
         }
         return null;
+    }
+
+    /**
+     * Checks if file contains soapui project element as root to confirm it is a SoapUI file
+     * @param file
+     * @return
+     * @throws IOException
+     * @throws SaxonApiException
+     */
+    private boolean isSoapUIFile (FileObject file) throws IOException, SaxonApiException {
+        if (file != null) {
+            XdmNode soapUINode = getNodeFromFileObject(file);
+            return soapUINode.getNodeName().equals(SOAPUI_PROJECT_Q);
+        }
+        return false;
     }
 
     /**
