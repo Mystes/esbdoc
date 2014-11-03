@@ -16,54 +16,51 @@ package fi.mystes.esbdoc;
  * limitations under the License.
  */
 
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.vfs2.FileSystemManager;
+import org.apache.commons.vfs2.VFS;
+
+import fi.mystes.esbdoc.CarAnalyzer;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Goal which touches a timestamp file.
  *
- * @goal touch
- * 
- * @phase process-sources
+ * @goal generate
  */
 public class MyMojo
     extends AbstractMojo
 {
     /**
      * Location of the file.
-     * @parameter expression="${project.build.directory}"
+     * @parameter
      * @required
      */
-    private File outputDirectory;
+    private File outputFileDestination;
 
     /**
      * @parameter
      */
-    private File carPath;
+    private File[] carFiles;
 
-    public void execute()
-        throws MojoExecutionException
-    {
-        System.out.println("BLAABLAA");
+    /**
+     * @parameter
+     */
+    private File[] soapUIFolders;
 
-
-        if ( !outputDirectory.exists() )
-        {
-            outputDirectory.mkdirs();
-        }
-
-        File carFile = new File( outputDirectory, carPath.getName() );
-
+    public void execute() throws MojoExecutionException {
         try {
-            FileUtils.copyFile(carPath, carFile);
-        } catch (IOException e) {
+            CarAnalyzer car = new CarAnalyzer();
+            car.run(carFiles, outputFileDestination.getAbsolutePath(), soapUIFolders);
+        } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 }

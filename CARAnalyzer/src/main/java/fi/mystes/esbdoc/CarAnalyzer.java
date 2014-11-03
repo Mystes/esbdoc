@@ -174,12 +174,18 @@ public class CarAnalyzer {
         xpath.addNamespace("s", "http://ws.apache.org/ns/synapse");
     }
 
-    public void run(List<FileObject> carFileObjects, String outputFilename, List<FileObject> testFileObjects) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
+    private void processFileObjects(List<FileObject> carFileObjects, String outputDestination, List<FileObject> testFileObjects) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
         getArtifactMap(carFileObjects);
         getForwardDependencyMap();
         buildTestFileMap(testFileObjects);
 
-        writeOutputFiles(outputFilename);
+        writeOutputFiles(outputDestination);
+    }
+
+    public void run(File[] carFiles, String outputDestination, File[] testFolders) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException  {
+        List<FileObject> carFileObjects = this.getCarFileObjects(carFiles);
+        List<FileObject> testFileObjects = this.getTestFileObjects(testFolders);
+        processFileObjects(carFileObjects,outputDestination,testFileObjects);
     }
 
     public static void main(String[] args) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
@@ -198,7 +204,7 @@ public class CarAnalyzer {
             testFileObjects = cct.getTestFileObjects(args[2]);
         }
 
-        cct.run(carFileObjects, outputFilename, testFileObjects);
+        cct.processFileObjects(carFileObjects, outputFilename, testFileObjects);
 
         log.info("Done!");
     }
@@ -398,15 +404,36 @@ public class CarAnalyzer {
         List<FileObject> carFileObjects = new ArrayList<FileObject>(carNameArray.length);
 
         for (String carName : carNameArray) {
-            File f = new File(carName);
-            if (f.exists()) {
-                carFileObjects.add(fsm.resolveFile("zip:" + f.getAbsolutePath()));
-            } else {
-                log.warn(MessageFormat.format("The specified car file [{0}] does not exist.", carName));
-            }
+            carFileObjects.add(getCarFileObject(carName));
         }
 
         return carFileObjects;
+    }
+
+    /**
+     * Returns a list of Apache VFS FileObjects pointing to the parameter car files
+     * @param carFiles an array of car files
+     * @return
+     * @throws FileSystemException
+     */
+    private List<FileObject> getCarFileObjects(File[] carFiles) throws FileSystemException {
+        List<FileObject> carFileObjects = new ArrayList<FileObject>(carFiles.length);
+
+        for (File carFile : carFiles) {
+            carFileObjects.add(getCarFileObject(carFile.getAbsolutePath()));
+        }
+
+        return carFileObjects;
+    }
+
+    public FileObject getCarFileObject(String carFile) throws FileSystemException {
+        File f = new File(carFile);
+        if (f.exists()) {
+            return fsm.resolveFile("zip:" + f.getAbsolutePath());
+        } else {
+            log.warn(MessageFormat.format("The specified car file [{0}] does not exist.", carFile));
+        }
+        return null;
     }
 
     /**
@@ -421,22 +448,47 @@ public class CarAnalyzer {
             List<FileObject> testFileObjects = new ArrayList<FileObject>();
 
             for (String testFolderName : testFileFolderArray) {
-                File f = new File(testFolderName);
-                if (f.exists()) {
-                    File[] listOfFiles = f.listFiles();
-                    for (File file : listOfFiles) {
-                        if (file.getName().contains(".xml") && isSoapUIFile(fsm.resolveFile(file.getAbsolutePath()))) {
-                            testFileObjects.add(fsm.resolveFile(file.getAbsolutePath()));
-                        }
-                    }
-                } else {
-                    log.warn(MessageFormat.format("The specified SoapUI folder [{0}] does not exist.", testFolderName));
-                }
+                testFileObjects.addAll(getTestFileObjectsFromFolder(testFolderName));
             }
 
             return testFileObjects;
         }
         return null;
+    }
+
+    /**
+     * Returns a list of Apache VFS FileObjects pointing to the parameter SoapUI test files
+     * @param testFileFolders an array of folders
+     * @return
+     * @throws FileSystemException
+     */
+    private List<FileObject> getTestFileObjects(File[] testFileFolders) throws FileSystemException, IOException, SaxonApiException {
+        if (testFileFolders != null) {
+            List<FileObject> testFileObjects = new ArrayList<FileObject>();
+
+            for (File testFolder : testFileFolders) {
+                testFileObjects.addAll(getTestFileObjectsFromFolder(testFolder.getAbsolutePath()));
+            }
+
+            return testFileObjects;
+        }
+        return null;
+    }
+
+    public List<FileObject> getTestFileObjectsFromFolder(String folderName) throws FileSystemException, IOException, SaxonApiException {
+        List<FileObject> testFileObjects = new ArrayList<FileObject>();
+        File f = new File(folderName);
+        if (f.exists()) {
+            File[] listOfFiles = f.listFiles();
+            for (File file : listOfFiles) {
+                if (file.getName().contains(".xml") && isSoapUIFile(fsm.resolveFile(file.getAbsolutePath()))) {
+                    testFileObjects.add(fsm.resolveFile(file.getAbsolutePath()));
+                }
+            }
+        } else {
+            log.warn(MessageFormat.format("The specified SoapUI folder [{0}] does not exist.", folderName));
+        }
+        return testFileObjects;
     }
 
     /**
