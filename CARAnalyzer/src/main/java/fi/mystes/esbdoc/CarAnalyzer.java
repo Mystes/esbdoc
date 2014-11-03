@@ -174,6 +174,14 @@ public class CarAnalyzer {
         xpath.addNamespace("s", "http://ws.apache.org/ns/synapse");
     }
 
+    public void run(List<FileObject> carFileObjects, String outputFilename, List<FileObject> testFileObjects) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
+        getArtifactMap(carFileObjects);
+        getForwardDependencyMap();
+        buildTestFileMap(testFileObjects);
+
+        writeOutputFiles(outputFilename);
+    }
+
     public static void main(String[] args) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
         log.info("Running...");
 
@@ -184,36 +192,28 @@ public class CarAnalyzer {
         }
 
         String outputFilename = args[1];
-
         List<FileObject> carFileObjects = cct.getCarFileObjects(args[0]);
-
-        cct.getArtifactMap(carFileObjects);
-
-        Map<Artifact, Set<Dependency>> dependencyMap = cct.getForwardDependencyMap();
-
+        List<FileObject> testFileObjects = null;
         if (args.length > 2) {
-            List<FileObject> testFileObjects = cct.getTestFileObjects(args[2]);
-
-            cct.buildTestFileMap(testFileObjects);
+            testFileObjects = cct.getTestFileObjects(args[2]);
         }
 
+        cct.run(carFileObjects, outputFilename, testFileObjects);
+
+        log.info("Done!");
+    }
+
+    private void writeOutputFiles(String outputFilename) throws FileNotFoundException, IOException {
         new File(outputFilename).getParentFile().mkdirs();
 
         FileOutputStream fis = null;
         fis = new FileOutputStream(new File(outputFilename + ".txt"));
-        cct.writeText(fis);
+        writeText(fis);
         fis.close();
 
         fis = new FileOutputStream(new File(outputFilename + ".json"));
-        cct.writeJson(fis);
+        writeJson(fis);
         fis.close();
-
-        // The dependencies (including transitive ones) for a specific proxy are printed to the console as a test.
-        //for (Dependency d : cct.getDependencyList(cct.artifactMap.get("Billing_processFixedLengthZLaskuProxy"))) {
-        //    System.out.println(d);
-        //}
-
-        log.info("Done!");
     }
 
     private static boolean checkInput(String[] args) {
