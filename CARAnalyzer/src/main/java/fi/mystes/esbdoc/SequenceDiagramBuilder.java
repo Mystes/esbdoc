@@ -1,5 +1,6 @@
 package fi.mystes.esbdoc;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -18,29 +19,15 @@ import net.sf.saxon.s9api.SaxonApiException;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
-import org.xml.sax.helpers.AttributesImpl;
 import org.xml.sax.helpers.DefaultHandler;
-
-import fi.mystes.esbdoc.handlers.ClassHandler;
-import fi.mystes.esbdoc.handlers.ElementHandler;
-import fi.mystes.esbdoc.handlers.FilterElseHandler;
-import fi.mystes.esbdoc.handlers.FilterHandler;
-import fi.mystes.esbdoc.handlers.IterateHandler;
-import fi.mystes.esbdoc.handlers.ProxyHandler;
-import fi.mystes.esbdoc.handlers.SequenceHandler;
-import fi.mystes.esbdoc.handlers.StoreHandler;
-import fi.mystes.esbdoc.handlers.SwitchCaseHandler;
-import fi.mystes.esbdoc.handlers.SwitchDefaultHandler;
-import fi.mystes.esbdoc.handlers.SwitchHandler;
 
 public class SequenceDiagramBuilder {
 	
 	private String filesHome;
 	private Map<String,String> visited;
-	private ElementHandler elementHandler;
+	private StringBuilder output;
 	
 	public SequenceDiagramBuilder(String wso2Home) {
-	    
 	    filesHome = wso2Home + "/repository/deployment/server/synapse-configs/default/";
 	    visited = new HashMap<String, String>();
 	}
@@ -54,13 +41,11 @@ public class SequenceDiagramBuilder {
 	}
 	
 	public String buildPipe(String file){
-		elementHandler = null;
 		visited = new HashMap<String, String>();
+		output = new StringBuilder();
 		try {
 			build(file);
-			if (elementHandler != null) {
-				return elementHandler.toString();
-			}
+			return output.toString();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -83,7 +68,7 @@ public class SequenceDiagramBuilder {
      */
     public static void main(String[] args){
     	
-	    String result = new SequenceDiagramBuilder("/home/kreshnikg/Applications/wso2esb-4.5.1").buildPipe(args[6]);
+	    String result = new SequenceDiagramBuilder("/home/kreshnikg/Applications/wso2esb-4.5.1").buildPipe(args[7]);
 	    System.out.println(result);
     }
     
@@ -93,8 +78,7 @@ public class SequenceDiagramBuilder {
     	private SequenceDiagramBuilder diagramBuilder;
     	private String simpleIteratorSplitExpression;
     	private String simpleIteratorTarget;
-    	private AttributesImpl simpleIteratorAttributes;
-    	
+    	private boolean firstCase = true;
     	
     	public SAXHandler(SequenceDiagramBuilder builder) {
     		this.diagramBuilder = builder;
@@ -110,8 +94,39 @@ public class SequenceDiagramBuilder {
 				String proxyName = attributes.getValue("name");
 				root = proxyName;
 				visited.put(proxyName, "visited");
-				createAndPrepareElementHandler(ProxyHandler.class, new Object[]{proxyName});
-			} 
+				//createAndPrepareElementHandler(ProxyHandler.class, new Object[]{proxyName});
+			}
+			// handle endpoint file
+			else if (qName.equals("endpoint")) {
+				String name = attributes.getValue("name");
+				String callable = attributes.getValue("key");
+				//handle sequence file
+				if (name != null) {
+					root = name;
+					visited.put(name, "visited");
+					//createAndPrepareElementHandler(EndPointHandler.class, new Object[]{name});
+				} 
+				// handle callable endpoint
+				else if (callable != null) {
+					callEndPointOnDemand(callable);
+				} 
+				else {
+					//System.out.println("Unhandled endpoint type, skipping...");
+				}
+			}
+			else if (qName.equals("address")) {
+				String uriTarget = attributes.getValue("uri");
+				if (uriTarget.toLowerCase().contains("proxy")) {
+					String proxy = getTargetFromEndPointURI(attributes.getValue("uri"));
+					if (proxy != null) {
+						callProxyOnDemand(proxy);
+					} else {
+						//System.out.println("Unhandled uri: " + attributes.getValue("uri"));
+					}
+				} else {
+					callEndPointOnDemand("\""+uriTarget+"\"");
+				}
+			}
 			// handle sequence
 			else if (qName.equals("sequence")) {
 				String sequenceName = attributes.getValue("name");
@@ -120,7 +135,6 @@ public class SequenceDiagramBuilder {
 				if (sequenceName != null) {
 					root = sequenceName;
 					visited.put(sequenceName, "visited");
-					createAndPrepareElementHandler(SequenceHandler.class, new Object[]{sequenceName});
 				} 
 				// handle callable sequence
 				else if (callableSequence != null) {
@@ -138,66 +152,63 @@ public class SequenceDiagramBuilder {
                     // This should be URL so  resolve  target
 					service = getUrlTargetNode(service);
                 }
-				createAndPrepareElementHandler(ProxyHandler.class, new Object[]{service});
-				elementHandler.setCallee(root).setCallable(service);
-				try {
-					//in case of recursive proxy call
-					if (!visited.containsKey(service)){
-						diagramBuilder.build("proxy-services/"+service+"-1.0.0.xml");
-					}
-					
-				} catch (Exception e) {
-					//e.printStackTrace();
-				}
+				callProxyOnDemand(service);
 			}
 			// handler proxy's target's inSequence/outSequence
-			else if (qName.equals("target") && elementHandler.getClass().isAssignableFrom(ProxyHandler.class)) {
+			//else if (qName.equals("target") && elementHandler.getClass().isAssignableFrom(ProxyHandler.class)) {
+			else if (qName.equals("target")) {
 				// handle inSequennce/outSequence attributes
+				// target of proxy
 				if (attributes.getValue("inSequence") != null){
 					callSequenceOnDemand(attributes.getValue("inSequence"));
 				}
-				
+				//target of proxy
 				if (attributes.getValue("outSequence") != null){
 					callSequenceOnDemand(attributes.getValue("outSequence"));
+				}
+				// target of iterate mediator
+				if (attributes.getValue("sequence") != null){
+					callSequenceOnDemand(attributes.getValue("sequence"));
 				}
 			}
 			// handle filter
 			else if(qName.equals("filter")) {
-				createAndPrepareElementHandler(FilterHandler.class, new Object[]{attributes});
+				String condition = attributes.getValue("xpath");
+				if (condition == null) {
+					condition = attributes.getValue("source") + " == " + attributes.getValue("regex");
+				}
+				output.append("alt ").append(condition).append("\n");
 			}
 			// handle fitler's else
 			else if(qName.equals("else")) {
-				createAndPrepareElementHandler(FilterElseHandler.class, null);
+				output.append("else\n");
 			} 
 			// handle switch
 			else if(qName.equals("switch")) {
-				createAndPrepareElementHandler(SwitchHandler.class, new Object[]{attributes});
+				output.append("alt ").append(attributes.getValue("source")).append("");
+				firstCase = true;
 			} 
 			// handle switch's case
 			else if(qName.equals("case")) {
-				createAndPrepareElementHandler(SwitchCaseHandler.class, new Object[]{attributes});
+				if (!firstCase) {
+					output.append("else ");
+				} else {
+					output.append(" == ");
+					firstCase = false;
+				}
+				output.append("\"").append(attributes.getValue("regex")).append("\"\n");
 			} 
 			// handle switch's default
 			else if(qName.equals("default")) {
-				createAndPrepareElementHandler(SwitchDefaultHandler.class, null);
+				output.append("else\n");
 			}
 			// handle faultsequence as filter
 			else if(qName.equals("faultsequence")) {
-				AttributesImpl attrs = new AttributesImpl();
-				attrs.addAttribute(null, "xpath", "xpath", null, "SOAP fault occurred");
-				createAndPrepareElementHandler(FilterHandler.class, new Object[]{attrs});
+				output.append("alt SOAP fault occurred\n");
 			}
 			// handle iterate
 			else if(qName.equals("iterate")) {
-				createAndPrepareElementHandler(IterateHandler.class, new Object[]{attributes});
-			}
-			// target of iterate
-			else if (qName.equals("target") && elementHandler.getClass().isAssignableFrom(IterateHandler.class)) {
-				// handle sequence attributes
-				if (attributes.getValue("sequence") != null){
-					callSequenceOnDemand(attributes.getValue("sequence"));
-				}
-				
+				output.append("loop ").append(attributes.getValue("expression")).append("\n");
 			}
 			// handle simple iterator (custom)
 			else if (qName.equals("property") && attributes.getValue("name") != null) {
@@ -210,31 +221,18 @@ public class SequenceDiagramBuilder {
 			}
 			else if (qName.equals("spring") && attributes.getValue("bean") != null && attributes.getValue("bean").toLowerCase().equals("simpleiterator")) {
 				if (simpleIteratorSplitExpression != null && simpleIteratorTarget != null) {
-					simpleIteratorAttributes = new AttributesImpl();
-					simpleIteratorAttributes.addAttribute(null, "expression", "expression", null, simpleIteratorSplitExpression);
-					
-					createAndPrepareElementHandler(IterateHandler.class, new Object[]{simpleIteratorAttributes});
-					
-					callSequenceOnDemand(simpleIteratorTarget);
-					
-					simpleIteratorAttributes = null;
+					callOnDemand(simpleIteratorTarget, null);
 					simpleIteratorSplitExpression = null;
 					simpleIteratorTarget = null;
 				}
 			}
 			// handle callable store
 			else if(qName.toLowerCase().contains("store")) {
-				createAndPrepareElementHandler(StoreHandler.class, null);
-				if (elementHandler != null) {
-					elementHandler.setCallee(root).setCallable(attributes.getValue("messageStore"));
-				}
+				callOnDemand(attributes.getValue("messageStore"), null);
 			} 
 			//handle callable class
 			else if(qName.equals("class")) {
-				createAndPrepareElementHandler(ClassHandler.class, null);
-				if (elementHandler != null) {
-					elementHandler.setCallee(root).setCallable(attributes.getValue("name"));
-				}
+				callOnDemand(attributes.getValue("name"), null);
 			}
 		}
 		
@@ -242,22 +240,9 @@ public class SequenceDiagramBuilder {
 		public void endElement(String uri, String localName, String qName) throws SAXException {
 			super.endElement(uri, localName, qName);
 			qName = qName.toLowerCase();
-			if (!(!qName.equals("switch") 
-					&& !qName.equals("default") 
-					&& !qName.equals("case")
-					&& !qName.equals("sequence") 
-					&& !qName.equals("iterate") 
-					&& !qName.equals("class")
-					&& !qName.equals("filter") 
-					&& !qName.equals("else") 
-					&& !qName.equals("class") 
-					&& !(qName.equals("spring") && simpleIteratorAttributes == null)
-					&& !qName.equals("proxy")
-					&& !(qName.equals("target")) 
-					&& !qName.equals("store"))) {
-				if (elementHandler != null && elementHandler.getParent() != null) {
-					elementHandler = elementHandler.getParent();
-				}
+			
+			if(!(!qName.equals("iterate") && !qName.equals("switch") && !qName.equals("filter") && !qName.equals("faultsequence"))) {
+				output.append("end\n");
 			}
 		}
 		
@@ -270,7 +255,14 @@ public class SequenceDiagramBuilder {
 	            target = target.substring(target.lastIndexOf("/") + 1, target.length());
 	            //If it is  still on  notation xxx.yyy, use last part
 	            if (target.lastIndexOf(".") > 0) {
-	                target = target.substring(target.lastIndexOf(".") + 1, target.length());
+	            	int start = target.lastIndexOf(".") + 1;
+	            	int end = target.length();
+	            	if (target.toLowerCase().contains("endpoint")) {
+	            		end = start -1;
+	            		start = 0;
+	            	}
+	            	
+	                target = target.substring(start, end);
 	            }
 	            return target;
 	        } catch (MalformedURLException ex) {
@@ -279,31 +271,51 @@ public class SequenceDiagramBuilder {
 	        }
 	    }
 		
-		private void createAndPrepareElementHandler(Class<?> classToCreate, Object[] parameters) throws SAXException {
-			
-			try {
-				ElementHandler handler = elementHandler;
-				elementHandler = (ElementHandler)Class.forName(classToCreate.getName()).getConstructors()[0].newInstance(parameters);
-				if (handler != null) {
-					handler.addSubHandler(elementHandler);
-				}
-			} catch (Exception e) {
-				throw new SAXException(e);
-			} 
-		}
 		
 		private void callSequenceOnDemand(String name) throws SAXException{
-			createAndPrepareElementHandler(SequenceHandler.class, new Object[]{name});
-			elementHandler.setCallee(root).setCallable(name);
+			callOnDemand(name, "sequences");
+		}
+		
+		private void callProxyOnDemand(String name) throws SAXException{
+			callOnDemand(name, "proxy-services");
+		}
+		
+		private void callEndPointOnDemand(String name) throws SAXException{
+			callOnDemand(name, "endpoints");
+		}
+		
+		private void callOnDemand(String name, String dir) throws SAXException{
+			output.append(root).append(" ->+ ").append(name).append(":\n");
 			try {
 				//in case of recursive sequence call
 				if (!visited.containsKey(name)){
-					diagramBuilder.build("sequences/"+name+"-1.0.0.xml");
+					String tempName = name + "-1.0.0.xml";
+					if (fileExists(tempName, dir)) {
+						diagramBuilder.build(dir + "/" +tempName);
+					}
 				}
 				
 			} catch (Exception e) {
-				e.printStackTrace();
+				output.append(name).append(" ->- ").append(root).append(":\n");
+				throw new SAXException(e);
 			}
+			output.append(name).append(" ->- ").append(root).append(":\n");
+		}
+		
+		private boolean fileExists(String name, String dir){
+			File file = new File(filesHome + "/" + dir + "/" + name);
+			return file.exists() && file.isFile();
+		}
+		
+		private String getTargetFromEndPointURI(String uri){
+			//uri="http://localhost:8280/services/DeleteMacoContentsFromSSCOByQueueProxy"
+			//uri="jms:/GetMacoContentProductKeyQueueProxy?transport.jms.ConnectionFactoryJ...
+			if (uri.startsWith("http")) {
+				return getUrlTargetNode(uri);
+			} else if (uri.startsWith("jms")) {
+				return uri.split("\\?")[0].split("/")[1];
+			}
+			return null;
 		}
     }
 }
