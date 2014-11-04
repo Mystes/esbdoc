@@ -11,7 +11,7 @@
 angular.module('esbdocPocApp')
   .controller('MainCtrl', function ($scope, $timeout) {
 
-    $scope.selected = {resource: null};
+    $scope.selected = {resource: null, showDependencyMap: true};
 
     if(window.ESBDOCDATA) {
       $scope.esbDoc = window.ESBDOCDATA;
