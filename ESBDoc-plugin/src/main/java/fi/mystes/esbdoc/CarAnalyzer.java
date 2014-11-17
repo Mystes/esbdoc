@@ -3,6 +3,8 @@ package fi.mystes.esbdoc;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.SerializableString;
+import com.fasterxml.jackson.core.io.CharacterEscapes;
 import net.sf.saxon.s9api.Axis;
 import net.sf.saxon.s9api.DocumentBuilder;
 import net.sf.saxon.s9api.Processor;
@@ -354,14 +356,14 @@ public class CarAnalyzer {
 
     private void writeArtifactInterfaceInfoJson(Artifact.ArtifactInterfaceInfo aii, JsonGenerator generator) throws IOException {
         if (aii.description != null) {
-            generator.writeStringField("description", aii.description);
+            generator.writeStringField("description", removeLineBreaks(aii.description));
         }
 
         if (aii.fields != null) {
             generator.writeArrayFieldStart("fields");
             for (Artifact.ArtifactIntefaceField f : aii.fields) {
                 generator.writeStartObject();
-                generator.writeStringField("description", f.description);
+                generator.writeStringField("description", removeLineBreaks(f.description));
                 generator.writeStringField("path", f.path);
                 generator.writeBooleanField("optional", f.optional);
                 generator.writeEndObject();
@@ -370,11 +372,13 @@ public class CarAnalyzer {
         }
 
         if (aii.example != null) {
-            generator.writeStringField("example", aii.example);
+            generator.writeStringField("example", removeLineBreaks(aii.example));
         }
     }
 
-
+    private String removeLineBreaks(String text) {
+        return text.replace("\n","").replace("\r","").replace("\r\n","");
+    }
 
     private void buildDependencyList(Artifact a, List<Dependency> dependencyList, Set<Artifact> visitedNodes) {
         visitedNodes.add(a);
