@@ -78,7 +78,7 @@ public class CarAnalyzer {
     private static final QName SOAPUI_NAME_Q = new QName("http://eviware.com/soapui/config", "name");
 
     private static final String[] IGNORED_ARTIFACT_TYPE_STRINGS = {
-            "synapse/local-entry"
+        "synapse/local-entry"
     };
 
     private static final Set<String> IGNORED_ARTIFACT_TYPES = new HashSet<String>();
@@ -136,11 +136,11 @@ public class CarAnalyzer {
 
     private static final String TASK_TO_XPATH_STRING = "/s:task/s:property[@name = 'to']/@value";
 
-    private static final String USAGE_HELP = "Usage: java -jar CarAnalyzer.jar [carFiles] [outputFile] [soapUIFiles]\n" +
-            "  [carFiles]: comma-separated list of car file names\n" +
-            "  [outputFile]: full name of the output file WITHOUT extension.\n" +
-            "                Two files will be created, one with a .txt extension and another with a .json extension.\n" +
-            "  [soapUIFolders]: comma-separated list of SoapUI folder names. (Optional argument)";
+    private static final String USAGE_HELP = "Usage: java -jar CarAnalyzer.jar [carFiles] [outputFile] [soapUIFiles]\n"
+            + "  [carFiles]: comma-separated list of car file names\n"
+            + "  [outputFile]: full name of the output file WITHOUT extension.\n"
+            + "                Two files will be created, one with a .txt extension and another with a .json extension.\n"
+            + "  [soapUIFolders]: comma-separated list of SoapUI folder names. (Optional argument)";
 
     private AXIOMXPath xpath;
 
@@ -160,6 +160,8 @@ public class CarAnalyzer {
     private List<String> forbiddenArtifactNames = new ArrayList<String>(Arrays.asList("services"));
 
     private FileSystemManager fsm;
+
+    private String currentObject = null; // Used for information logging if sequence or proxy has  invalid fields
 
     public CarAnalyzer() throws FileSystemException, ParserConfigurationException, JaxenException {
         fsm = VFS.getManager();
@@ -184,10 +186,10 @@ public class CarAnalyzer {
         writeOutputFiles(outputDestination);
     }
 
-    public void run(File[] carFiles, String outputDestination, File[] testFolders) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException  {
+    public void run(File[] carFiles, String outputDestination, File[] testFolders) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
         List<FileObject> carFileObjects = this.getCarFileObjects(carFiles);
         List<FileObject> testFileObjects = this.getTestFileObjects(testFolders);
-        processFileObjects(carFileObjects,outputDestination,testFileObjects);
+        processFileObjects(carFileObjects, outputDestination, testFileObjects);
     }
 
     public static void main(String[] args) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
@@ -232,9 +234,9 @@ public class CarAnalyzer {
         return true;
     }
 
-
     /**
-     * Retrieves an ordered list of Dependencies depicting the dependency tree of the given artifact in a depth-first fashion
+     * Retrieves an ordered list of Dependencies depicting the dependency tree
+     * of the given artifact in a depth-first fashion
      *
      * @param a
      * @return
@@ -264,6 +266,7 @@ public class CarAnalyzer {
         generator.writeObjectFieldStart("resources");
         for (Map.Entry<String, Artifact> entry : artifactMap.entrySet()) {
             Artifact a = entry.getValue();
+            currentObject = a.getName();
             generator.writeObjectFieldStart(a.getName());
             if (a.description != null) {
                 writeArtifactDescriptionJson(a.description, generator);
@@ -283,7 +286,7 @@ public class CarAnalyzer {
                 // Currently only Artifacts are included in the JSON output
                 if (d.getDependency() instanceof Artifact) {
                     generator.writeStartObject();
-                    generator.writeStringField("target", ((Artifact)d.getDependency()).getName());
+                    generator.writeStringField("target", ((Artifact) d.getDependency()).getName());
                     generator.writeStringField("type", d.getType().toString());
                     generator.writeEndObject();
                 }
@@ -320,7 +323,7 @@ public class CarAnalyzer {
                     generator.writeArrayFieldStart("cases");
                     for (TestCase c : s.getTestCases()) {
                         generator.writeStartObject();
-                        generator.writeStringField("name",c.getName());
+                        generator.writeStringField("name", c.getName());
                         generator.writeEndObject();
                     }
                     generator.writeEndArray();
@@ -338,8 +341,9 @@ public class CarAnalyzer {
     }
 
     private void writeArtifactDescriptionJson(Artifact.ArtifactDescription ad, JsonGenerator generator) throws IOException {
-        if (ad.purpose != null)
+        if (ad.purpose != null) {
             generator.writeStringField("purpose", ad.purpose);
+        }
 
         if (ad.receives != null) {
             generator.writeObjectFieldStart("receives");
@@ -363,7 +367,12 @@ public class CarAnalyzer {
             generator.writeArrayFieldStart("fields");
             for (Artifact.ArtifactIntefaceField f : aii.fields) {
                 generator.writeStartObject();
-                generator.writeStringField("description", removeLineBreaks(f.description));
+                if (f.description != null) {
+                    generator.writeStringField("description", removeLineBreaks(f.description));
+                } else {
+                    generator.writeStringField("description", "");
+                    log.warn( currentObject+": Has empty description field.");
+                }
                 generator.writeStringField("path", f.path);
                 generator.writeBooleanField("optional", f.optional);
                 generator.writeEndObject();
@@ -377,7 +386,11 @@ public class CarAnalyzer {
     }
 
     private String removeLineBreaks(String text) {
-        return text.replace("\n","").replace("\r","").replace("\r\n","");
+        if (text != null) {
+            return text.replace("\n", "").replace("\r", "").replace("\r\n", "");
+        } else {
+            return text;
+        }
     }
 
     private void buildDependencyList(Artifact a, List<Dependency> dependencyList, Set<Artifact> visitedNodes) {
@@ -391,14 +404,16 @@ public class CarAnalyzer {
         for (Dependency d : dependencies) {
             Object dependencyObject = d.getDependency();
             dependencyList.add(d);
-            if (dependencyObject instanceof Artifact && !visitedNodes.contains((Artifact)dependencyObject)) {
-                buildDependencyList((Artifact)dependencyObject, dependencyList, visitedNodes);
+            if (dependencyObject instanceof Artifact && !visitedNodes.contains((Artifact) dependencyObject)) {
+                buildDependencyList((Artifact) dependencyObject, dependencyList, visitedNodes);
             }
         }
     }
 
     /**
-     * Returns a list of Apache VFS FileObjects pointing to the parameter car files
+     * Returns a list of Apache VFS FileObjects pointing to the parameter car
+     * files
+     *
      * @param carNames a semicolon separated list of car file paths
      * @return
      * @throws FileSystemException
@@ -415,7 +430,9 @@ public class CarAnalyzer {
     }
 
     /**
-     * Returns a list of Apache VFS FileObjects pointing to the parameter car files
+     * Returns a list of Apache VFS FileObjects pointing to the parameter car
+     * files
+     *
      * @param carFiles an array of car files
      * @return
      * @throws FileSystemException
@@ -441,7 +458,9 @@ public class CarAnalyzer {
     }
 
     /**
-     * Returns a list of Apache VFS FileObjects pointing to the parameter SoapUI test files
+     * Returns a list of Apache VFS FileObjects pointing to the parameter SoapUI
+     * test files
+     *
      * @param testFileFolderNames a semicolon separated list of car file paths
      * @return
      * @throws FileSystemException
@@ -461,7 +480,9 @@ public class CarAnalyzer {
     }
 
     /**
-     * Returns a list of Apache VFS FileObjects pointing to the parameter SoapUI test files
+     * Returns a list of Apache VFS FileObjects pointing to the parameter SoapUI
+     * test files
+     *
      * @param testFileFolders an array of folders
      * @return
      * @throws FileSystemException
@@ -496,13 +517,15 @@ public class CarAnalyzer {
     }
 
     /**
-     * Checks if file contains soapui project element as root to confirm it is a SoapUI file
+     * Checks if file contains soapui project element as root to confirm it is a
+     * SoapUI file
+     *
      * @param file
      * @return
      * @throws IOException
      * @throws SaxonApiException
      */
-    private boolean isSoapUIFile (FileObject file) throws IOException, SaxonApiException {
+    private boolean isSoapUIFile(FileObject file) throws IOException, SaxonApiException {
         if (file != null) {
             XdmNode soapUINode = getNodeFromFileObject(file);
             return soapUINode.getNodeName().equals(SOAPUI_PROJECT_Q);
@@ -511,7 +534,9 @@ public class CarAnalyzer {
     }
 
     /**
-     * Returns a map mapping artifact names to the artifacts in the car files pointed to by the given FileObjects
+     * Returns a map mapping artifact names to the artifacts in the car files
+     * pointed to by the given FileObjects
+     *
      * @param carFileObjects
      * @return
      * @throws IOException
@@ -536,7 +561,9 @@ public class CarAnalyzer {
     }
 
     /**
-     * Returns a map mapping artifact names to the SoapUI tests in given FileObjects
+     * Returns a map mapping artifact names to the SoapUI tests in given
+     * FileObjects
+     *
      * @param testFileObjects
      * @return
      * @throws IOException
@@ -572,9 +599,12 @@ public class CarAnalyzer {
     }
 
     /**
-     * Method gets a SoapUI project root node as argument and method finds all references to artifacts.
+     * Method gets a SoapUI project root node as argument and method finds all
+     * references to artifacts.
+     *
      * @param soapUIProjectRoot
-     * @return SortedMap where key is artifact name and value is set of TestSuite -objects
+     * @return SortedMap where key is artifact name and value is set of
+     * TestSuite -objects
      * @throws IOException
      * @throws SaxonApiException
      */
@@ -659,8 +689,10 @@ public class CarAnalyzer {
     }
 
     /**
-     * This method receives node that has properties-node child (soapui-project, testSuite or testCase). Method goes through
-     * all property elements and add keys and values to given map
+     * This method receives node that has properties-node child (soapui-project,
+     * testSuite or testCase). Method goes through all property elements and add
+     * keys and values to given map
+     *
      * @param propertiesParent
      * @param currentPropertiesMap
      * @param type
@@ -700,7 +732,7 @@ public class CarAnalyzer {
         if (url.contains("${")) {
             String key = url.substring(url.indexOf("${"), url.indexOf("}") + 1);
             String value = propertiesMap.get(key);
-            String newUrl = url.replace(key,value);
+            String newUrl = url.replace(key, value);
             return newUrl;
         }
         return url;
@@ -709,7 +741,7 @@ public class CarAnalyzer {
     private XdmNode getChild(XdmNode parent, QName childName) {
         XdmSequenceIterator iter = parent.axisIterator(Axis.CHILD, childName);
         if (iter.hasNext()) {
-            return (XdmNode)iter.next();
+            return (XdmNode) iter.next();
         } else {
             return null;
         }
@@ -717,9 +749,12 @@ public class CarAnalyzer {
 
     /**
      * Adds given TestProject to all forward dependencies of given artifact.
+     *
      * @param artifactName
      * @param project
-     * @param artifactList recursion keeps track of added artifacts with given list. Artifact is only processed if it has not been processed before (= not in the given list)
+     * @param artifactList recursion keeps track of added artifacts with given
+     * list. Artifact is only processed if it has not been processed before (=
+     * not in the given list)
      */
     private void addTestsToForwardDependencies(String artifactName, TestProject project, List<String> artifactList) {
         Artifact artifact = getArtifactFromString(artifactName);
@@ -739,19 +774,22 @@ public class CarAnalyzer {
 
     /**
      * Adds given TestProject for artifact to the testsMap
+     *
      * @param artifact
      * @param project
      */
     private void addTestProjectForArtifact(String artifact, TestProject project) {
         if (!testsMap.containsKey(artifact)) {
             HashSet<TestProject> projects = new HashSet<TestProject>();
-            testsMap.put(artifact,projects);
+            testsMap.put(artifact, projects);
         }
         testsMap.get(artifact).add(project);
     }
 
     /**
-     * Returns an XdmNode pointing to the root element of the XML in the specified file
+     * Returns an XdmNode pointing to the root element of the XML in the
+     * specified file
+     *
      * @param xmlFo
      * @return
      * @throws SaxonApiException
@@ -766,7 +804,7 @@ public class CarAnalyzer {
             while (i.hasNext()) {
                 XdmItem item = i.next();
                 if (item instanceof XdmNode) {
-                    xmlNode = (XdmNode)item;
+                    xmlNode = (XdmNode) item;
                     if (xmlNode.getNodeKind() == XdmNodeKind.ELEMENT) {
                         return xmlNode;
                     }
@@ -781,7 +819,9 @@ public class CarAnalyzer {
     }
 
     /**
-     * Returns an Artifact object for the given XdmNode containing an artifact definition from an artifact.xml file
+     * Returns an Artifact object for the given XdmNode containing an artifact
+     * definition from an artifact.xml file
+     *
      * @param dependencyNode
      * @param carFile
      * @return
@@ -848,10 +888,10 @@ public class CarAnalyzer {
 
         Object evaluationResult = xpath.evaluate(root);
         if (evaluationResult instanceof List) {
-            List resultList = (List)evaluationResult;
+            List resultList = (List) evaluationResult;
 
             if (!resultList.isEmpty()) {
-                OMElement descriptionElement = (OMElement)resultList.get(0);
+                OMElement descriptionElement = (OMElement) resultList.get(0);
                 if (descriptionElement != null) {
                     String purpose = null;
                     Artifact.ArtifactInterfaceInfo receives = null, returns = null;
@@ -930,6 +970,7 @@ public class CarAnalyzer {
 
     /**
      * Returns the name of the artifact defined in the given file
+     *
      * @param artifactFilePath
      * @return
      * @throws IOException
@@ -943,6 +984,7 @@ public class CarAnalyzer {
 
     /**
      * Returns a map mapping artifacts to their direct dependencies
+     *
      * @return
      * @throws SaxonApiException
      * @throws IOException
@@ -957,8 +999,9 @@ public class CarAnalyzer {
 
                 for (Dependency.DependencyType dt : Dependency.DependencyType.values()) {
                     // TASK_TO has special handling
-                    if (dt == Dependency.DependencyType.TASK_TO)
+                    if (dt == Dependency.DependencyType.TASK_TO) {
                         continue;
+                    }
 
                     dependencies.addAll(getDepdendencySet(a, artifactXml, dt));
                 }
@@ -1032,6 +1075,7 @@ public class CarAnalyzer {
     private Set<Dependency> getDepdendencySet(Artifact a, XdmNode context, Dependency.DependencyType dependencyType) throws SaxonApiException {
         Set<Dependency> dependencies = new HashSet<Dependency>();
         for (String dependencyString : evaluateXPathToStringSet(context, dependencyType.getXPath())) {
+            currentObject=a.getName(); // Save current artifact for  warning logs.
             Object dependencyObject = getArtifactFromString(dependencyString);
             if (dependencyObject == null) {
                 dependencyObject = dependencyString;
@@ -1043,7 +1087,9 @@ public class CarAnalyzer {
     }
 
     /**
-     * Returns an artifact resolved from a URL or null if no Artifact could be resolved.
+     * Returns an artifact resolved from a URL or null if no Artifact could be
+     * resolved.
+     *
      * @param str
      * @return
      */
@@ -1065,12 +1111,11 @@ public class CarAnalyzer {
                     return getArtifactFromJsmUri(uri);
                 } else if ("gov".equals(scheme) || "conf".equals(scheme)) {
                     return getArtifactFromRegistyUri(uri);
-                }
-                else {
-                    System.out.println("Unrecognized URI scheme for URI: " + uri.toString());
+                } else {
+                    log.warn( currentObject+"Unrecognized URI scheme for URI: " + uri.toString());
                 }
             } catch (URISyntaxException e) {
-                System.out.println("Unparseable URI: " + str);
+                log.warn( currentObject+"Unparseable URI: " + str);
             }
         }
 
@@ -1078,7 +1123,9 @@ public class CarAnalyzer {
     }
 
     /**
-     * Under Windows the Maven build sometimes creates rather ugly (and invalid) file URIs.
+     * Under Windows the Maven build sometimes creates rather ugly (and invalid)
+     * file URIs.
+     *
      * @return
      */
     private String urifyString(String str) {
@@ -1111,7 +1158,9 @@ public class CarAnalyzer {
     }
 
     /**
-     * Attemps to resolve an Artifact's name from a path String one path element at a time
+     * Attemps to resolve an Artifact's name from a path String one path element
+     * at a time
+     *
      * @param path
      * @return
      */
@@ -1150,6 +1199,7 @@ public class CarAnalyzer {
 
     /**
      * Returns a Set of Strings for the given XPath
+     *
      * @param context
      * @param xpath
      * @return
@@ -1166,7 +1216,8 @@ public class CarAnalyzer {
     }
 
     /**
-     * Represents a single Artifact. Supported artifact types are defined in the Artifact.ArtifactType enum.
+     * Represents a single Artifact. Supported artifact types are defined in the
+     * Artifact.ArtifactType enum.
      */
     public static class Artifact implements Comparable<Artifact> {
 
@@ -1206,6 +1257,7 @@ public class CarAnalyzer {
 
         /**
          * VFS path of this artifact within its car file
+         *
          * @return
          */
         public String getPath() {
@@ -1214,6 +1266,7 @@ public class CarAnalyzer {
 
         /**
          * VFS path of this artifact's car file
+         *
          * @return
          */
         public String getCarPath() {
@@ -1270,6 +1323,7 @@ public class CarAnalyzer {
 
         @JsonInclude(JsonInclude.Include.NON_NULL)
         private static class ArtifactDescription {
+
             private String purpose;
             private ArtifactInterfaceInfo receives;
             private ArtifactInterfaceInfo returns;
@@ -1283,6 +1337,7 @@ public class CarAnalyzer {
 
         @JsonInclude(JsonInclude.Include.NON_NULL)
         private static class ArtifactInterfaceInfo {
+
             private String description;
             private String example;
 
@@ -1298,6 +1353,7 @@ public class CarAnalyzer {
 
         @JsonInclude(JsonInclude.Include.NON_NULL)
         private static class ArtifactIntefaceField {
+
             private String description;
             private String path;
             private boolean optional = false;
@@ -1359,6 +1415,7 @@ public class CarAnalyzer {
     public static class TestProject implements Comparable<TestProject> {
 
         public enum PropertyType {
+
             PROJECT("Project"),
             TEST_SUITE("TestSuite"),
             TEST_CASE("TestCase");
@@ -1397,7 +1454,9 @@ public class CarAnalyzer {
             return name;
         }
 
-        public String getFilename() { return filename; }
+        public String getFilename() {
+            return filename;
+        }
 
         public Set<TestSuite> getTestSuites() {
             return suites;
@@ -1406,10 +1465,10 @@ public class CarAnalyzer {
         @Override
         public String toString() {
             return new StringBuilder()
-                .append("{name: \"")
-                .append(name)
-                .append("\"}")
-                .toString();
+                    .append("{name: \"")
+                    .append(name)
+                    .append("\"}")
+                    .toString();
         }
 
         @Override
@@ -1467,10 +1526,10 @@ public class CarAnalyzer {
         @Override
         public String toString() {
             return new StringBuilder()
-                .append("{name: \"")
-                .append(name)
-                .append("\"}")
-                .toString();
+                    .append("{name: \"")
+                    .append(name)
+                    .append("\"}")
+                    .toString();
         }
 
         @Override
@@ -1522,10 +1581,10 @@ public class CarAnalyzer {
         @Override
         public String toString() {
             return new StringBuilder()
-                .append("{name: \"")
-                .append(name)
-                .append("\"}")
-                .toString();
+                    .append("{name: \"")
+                    .append(name)
+                    .append("\"}")
+                    .toString();
         }
 
         @Override
@@ -1561,6 +1620,7 @@ public class CarAnalyzer {
     public static class Dependency implements Comparable<Dependency> {
 
         public enum DependencyType {
+
             SEQUENCE("sequence", SEQUENCE_XPATH_STRING),
             IN_SEQUENCE("inSequence", IN_SEQUENCE_XPATH_STRING),
             OUT_SEQUENCE("outSequence", OUT_SEQUENCE_XPATH_STRING),
@@ -1639,9 +1699,9 @@ public class CarAnalyzer {
 
         @Override
         public int compareTo(Dependency dependency) {
-            if (this.dependency instanceof Artifact && dependency.dependency instanceof Artifact ||
-                    this.dependency instanceof String && dependency.dependency instanceof String) {
-                return ((Comparable)this.dependency).compareTo((Comparable)dependency.dependency);
+            if (this.dependency instanceof Artifact && dependency.dependency instanceof Artifact
+                    || this.dependency instanceof String && dependency.dependency instanceof String) {
+                return ((Comparable) this.dependency).compareTo((Comparable) dependency.dependency);
             } else {
                 if (this.dependency instanceof Artifact) {
                     return -1;
@@ -1672,10 +1732,9 @@ public class CarAnalyzer {
 
         @Override
         public String toString() {
-            String dependencyString = dependency instanceof Artifact ? ((Artifact)dependency).getName() : (String)dependency;
+            String dependencyString = dependency instanceof Artifact ? ((Artifact) dependency).getName() : (String) dependency;
             return dependent.getName() + " -> " + dependencyString + " :[" + type + "]";
         }
     }
-
 
 }
