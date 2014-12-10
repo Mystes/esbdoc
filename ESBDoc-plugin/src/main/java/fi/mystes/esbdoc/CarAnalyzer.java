@@ -26,9 +26,9 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.VFS;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.jaxen.JaxenException;
 import org.xml.sax.SAXException;
-
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.xpath.XPathExpressionException;
@@ -367,8 +367,8 @@ public class CarAnalyzer {
             generator.writeArrayFieldStart("fields");
             for (Artifact.ArtifactIntefaceField f : aii.fields) {
                 generator.writeStartObject();
-                if (f.description != null) {
-                    generator.writeStringField("description", removeLineBreaks(f.description));
+                if (f.description != null) {                 
+                    generator.writeStringField("description", StringEscapeUtils.escapeHtml4(removeLineBreaks(f.description)));
                 } else {
                     generator.writeStringField("description", "");
                     log.warn( currentObject+": Has empty description field.");
@@ -387,7 +387,7 @@ public class CarAnalyzer {
 
     private String removeLineBreaks(String text) {
         if (text != null) {
-            return text.replace("\n", "").replace("\r", "").replace("\r\n", "");
+            return StringEscapeUtils.escapeHtml4(text.replace("\n", "").replace("\r", "").replace("\r\n", ""));
         } else {
             return text;
         }
