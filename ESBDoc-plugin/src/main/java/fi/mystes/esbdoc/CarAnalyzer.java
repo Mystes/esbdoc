@@ -3,8 +3,6 @@ package fi.mystes.esbdoc;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.SerializableString;
-import com.fasterxml.jackson.core.io.CharacterEscapes;
 import net.sf.saxon.s9api.Axis;
 import net.sf.saxon.s9api.DocumentBuilder;
 import net.sf.saxon.s9api.Processor;
@@ -205,7 +203,8 @@ public class CarAnalyzer {
         List<FileObject> carFileObjects = cct.getCarFileObjects(args[0]);
         List<FileObject> testFileObjects = null;
         if (args.length > 2) {
-            testFileObjects = cct.getTestFileObjects(args[2]);
+            File[] files={new File(args[2])};
+            testFileObjects = cct.getTestFileObjects(files);
         }
 
         cct.processFileObjects(carFileObjects, outputFilename, testFileObjects);
@@ -465,57 +464,27 @@ public class CarAnalyzer {
      * @return
      * @throws FileSystemException
      */
-    private List<FileObject> getTestFileObjects(String testFileFolderNames) throws FileSystemException, IOException, SaxonApiException {
-        if (testFileFolderNames != null) {
-            String[] testFileFolderArray = testFileFolderNames.split(FILE_SEPARATOR);
-            List<FileObject> testFileObjects = new ArrayList<FileObject>();
+    
+    private List<FileObject> getTestFileObjects(File[] testFiles) throws FileSystemException {
+        List<FileObject> testFileObjects = new ArrayList<FileObject>(testFiles.length);
 
-            for (String testFolderName : testFileFolderArray) {
-                testFileObjects.addAll(getTestFileObjectsFromFolder(testFolderName));
-            }
-
-            return testFileObjects;
+        for (File testFile : testFiles) {
+            testFileObjects.add(getTestFileObject(testFile.getAbsolutePath()));
         }
-        return null;
-    }
 
-    /**
-     * Returns a list of Apache VFS FileObjects pointing to the parameter SoapUI
-     * test files
-     *
-     * @param testFileFolders an array of folders
-     * @return
-     * @throws FileSystemException
-     */
-    private List<FileObject> getTestFileObjects(File[] testFileFolders) throws FileSystemException, IOException, SaxonApiException {
-        if (testFileFolders != null) {
-            List<FileObject> testFileObjects = new ArrayList<FileObject>();
-
-            for (File testFolder : testFileFolders) {
-                testFileObjects.addAll(getTestFileObjectsFromFolder(testFolder.getAbsolutePath()));
-            }
-
-            return testFileObjects;
-        }
-        return null;
-    }
-
-    public List<FileObject> getTestFileObjectsFromFolder(String folderName) throws FileSystemException, IOException, SaxonApiException {
-        List<FileObject> testFileObjects = new ArrayList<FileObject>();
-        File f = new File(folderName);
-        if (f.exists()) {
-            File[] listOfFiles = f.listFiles();
-            for (File file : listOfFiles) {
-                if (file.getName().contains(".xml") && isSoapUIFile(fsm.resolveFile(file.getAbsolutePath()))) {
-                    testFileObjects.add(fsm.resolveFile(file.getAbsolutePath()));
-                }
-            }
-        } else {
-            log.warn(MessageFormat.format("The specified SoapUI folder [{0}] does not exist.", folderName));
-        }
         return testFileObjects;
     }
 
+    public FileObject getTestFileObject(String testFile) throws FileSystemException {
+        File f = new File(testFile);
+        if (f.exists()) {
+            return fsm.resolveFile(f.getAbsolutePath());
+        } else {
+            log.warn(MessageFormat.format("The specified test file [{0}] does not exist.", testFile));
+        }
+        return null;
+    }
+    
     /**
      * Checks if file contains soapui project element as root to confirm it is a
      * SoapUI file
