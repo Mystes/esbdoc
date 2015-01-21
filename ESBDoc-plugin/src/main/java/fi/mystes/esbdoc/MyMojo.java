@@ -86,7 +86,7 @@ public class MyMojo
             // analyze car file and test files, and build esbdoc
             CarAnalyzer car = new CarAnalyzer();
             car.run(carFiles, esbdocRawPath, getSoapUIFileSet());
-
+            
             // copy UI to target folder
             URL url = this.getClass().getClassLoader().getResource("UI");
             FileObject uiTargetFolder = fsm.resolveFile(target.getAbsolutePath() + "/UI");

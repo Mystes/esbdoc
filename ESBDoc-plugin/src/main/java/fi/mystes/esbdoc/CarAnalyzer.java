@@ -161,6 +161,8 @@ public class CarAnalyzer {
 
     private String currentObject = null; // Used for information logging if sequence or proxy has  invalid fields
 
+    private SequenceDiagramBuilder seqBuilder = new SequenceDiagramBuilder();
+
     public CarAnalyzer() throws FileSystemException, ParserConfigurationException, JaxenException {
         fsm = VFS.getManager();
         try {
@@ -180,8 +182,10 @@ public class CarAnalyzer {
         getArtifactMap(carFileObjects);
         getForwardDependencyMap();
         buildTestFileMap(testFileObjects);
-
+        // Process sequence diagrams 
+        Map<String, SequenceItem> seqs = seqBuilder.getParsed();
         writeOutputFiles(outputDestination);
+        seqBuilder.writeOutputFiles(outputDestination);
     }
 
     public void run(File[] carFiles, String outputDestination, File[] testFolders) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
@@ -203,7 +207,7 @@ public class CarAnalyzer {
         List<FileObject> carFileObjects = cct.getCarFileObjects(args[0]);
         List<FileObject> testFileObjects = null;
         if (args.length > 2) {
-            File[] files={new File(args[2])};
+            File[] files = {new File(args[2])};
             testFileObjects = cct.getTestFileObjects(files);
         }
 
@@ -366,11 +370,11 @@ public class CarAnalyzer {
             generator.writeArrayFieldStart("fields");
             for (Artifact.ArtifactIntefaceField f : aii.fields) {
                 generator.writeStartObject();
-                if (f.description != null) {                 
-                    generator.writeStringField("description", StringEscapeUtils.escapeHtml4(removeLineBreaks(f.description)));
+                if (f.description != null) {
+                    generator.writeStringField("description", StringEscapeUtils.escapeJson(removeLineBreaks(f.description)));
                 } else {
                     generator.writeStringField("description", "");
-                    log.warn( currentObject+": Has empty description field.");
+                    log.warn(currentObject + ": Has empty description field.");
                 }
                 generator.writeStringField("path", f.path);
                 generator.writeBooleanField("optional", f.optional);
@@ -386,7 +390,7 @@ public class CarAnalyzer {
 
     private String removeLineBreaks(String text) {
         if (text != null) {
-            return StringEscapeUtils.escapeHtml4(text.replace("\n", "").replace("\r", "").replace("\r\n", ""));
+            return StringEscapeUtils.escapeJson(text.replace("\n", "").replace("\r", "").replace("\r\n", ""));
         } else {
             return text;
         }
@@ -464,7 +468,6 @@ public class CarAnalyzer {
      * @return
      * @throws FileSystemException
      */
-    
     private List<FileObject> getTestFileObjects(File[] testFiles) throws FileSystemException {
         List<FileObject> testFileObjects = new ArrayList<FileObject>(testFiles.length);
 
@@ -484,7 +487,7 @@ public class CarAnalyzer {
         }
         return null;
     }
-    
+
     /**
      * Checks if file contains soapui project element as root to confirm it is a
      * SoapUI file
@@ -513,7 +516,6 @@ public class CarAnalyzer {
      */
     private SortedMap<String, Artifact> getArtifactMap(List<FileObject> carFileObjects) throws IOException, SaxonApiException, SAXException, XPathExpressionException, JaxenException {
         for (FileObject carFileObject : carFileObjects) {
-            System.out.println("carFileObject: " + carFileObject.getName());
             FileObject artifactsFileObject = carFileObject.getChild("artifacts.xml");
             log.info(MessageFormat.format("Processing artifacts.xml file: [{0}]", artifactsFileObject.getURL().toString()));
             XdmNode artifactsNode = getNodeFromFileObject(artifactsFileObject);
@@ -766,8 +768,22 @@ public class CarAnalyzer {
      */
     private XdmNode getNodeFromFileObject(FileObject xmlFo) throws SaxonApiException, IOException {
         InputStream is = null;
+        InputStream isSeq = null; // This stream is used for sequenceDiagram generation
         try {
             is = xmlFo.getContent().getInputStream();
+            // Don't search sequences under soapUI-tests
+            // "-soapui-project.xml" is uded as filename match pattern
+            if (xmlFo.getName().getBaseName().indexOf("-soapui-project.xml") == -1) {
+                // Sequence diagram parser can't hande testa
+                isSeq = xmlFo.getContent().getInputStream();
+                String seg = this.seqBuilder.buildPipe(isSeq);
+                isSeq.close();
+                /*
+                if (seg != null && !seg.isEmpty()) {
+                    System.out.println("VALUE:" + seg);
+                }
+                */
+            }
             XdmNode xmlNode = BUILDER.build(new StreamSource(is));
             XdmSequenceIterator i = xmlNode.axisIterator(Axis.CHILD);
             while (i.hasNext()) {
@@ -1044,7 +1060,7 @@ public class CarAnalyzer {
     private Set<Dependency> getDepdendencySet(Artifact a, XdmNode context, Dependency.DependencyType dependencyType) throws SaxonApiException {
         Set<Dependency> dependencies = new HashSet<Dependency>();
         for (String dependencyString : evaluateXPathToStringSet(context, dependencyType.getXPath())) {
-            currentObject=a.getName(); // Save current artifact for  warning logs.
+            currentObject = a.getName(); // Save current artifact for  warning logs.
             Object dependencyObject = getArtifactFromString(dependencyString);
             if (dependencyObject == null) {
                 dependencyObject = dependencyString;
@@ -1081,10 +1097,10 @@ public class CarAnalyzer {
                 } else if ("gov".equals(scheme) || "conf".equals(scheme)) {
                     return getArtifactFromRegistyUri(uri);
                 } else {
-                    log.warn( currentObject+"Unrecognized URI scheme for URI: " + uri.toString());
+                    log.warn(currentObject + "Unrecognized URI scheme for URI: " + uri.toString());
                 }
             } catch (URISyntaxException e) {
-                log.warn( currentObject+"Unparseable URI: " + str);
+                log.warn(currentObject + "Unparseable URI: " + str);
             }
         }
 
