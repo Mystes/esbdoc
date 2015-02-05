@@ -919,17 +919,20 @@ public class CarAnalyzer {
 
         OMElement exampleElement = infoElement.getFirstChildWithName(EXAMPLE_Q);
         if (exampleElement != null) {
-            exampleElement = exampleElement.getFirstElement();
+            String content = null;
+            if (exampleElement.getFirstElement() != null) {
+                content = exampleElement.getFirstElement().toString();
+            } else if(exampleElement.getText() != null) {
+                content = exampleElement.getText();
+            }
 
-            if (exampleElement != null) {
-                String example = exampleElement.toString();
-                if (example != null) {
-                    example = example.trim();
+            if (content != null && !content.isEmpty()) {
+                String example = content.trim();
 
-                    if (!example.isEmpty()) {
-                        aii.example = example;
-                    }
+                if (!example.isEmpty()) {
+                    aii.example = example;
                 }
+                //} else if ()
             }
         }
 
