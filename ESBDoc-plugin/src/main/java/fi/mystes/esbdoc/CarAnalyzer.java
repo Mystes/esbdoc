@@ -17,6 +17,8 @@ import net.sf.saxon.s9api.XdmSequenceIterator;
 import net.sf.saxon.s9api.XdmValue;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.OMXMLBuilderFactory;
+import org.apache.axiom.om.impl.llom.OMElementImpl;
+import org.apache.axiom.om.impl.llom.OMTextImpl;
 import org.apache.axiom.om.xpath.AXIOMXPath;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -60,6 +62,8 @@ public class CarAnalyzer {
     private static final javax.xml.namespace.QName RETURNS_Q = new javax.xml.namespace.QName("http://ws.apache.org/ns/synapse", "returns");
     private static final javax.xml.namespace.QName FIELD_Q = new javax.xml.namespace.QName("http://ws.apache.org/ns/synapse", "field");
     private static final javax.xml.namespace.QName EXAMPLE_Q = new javax.xml.namespace.QName("http://ws.apache.org/ns/synapse", "example");
+    private static final javax.xml.namespace.QName DEPENDENCIES_Q = new javax.xml.namespace.QName("http://ws.apache.org/ns/synapse", "dependencies");
+    private static final javax.xml.namespace.QName DEPENDENCY_Q = new javax.xml.namespace.QName("http://ws.apache.org/ns/synapse", "dependency");
 
     private static final javax.xml.namespace.QName DESCRIPTION_Q = new javax.xml.namespace.QName("description");
     private static final javax.xml.namespace.QName PATH_Q = new javax.xml.namespace.QName("path");
@@ -91,7 +95,7 @@ public class CarAnalyzer {
     private static final String ARTIFACT_FILENAME_XPATH_STRING = "/artifact/file/text()";
     private static final String TESTCASE_XPATH_STRING = "/con:soapui-project";
 
-    private static final String ARTIFACT_DESCRIPTION_XPATH_STRING = "//s:description[s:purpose or s:receives or s:returns]";
+    private static final String ARTIFACT_DESCRIPTION_XPATH_STRING = "//s:description[s:purpose or s:receives or s:returns or s:dependencies]";
 
     // XPath strings to find interesting bits of artifacts
     private static final String SEQUENCE_XPATH_STRING = "//s:sequence/@key";
@@ -124,6 +128,10 @@ public class CarAnalyzer {
 
     private static final String SCRIPT_RESOURCE_XPATH_STRING = "//s:script/@key";
     private static final String XSLT_RESOURCE_XPATH_STRING = "//s:xslt/@key";
+    private static final String SMOOKS_XPATH_STRING = "//s:smooks/@config-key";
+    private static final String SCHEMA_XPATH_STRING = "//s:schema/@key";
+    private static final String WSDL_XPATH_STRING = "//s:publishWSDL/@key";
+    private static final String WSDL_RESOURCE_XPATH_STRING = "//s:publishWSDL/s:resource/@key";
 
     // There is a potential point of discontinuity here since it can be quite non-trivial to determine the destination of a message stored in a message store
     private static final String STORE_XPATH_STRING = "//s:store/@messageStore";
@@ -464,7 +472,7 @@ public class CarAnalyzer {
      * Returns a list of Apache VFS FileObjects pointing to the parameter SoapUI
      * test files
      *
-     * @param testFileFolderNames a semicolon separated list of car file paths
+     * @param testFiles
      * @return
      * @throws FileSystemException
      */
@@ -848,7 +856,7 @@ public class CarAnalyzer {
             artifactName = getRealNameForArtifact(carFile.toString() + dependencyDirectory + artifactFilePath);
         }
 
-        Artifact.ArtifactDescription description = getArtifactDescription(carFile.toString() + dependencyDirectory + artifactFilePath);
+        Artifact.ArtifactDescription description = getArtifactDescription(artifactName, carFile.toString() + dependencyDirectory + artifactFilePath);
 
         if (artifactType == null && !IGNORED_ARTIFACT_TYPES.contains(artifactTypeString)) {
             log.warn("Unrecognized artifact type: " + artifactTypeString);
@@ -866,7 +874,7 @@ public class CarAnalyzer {
         }
     }
 
-    private Artifact.ArtifactDescription getArtifactDescription(String artifactFilePath) throws IOException, JaxenException {
+    private Artifact.ArtifactDescription getArtifactDescription(String artifactName, String artifactFilePath) throws IOException, JaxenException {
         FileObject artifactFileObject = fsm.resolveFile(artifactFilePath);
 
         OMElement root = OMXMLBuilderFactory.createOMBuilder(artifactFileObject.getContent().getInputStream()).getDocumentElement();
@@ -896,8 +904,23 @@ public class CarAnalyzer {
                         returns = getArtifactInterfaceInfo(returnsElement);
                     }
 
-                    if (purpose != null || receives != null || returns != null) {
-                        return new Artifact.ArtifactDescription(purpose, receives, returns);
+                    OMElement dependeciesElement = descriptionElement.getFirstChildWithName(DEPENDENCIES_Q);
+                    List<String> programmerDefinedDependencies = null;
+                    if (dependeciesElement != null) {
+                        Iterator gator = dependeciesElement.getChildren();
+                        programmerDefinedDependencies = new ArrayList<String>();
+                        while (gator.hasNext()) {
+                            Object element = gator.next();
+                            if (element instanceof OMElementImpl) {
+                                OMElementImpl dependencyElement = (OMElementImpl)element;
+                                String dependencyName = dependencyElement.getText();
+                                programmerDefinedDependencies.add(dependencyName);
+                            }
+                        }
+                    }
+
+                    if (purpose != null || receives != null || returns != null || programmerDefinedDependencies != null) {
+                        return new Artifact.ArtifactDescription(purpose, receives, returns, programmerDefinedDependencies);
                     }
                 }
             }
@@ -1028,6 +1051,22 @@ public class CarAnalyzer {
 
                 if (!dependencies.isEmpty()) {
                     forwardDependencyMap.put(a, dependencies);
+                }
+            }
+
+            // add description defined dependencies
+            if (a.description != null && a.description.dependencies != null) {
+                List<String> dependencies = a.description.dependencies;
+                if (!dependencies.isEmpty()) {
+                    for (String dependencyName : dependencies) {
+                        Artifact dependency = getArtifactFromString(dependencyName);
+                        Set<Dependency> artifactDependencies = forwardDependencyMap.get(a);
+                        if (artifactDependencies == null) {
+                            artifactDependencies = new HashSet<Dependency>();
+                            forwardDependencyMap.put(a, artifactDependencies);
+                        }
+                        artifactDependencies.add(new Dependency(a, dependency, Dependency.DependencyType.DOCUMENTED));
+                    }
                 }
             }
         }
@@ -1195,10 +1234,12 @@ public class CarAnalyzer {
      */
     private Set<String> evaluateXPathToStringSet(XdmNode context, XPathSelector xpath) throws SaxonApiException {
         Set<String> results = new HashSet<String>();
-        xpath.setContextItem(context);
-        for (XdmItem item : xpath) {
-            String itemString = item.getStringValue();
-            results.add(itemString);
+        if (xpath != null) {
+            xpath.setContextItem(context);
+            for (XdmItem item : xpath) {
+                String itemString = item.getStringValue();
+                results.add(itemString);
+            }
         }
         return results;
     }
@@ -1315,11 +1356,13 @@ public class CarAnalyzer {
             private String purpose;
             private ArtifactInterfaceInfo receives;
             private ArtifactInterfaceInfo returns;
+            private List<String> dependencies;
 
-            private ArtifactDescription(String purpose, ArtifactInterfaceInfo receives, ArtifactInterfaceInfo returns) {
+            private ArtifactDescription(String purpose, ArtifactInterfaceInfo receives, ArtifactInterfaceInfo returns, List<String> dependencies) {
                 this.purpose = purpose;
                 this.receives = receives;
                 this.returns = returns;
+                this.dependencies = dependencies;
             }
         }
 
@@ -1625,7 +1668,12 @@ public class CarAnalyzer {
             STORE("store", STORE_XPATH_STRING),
             MESSAGE_PROCESSOR_STORE("messageStore", MESSAGE_PROCESSOR_STORE_XPATH_STRING),
             TASK_INJECT("inject", TASK_TARGET_XPATH_STRING),
-            TASK_TO("taskTo", TASK_TO_XPATH_STRING);
+            TASK_TO("taskTo", TASK_TO_XPATH_STRING),
+            SMOOKS("smooks", SMOOKS_XPATH_STRING),
+            DOCUMENTED("documented dependency"),
+            SCHEMA("schema", SCHEMA_XPATH_STRING),
+            WSDL("wsdl", WSDL_XPATH_STRING),
+            WSDL_RESOURCE("wsdl resource", WSDL_RESOURCE_XPATH_STRING);
 
             final String typeString;
             final XPathSelector xPath;
@@ -1651,10 +1699,14 @@ public class CarAnalyzer {
                     first = false;
                 }
 
-                try {
-                    this.xPath = COMPILER.compile(xPathUnion).load();
-                } catch (SaxonApiException e) {
-                    throw new Error("Unable to initialize the DependencyType enum. Unable to compile XPath.", e);
+                if (!xPathUnion.trim().isEmpty()) {
+                    try {
+                        this.xPath = COMPILER.compile(xPathUnion).load();
+                    } catch (SaxonApiException e) {
+                        throw new Error("Unable to initialize the DependencyType enum. Unable to compile XPath.", e);
+                    }
+                } else {
+                    this.xPath = null;
                 }
             }
 

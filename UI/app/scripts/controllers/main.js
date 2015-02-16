@@ -28,8 +28,113 @@ angular.module('esbdocPocApp')
       return keys;
     };
 
+    var calculateTestStatistics = function() {
+      var notReached = new Array();
+      var processedTests = new Array();
+      var tests = $scope.esbDoc.tests;
+      var resources = $scope.esbDoc.resources;
+      var amountOfTests = 0;
+      var amountOfHappyTests = 0;
+      var amountOfSadTests = 0;
+      var resourceAmount = Object.keys($scope.esbDoc.resources).length;
+      for(var k in resources) {
+        if(resources[k].type != 'task') {
+            if(tests[k]) {
+                for (var projectKey in tests[k]) {
+                    var project = tests[k][projectKey];
+                    for (var suiteKey in project.suites) {
+                        var suite = project.suites[suiteKey];
+                        for (var testCaseKey in suite.cases) {
+                            var testCase = suite.cases[testCaseKey];
+                            if($.inArray(testCase.name, processedTests) == -1) {
+                                processedTests.push(testCase.name);
+                                amountOfTests++;
+                                if (testCase.name.trim().indexOf("Happy") === 0) {
+                                    amountOfHappyTests++;
+                                } else if(testCase.name.trim().indexOf("Sad") === 0) {
+                                    amountOfSadTests++;
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                notReached.push(k);
+            }
+        }
+      }
+      /* set statistics to scope */
+
+      $scope.amountOfTests = amountOfTests;
+      $scope.amountOfHappyTests = amountOfHappyTests;
+      $scope.amountOfSadTests = amountOfSadTests;
+      $scope.resourcesNotReached = notReached;
+      $scope.testCoverage = (((resourceAmount - notReached.length) / resourceAmount) * 100).toFixed(0);
+    };
+
+    var resourcesNotReachedByTests = function() {
+      var notReached = new Array();
+      var tests = $scope.esbDoc.tests;
+      var resources = $scope.esbDoc.resources;
+      for(var k in resources) {
+        if(!tests[k]) {
+            notReached.push(k);
+        }
+      }
+      return notReached;
+    };
+
+    var resourcesWithNoForwardOrReverseDependencies = function() {
+      var selectedResources = new Array();
+      var forward = $scope.esbDoc.dependencies.forward;
+      var reverse = $scope.esbDoc.dependencies.reverse;
+      var tests = $scope.esbDoc.tests;
+      var resources = $scope.esbDoc.resources;
+      for(var k in resources) {
+        if(resources[k].type != 'task') {
+            if((!forward[k] || forward[k].length == 0) && (!reverse[k] || reverse[k].length == 0) && !tests[k]) {
+                selectedResources.push(k);
+            }
+        }
+      }
+      return selectedResources;
+    };
+
+    var hasESBDoc = function(obj) {
+        if (!obj) {
+            return false;
+        }
+        if (obj.purpose || obj.receives || obj.returns) {
+            return true;
+        }
+        return false;
+    }
+
+    var esbDocCoverage = function() {
+      var selectedResources = new Array();
+      var esbDocCount = 0;
+      var resources = $scope.esbDoc.resources;
+      var resourceAmount = 0;
+      for(var k in resources) {
+        if(resources[k].type === 'proxy' || resources[k].type === 'sequence' || resources[k].type === 'api') {
+            resourceAmount++;
+            if(hasESBDoc(resources[k])) {
+                esbDocCount++;
+            } else {
+                selectedResources.push(k);
+            }
+        }
+      }
+      $scope.resourcesMissingDescription = selectedResources;
+      return ((esbDocCount / resourceAmount) * 100).toFixed(0);
+    };
+
+    /* Statistics calculations */
     $scope.numberOfResources = countObjectKeys($scope.esbDoc.resources);
     $scope.numberOfDependencies = countObjectKeys($scope.esbDoc.dependencies.forward) + ' forward and ' + countObjectKeys($scope.esbDoc.dependencies.reverse) + ' reverse';
+    calculateTestStatistics();
+    $scope.esbDocCoverage = esbDocCoverage();
+    $scope.resourcesWithNoForwardOrReverseDependencies = resourcesWithNoForwardOrReverseDependencies();
 
     $scope.searchResourcesFilter = function(items, search) {
         var result = {};
@@ -70,7 +175,8 @@ angular.module('esbdocPocApp')
       'send': 'stroke: #039; stroke-dasharray: 0,1 1;',
       'call': 'stroke: #039; stroke-dasharray: 0,1 1;',
       'callout': 'stroke: #039; stroke-dasharray: 0,1 1;',
-      'endpoint': 'stroke: #039; stroke-dasharray: 0,1 1;'
+      'endpoint': 'stroke: #039; stroke-dasharray: 0,1 1;',
+      'documented dependency': 'stroke: #ffff66;'
     };
 
       function link(scope, element, attrs) {

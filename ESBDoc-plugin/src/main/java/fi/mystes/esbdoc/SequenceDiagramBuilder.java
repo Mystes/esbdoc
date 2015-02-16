@@ -197,11 +197,16 @@ public class SequenceDiagramBuilder {
             } // handle callable proxy
             else if (!(!qName.equals("customcallout") && !qName.equals("callout"))) {
                 String service = attributes.getValue("serviceURL");
-                if (service.startsWith("http")) {
-                    // This should be URL so  resolve  target
-                    service = getUrlTargetNode(service);
+                if (service != null) {
+                    if (service.startsWith("http")) {
+                        // This should be URL so  resolve  target
+                        service = getUrlTargetNode(service);
+                    }
+                    callProxyOnDemand(service);
+                } else {
+                    service = attributes.getValue("endpointKey");
+                    callEndPointOnDemand(service);
                 }
-                callProxyOnDemand(service);
             } else if (qName.equals("target")) {
                 // handle inSequennce/outSequence attributes
                 // target of proxy
@@ -424,7 +429,7 @@ public class SequenceDiagramBuilder {
             generator.writeStringField("description", "");
 
             StringBuilder seqString = new StringBuilder();
-            String block = printDependencies(seqString, it.next(), null, 0, handledNodeList, parsed);
+            String block = printDependencies(seqString, current, null, 0, handledNodeList, parsed);
 //            System.out.println(StringEscapeUtils.escapeJson(block));
             generator.writeStringField("sequence", StringEscapeUtils.escapeJson(block));
             generator.writeEndObject();
