@@ -69,11 +69,19 @@ public class CarAnalyzer {
     private static final javax.xml.namespace.QName PATH_Q = new javax.xml.namespace.QName("path");
     private static final javax.xml.namespace.QName OPTIONAL_Q = new javax.xml.namespace.QName("optional");
 
+    /* API related attributes */
+    private static final javax.xml.namespace.QName CONTEXT_Q = new javax.xml.namespace.QName("context");
+    private static final javax.xml.namespace.QName URL_MAPPING_Q = new javax.xml.namespace.QName("url-mapping");
+    private static final javax.xml.namespace.QName METHODS_Q = new javax.xml.namespace.QName("methods");
+    private static final javax.xml.namespace.QName RESOURCE_Q = new javax.xml.namespace.QName("http://ws.apache.org/ns/synapse", "resource");
+
     private static final QName SOAPUI_PROJECT_Q = new QName("http://eviware.com/soapui/config", "soapui-project");
     private static final QName SOAPUI_TEST_SUITE_Q = new QName("http://eviware.com/soapui/config", "testSuite");
     private static final QName SOAPUI_TEST_CASE_Q = new QName("http://eviware.com/soapui/config", "testCase");
     private static final QName SOAPUI_TEST_STEP_Q = new QName("http://eviware.com/soapui/config", "testStep");
     private static final QName SOAPUI_ENDPOINT_Q = new QName("http://eviware.com/soapui/config", "endpoint");
+    private static final QName SOAPUI_CONFIG_Q = new QName("http://eviware.com/soapui/config", "config");
+    private static final QName SOAPUI_RESOURCE_PATH_Q = new QName("resourcePath");
     private static final QName SOAPUI_PROPERTIES_Q = new QName("http://eviware.com/soapui/config", "properties");
     private static final QName SOAPUI_PROPERTY_Q = new QName("http://eviware.com/soapui/config", "property");
     private static final QName SOAPUI_VALUE_Q = new QName("http://eviware.com/soapui/config", "value");
@@ -164,6 +172,8 @@ public class CarAnalyzer {
     private SortedMap<String, Set<TestProject>> testsMap = new TreeMap<String, Set<TestProject>>();
 
     private List<String> forbiddenArtifactNames = new ArrayList<String>(Arrays.asList("services"));
+
+    private SortedMap<String, String> servicePathMap = new TreeMap<String, String>();
 
     private FileSystemManager fsm;
 
@@ -633,6 +643,16 @@ public class CarAnalyzer {
                                     if (endpoint.getNodeKind() == XdmNodeKind.ELEMENT) {
 
                                         String propertyHandledEndpoint = replaceTestPropertyInUrl(endpoint.getStringValue(), testCasePropertiesMap);
+                                        // if it is a REST api call it might have resourcePath information in other element too
+                                        XdmSequenceIterator config = testStepNode.axisIterator(Axis.DESCENDANT, SOAPUI_CONFIG_Q);
+                                        if (config.hasNext()) {
+                                            XdmNode configNode = (XdmNode) config.next();
+                                            if (configNode.getAttributeValue(SOAPUI_RESOURCE_PATH_Q) != null) {
+                                                String resourcePath = configNode.getAttributeValue(SOAPUI_RESOURCE_PATH_Q);
+                                                propertyHandledEndpoint += resourcePath;
+                                            }
+                                        }
+
                                         Artifact fact = getArtifactFromString(propertyHandledEndpoint);
                                         if (fact != null) {
                                             TestCase c = new TestCase(testCaseNode.getAttributeValue(NAME_Q));
@@ -856,6 +876,8 @@ public class CarAnalyzer {
             artifactName = getRealNameForArtifact(carFile.toString() + dependencyDirectory + artifactFilePath);
         }
 
+        getServicePath(artifactType, artifactName, carFile.toString() + dependencyDirectory + artifactFilePath);
+
         Artifact.ArtifactDescription description = getArtifactDescription(artifactName, carFile.toString() + dependencyDirectory + artifactFilePath);
 
         if (artifactType == null && !IGNORED_ARTIFACT_TYPES.contains(artifactTypeString)) {
@@ -871,6 +893,24 @@ public class CarAnalyzer {
             return new Artifact(artifactName, dependencyVersion, artifactType, dependencyDirectory + artifactFilePath, carFile.toString(), description);
         } else {
             return null;
+        }
+    }
+
+    private void getServicePath(Artifact.ArtifactType artifactType, String artifactName, String artifactFilePath) throws FileSystemException, JaxenException {
+        FileObject artifactFileObject = fsm.resolveFile(artifactFilePath);
+
+        OMElement root = OMXMLBuilderFactory.createOMBuilder(artifactFileObject.getContent().getInputStream()).getDocumentElement();
+
+        if (artifactType == Artifact.ArtifactType.API) {
+            String context = root.getAttributeValue(CONTEXT_Q);
+            //String urlMapping = root.getAttributeValue(URL_MAPPING_Q);
+            Iterator resourceElements = root.getChildrenWithName(RESOURCE_Q);
+            while (resourceElements.hasNext()) {
+                OMElement resourceElement = (OMElement) resourceElements.next();
+                String urlMapping = resourceElement.getAttributeValue(URL_MAPPING_Q);
+                String path = context + urlMapping;
+                servicePathMap.put(path, artifactName);
+            }
         }
     }
 
@@ -1192,6 +1232,15 @@ public class CarAnalyzer {
      * @return
      */
     private Artifact getArtifactFromPath(String path) {
+        // path might be in the service path map
+        if (servicePathMap.containsKey(path)) {
+            String artifactName = servicePathMap.get(path);
+            Artifact a = artifactMap.get(artifactName);
+            if (a != null) {
+                return a;
+            }
+        }
+
         String[] pathComponents = path.split("/");
         // Attempt to find an artifact from URL components
         for (String pathComponent : pathComponents) {
