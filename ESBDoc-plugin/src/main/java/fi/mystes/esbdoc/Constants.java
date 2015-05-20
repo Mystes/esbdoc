@@ -13,8 +13,7 @@ import java.util.Set;
  * Created by mystes-am on 20.5.2015.
  */
 public class Constants {
-    public static final String SYNAPSE_NAMESPACE_PREFIX = "s";
-    public static final String SYNAPSE_NAMESPACE_URI = "http://ws.apache.org/ns/synapse";
+    public static final Namespace SYNAPSE_NAMESPACE = new Namespace("s", "http://ws.apache.org/ns/synapse");
 
     public static final String FILE_SEPARATOR = ",";
 

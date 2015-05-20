@@ -68,7 +68,7 @@ public class CarAnalyzer {
 
         public SynapseXPath() throws JaxenException {
             super(ARTIFACT_DESCRIPTION_XPATH_STRING);
-            this.addNamespace(SYNAPSE_NAMESPACE_PREFIX, SYNAPSE_NAMESPACE_URI);
+            this.addNamespace(SYNAPSE_NAMESPACE.PREFIX, SYNAPSE_NAMESPACE.URI);
         }
 
         public static Object evaluateOmElement(OMElement omElement) throws JaxenException{
