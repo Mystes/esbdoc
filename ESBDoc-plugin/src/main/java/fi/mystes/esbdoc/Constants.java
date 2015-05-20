@@ -26,13 +26,13 @@ public class Constants {
     public static final QName NAME_Q = new QName("name");
     public static final QName TYPE_Q = new QName("type");
 
-    public static final javax.xml.namespace.QName PURPOSE_Q = new javax.xml.namespace.QName("http://ws.apache.org/ns/synapse", "purpose");
-    public static final javax.xml.namespace.QName RECEIVES_Q = new javax.xml.namespace.QName("http://ws.apache.org/ns/synapse", "receives");
-    public static final javax.xml.namespace.QName RETURNS_Q = new javax.xml.namespace.QName("http://ws.apache.org/ns/synapse", "returns");
-    public static final javax.xml.namespace.QName FIELD_Q = new javax.xml.namespace.QName("http://ws.apache.org/ns/synapse", "field");
-    public static final javax.xml.namespace.QName EXAMPLE_Q = new javax.xml.namespace.QName("http://ws.apache.org/ns/synapse", "example");
-    public static final javax.xml.namespace.QName DEPENDENCIES_Q = new javax.xml.namespace.QName("http://ws.apache.org/ns/synapse", "dependencies");
-    public static final javax.xml.namespace.QName DEPENDENCY_Q = new javax.xml.namespace.QName("http://ws.apache.org/ns/synapse", "dependency");
+    public static final javax.xml.namespace.QName PURPOSE_Q = new javax.xml.namespace.QName(SYNAPSE_NAMESPACE.URI, "purpose");
+    public static final javax.xml.namespace.QName RECEIVES_Q = new javax.xml.namespace.QName(SYNAPSE_NAMESPACE.URI, "receives");
+    public static final javax.xml.namespace.QName RETURNS_Q = new javax.xml.namespace.QName(SYNAPSE_NAMESPACE.URI, "returns");
+    public static final javax.xml.namespace.QName FIELD_Q = new javax.xml.namespace.QName(SYNAPSE_NAMESPACE.URI, "field");
+    public static final javax.xml.namespace.QName EXAMPLE_Q = new javax.xml.namespace.QName(SYNAPSE_NAMESPACE.URI, "example");
+    public static final javax.xml.namespace.QName DEPENDENCIES_Q = new javax.xml.namespace.QName(SYNAPSE_NAMESPACE.URI, "dependencies");
+    public static final javax.xml.namespace.QName DEPENDENCY_Q = new javax.xml.namespace.QName(SYNAPSE_NAMESPACE.URI, "dependency");
 
     public static final javax.xml.namespace.QName DESCRIPTION_Q = new javax.xml.namespace.QName("description");
     public static final javax.xml.namespace.QName PATH_Q = new javax.xml.namespace.QName("path");
@@ -42,7 +42,7 @@ public class Constants {
     public static final javax.xml.namespace.QName CONTEXT_Q = new javax.xml.namespace.QName("context");
     public static final javax.xml.namespace.QName URL_MAPPING_Q = new javax.xml.namespace.QName("url-mapping");
     public static final javax.xml.namespace.QName METHODS_Q = new javax.xml.namespace.QName("methods");
-    public static final javax.xml.namespace.QName RESOURCE_Q = new javax.xml.namespace.QName("http://ws.apache.org/ns/synapse", "resource");
+    public static final javax.xml.namespace.QName RESOURCE_Q = new javax.xml.namespace.QName(SYNAPSE_NAMESPACE.URI, "resource");
 
     public static final QName SOAPUI_PROJECT_Q = new QName("http://eviware.com/soapui/config", "soapui-project");
     public static final QName SOAPUI_TEST_SUITE_Q = new QName("http://eviware.com/soapui/config", "testSuite");
