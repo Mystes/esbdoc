@@ -1,51 +1,46 @@
 package fi.mystes.esbdoc;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
 import net.sf.saxon.s9api.SaxonApiException;
 import org.apache.commons.lang3.StringEscapeUtils;
-
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class SequenceDiagramBuilder {
+
+    private static SequenceDiagramBuilder instance = null;
 
     private String filesHome;
     private HashMap<String, SequenceItem> parsed = new HashMap();
     private Map<String, String> visited = new HashMap();
     private StringBuilder output = null;
 
-    public SequenceDiagramBuilder(String wso2Home) {
+    private SequenceDiagramBuilder(String wso2Home) {
         filesHome = wso2Home + "/repository/deployment/server/synapse-configs/default/";
         visited = new HashMap<String, String>();
     }
 
-    public SequenceDiagramBuilder() {
+    private SequenceDiagramBuilder() {
         visited = new HashMap<String, String>();
+    }
+
+    public static SequenceDiagramBuilder instance(){
+        if(null == instance){
+            instance = new SequenceDiagramBuilder();
+        }
+        return instance;
     }
 
     private SequenceDiagramBuilder build(String file) throws FileNotFoundException, SAXException, IOException, ParserConfigurationException {

@@ -49,7 +49,6 @@ public class CarAnalyzer {
 
     private FileSystemManager fsm;
     private String currentObject = null; // Used for information logging if sequence or proxy has  invalid fields
-    private SequenceDiagramBuilder seqBuilder = new SequenceDiagramBuilder();
 
     public CarAnalyzer() throws FileSystemException, ParserConfigurationException, JaxenException {
         try {
@@ -68,9 +67,9 @@ public class CarAnalyzer {
         getForwardDependencyMap();
         buildTestFileMap(testFileObjects);
         // Process sequence diagrams 
-        Map<String, SequenceItem> seqs = seqBuilder.getParsed();
+        Map<String, SequenceItem> seqs = SequenceDiagramBuilder.instance().getParsed();
         writeOutputFiles(outputDestination);
-        seqBuilder.writeOutputFiles(outputDestination);
+        SequenceDiagramBuilder.instance().writeOutputFiles(outputDestination);
     }
 
     public void run(File[] carFiles, String outputDestination, File[] testFolders) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
@@ -671,7 +670,7 @@ public class CarAnalyzer {
             if (xmlFo.getName().getBaseName().indexOf("-soapui-project.xml") == -1) {
                 // Sequence diagram parser can't hande testa
                 isSeq = xmlFo.getContent().getInputStream();
-                String seg = this.seqBuilder.buildPipe(isSeq);
+                String seg = SequenceDiagramBuilder.instance().buildPipe(isSeq);
                 isSeq.close();
                 /*
                 if (seg != null && !seg.isEmpty()) {
