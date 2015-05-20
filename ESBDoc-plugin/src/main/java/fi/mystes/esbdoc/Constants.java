@@ -14,6 +14,7 @@ import java.util.Set;
  */
 public class Constants {
     public static final Namespace SYNAPSE_NAMESPACE = new Namespace("s", "http://ws.apache.org/ns/synapse");
+    public static final Namespace SOAPUI_CONFIG_NAMESPACE = new Namespace("con", "http://eviware.com/soapui/config");
 
     public static final String FILE_SEPARATOR = ",";
 
@@ -44,17 +45,17 @@ public class Constants {
     public static final javax.xml.namespace.QName URL_MAPPING_Q = new javax.xml.namespace.QName("url-mapping");
     public static final javax.xml.namespace.QName METHODS_Q = new javax.xml.namespace.QName("methods");
 
-    public static final QName SOAPUI_PROJECT_Q = new QName("http://eviware.com/soapui/config", "soapui-project");
-    public static final QName SOAPUI_TEST_SUITE_Q = new QName("http://eviware.com/soapui/config", "testSuite");
-    public static final QName SOAPUI_TEST_CASE_Q = new QName("http://eviware.com/soapui/config", "testCase");
-    public static final QName SOAPUI_TEST_STEP_Q = new QName("http://eviware.com/soapui/config", "testStep");
-    public static final QName SOAPUI_ENDPOINT_Q = new QName("http://eviware.com/soapui/config", "endpoint");
-    public static final QName SOAPUI_CONFIG_Q = new QName("http://eviware.com/soapui/config", "config");
+    public static final QName SOAPUI_PROJECT_Q = new QName(SOAPUI_CONFIG_NAMESPACE.URI, "soapui-project");
+    public static final QName SOAPUI_TEST_SUITE_Q = new QName(SOAPUI_CONFIG_NAMESPACE.URI, "testSuite");
+    public static final QName SOAPUI_TEST_CASE_Q = new QName(SOAPUI_CONFIG_NAMESPACE.URI, "testCase");
+    public static final QName SOAPUI_TEST_STEP_Q = new QName(SOAPUI_CONFIG_NAMESPACE.URI, "testStep");
+    public static final QName SOAPUI_ENDPOINT_Q = new QName(SOAPUI_CONFIG_NAMESPACE.URI, "endpoint");
+    public static final QName SOAPUI_CONFIG_Q = new QName(SOAPUI_CONFIG_NAMESPACE.URI, "config");
     public static final QName SOAPUI_RESOURCE_PATH_Q = new QName("resourcePath");
-    public static final QName SOAPUI_PROPERTIES_Q = new QName("http://eviware.com/soapui/config", "properties");
-    public static final QName SOAPUI_PROPERTY_Q = new QName("http://eviware.com/soapui/config", "property");
-    public static final QName SOAPUI_VALUE_Q = new QName("http://eviware.com/soapui/config", "value");
-    public static final QName SOAPUI_NAME_Q = new QName("http://eviware.com/soapui/config", "name");
+    public static final QName SOAPUI_PROPERTIES_Q = new QName(SOAPUI_CONFIG_NAMESPACE.URI, "properties");
+    public static final QName SOAPUI_PROPERTY_Q = new QName(SOAPUI_CONFIG_NAMESPACE.URI, "property");
+    public static final QName SOAPUI_VALUE_Q = new QName(SOAPUI_CONFIG_NAMESPACE.URI, "value");
+    public static final QName SOAPUI_NAME_Q = new QName(SOAPUI_CONFIG_NAMESPACE.URI, "name");
 
     public static final String[] IGNORED_ARTIFACT_TYPE_STRINGS = {
             "synapse/local-entry"
