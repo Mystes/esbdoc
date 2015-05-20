@@ -23,72 +23,93 @@ public class SaxonXPath {
         COMPILER.declareNamespace(Constants.SOAPUI_CONFIG_NAMESPACE.PREFIX, Constants.SOAPUI_CONFIG_NAMESPACE.URI);
     }
 
-    private static XPathExecutable compile(String xpath) throws SaxonApiException{
-        return COMPILER.compile(xpath);
-    }
-
-    private static XPathSelector load(String xpath) throws SaxonApiException{
-        return compile(xpath).load();
-    }
-
     public static Builder apply(String thisXpath){
         return new Builder().using(thisXpath);
     }
 
-    public static class Builder {
+    public static Builder apply(XPathSelector thisXpath){
+        return new Builder().using(thisXpath);
+    }
+
+    static class Builder {
+        private Executor executor;
+
+        private Builder(){
+            this.executor = new Executor();
+        }
+
+        private Builder using(String thisXpath) {
+            this.executor.xpathString = thisXpath;
+            return this;
+        }
+
+        private Builder using(XPathSelector thisXpath) {
+            this.executor.xpathSelector = thisXpath;
+            return this;
+        }
+
+        public Executor to(FileObject xmlFo) throws SaxonApiException, IOException {
+            this.executor.node = Helper.getNodeFromFileObject(xmlFo);
+            return this.executor;
+        }
+
+        public Executor to(XdmNode thisNode) {
+            this.executor.node = thisNode;
+            return this.executor;
+        }
+    }
+
+    static class Executor {
         private String xpathString;
+        private XPathSelector xpathSelector;
         private XdmNode node;
 
-        public Builder using(String thisXpath){
-            this.xpathString = thisXpath;
-            return this;
-        }
-
-        public Builder to(FileObject xmlFo) throws SaxonApiException, IOException {
-            this.node = getNodeFromFileObject(xmlFo);
-            return this;
-        }
-
-        public Builder to(XdmNode thisNode) {
-            this.node = thisNode;
-            return this;
-        }
 
         public XdmItem andReturnAnXdmItem() throws SaxonApiException {
-            XPathSelector selector = load(this.xpathString);
+            XPathSelector selector = getSelector();
             selector.setContextItem(node);
             return selector.evaluateSingle();
         }
 
         public XdmValue andReturnAnXdmValue() throws SaxonApiException {
-            XPathSelector selector = load(this.xpathString);
+            XPathSelector selector = getSelector();
             selector.setContextItem(node);
             return selector.evaluate();
         }
 
         public <T> T andReturnA(Class<T> type) throws SaxonApiException {
             XdmItem item = andReturnAnXdmItem();
-            return convertXdmItemToType(item, type);
+            return Helper.convertXdmItemToType(item, type);
         }
 
         public <T> Set<T> andReturnASetOf(Class<?> type) throws SaxonApiException {
             XdmValue xdmValue = andReturnAnXdmValue();
             Set<T> resultSet = new HashSet<T>();
             for(XdmItem item : xdmValue){
-                resultSet.add((T) convertXdmItemToType(item, type));
+                resultSet.add((T) Helper.convertXdmItemToType(item, type));
             }
             return resultSet;
         }
 
-        private <T> T convertXdmItemToType(XdmItem item, Class<T> type){
-            if(String.class.equals(type)) {
-                return (T) item.toString();
+        private XPathSelector getSelector() throws SaxonApiException{
+            if(null == this.xpathSelector){
+                this.xpathSelector = load(this.xpathString);
             }
-            //TODO support for booleans etc?
-            return (T) item;
+            return this.xpathSelector;
         }
 
-        private XdmNode getNodeFromFileObject(FileObject xmlFo) throws SaxonApiException, IOException {
+        private XPathExecutable compile(String xpath) throws SaxonApiException {
+            return COMPILER.compile(xpath);
+        }
+
+        private XPathSelector load(String xpath) throws SaxonApiException {
+            return compile(xpath).load();
+        }
+    }
+
+    private static class Helper {
+
+        private static XdmNode getNodeFromFileObject(FileObject xmlFo) throws SaxonApiException, IOException {
             InputStream is = null;
             InputStream isSeq = null; // This stream is used for sequenceDiagram generation
             try {
@@ -123,6 +144,15 @@ public class SaxonXPath {
                     is.close();
                 }
             }
+        }
+
+
+        private static <T> T convertXdmItemToType(XdmItem item, Class<T> type){
+            if(String.class.equals(type)) {
+                return (T) item.getStringValue();
+            }
+            //TODO support for booleans etc?
+            return (T) item;
         }
     }
 }
