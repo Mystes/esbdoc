@@ -44,36 +44,28 @@ public class CarAnalyzer {
     private final XPathSelector testProjectXpath;
 
     private SortedMap<String, Artifact> artifactMap = new TreeMap<String, Artifact>();
-
     private SortedMap<Artifact, Set<Dependency>> forwardDependencyMap = new TreeMap<Artifact, Set<Dependency>>();
-
     private SortedMap<Artifact, Set<Dependency>> reverseDependencyMap = new TreeMap<Artifact, Set<Dependency>>();
-
     private SortedMap<String, Set<TestProject>> testsMap = new TreeMap<String, Set<TestProject>>();
-
     private List<String> forbiddenArtifactNames = new ArrayList<String>(Arrays.asList("services"));
-
     private SortedMap<String, String> servicePathMap = new TreeMap<String, String>();
 
     private FileSystemManager fsm;
-
     private String currentObject = null; // Used for information logging if sequence or proxy has  invalid fields
-
     private SequenceDiagramBuilder seqBuilder = new SequenceDiagramBuilder();
 
     public CarAnalyzer() throws FileSystemException, ParserConfigurationException, JaxenException {
-        fsm = VFS.getManager();
         try {
+            fsm = VFS.getManager();
             dependencyXPath = COMPILER.compile(DEPENDENCY_XPATH_STRING).load();
             artifactFilenameXPath = COMPILER.compile(ARTIFACT_FILENAME_XPATH_STRING).load();
             artifactDescriptionXPath = COMPILER.compile(ARTIFACT_DESCRIPTION_XPATH_STRING).load();
             testProjectXpath = COMPILER.compile(TESTCASE_XPATH_STRING).load();
+            xpath = new AXIOMXPath(ARTIFACT_DESCRIPTION_XPATH_STRING);
+            xpath.addNamespace("s", "http://ws.apache.org/ns/synapse");
         } catch (SaxonApiException e) {
             throw new RuntimeException("Unable to initialize the CarCallTree class", e);
         }
-
-        xpath = new AXIOMXPath(ARTIFACT_DESCRIPTION_XPATH_STRING);
-        xpath.addNamespace("s", "http://ws.apache.org/ns/synapse");
     }
 
     private void processFileObjects(List<FileObject> carFileObjects, String outputDestination, List<FileObject> testFileObjects) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
