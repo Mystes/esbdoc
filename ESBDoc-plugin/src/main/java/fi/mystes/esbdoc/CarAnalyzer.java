@@ -3,32 +3,21 @@ package fi.mystes.esbdoc;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
-import net.sf.saxon.s9api.Axis;
-import net.sf.saxon.s9api.DocumentBuilder;
-import net.sf.saxon.s9api.Processor;
-import net.sf.saxon.s9api.QName;
-import net.sf.saxon.s9api.SaxonApiException;
-import net.sf.saxon.s9api.XPathCompiler;
-import net.sf.saxon.s9api.XPathSelector;
-import net.sf.saxon.s9api.XdmItem;
-import net.sf.saxon.s9api.XdmNode;
-import net.sf.saxon.s9api.XdmNodeKind;
-import net.sf.saxon.s9api.XdmSequenceIterator;
-import net.sf.saxon.s9api.XdmValue;
+import net.sf.saxon.s9api.*;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.OMXMLBuilderFactory;
 import org.apache.axiom.om.impl.llom.OMElementImpl;
-import org.apache.axiom.om.impl.llom.OMTextImpl;
 import org.apache.axiom.om.xpath.AXIOMXPath;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.VFS;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.jaxen.JaxenException;
 import org.xml.sax.SAXException;
+
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.xpath.XPathExpressionException;
@@ -1043,19 +1032,27 @@ public class CarAnalyzer {
     private SortedMap<Artifact, Set<Dependency>> getForwardDependencyMap() throws SaxonApiException, IOException {
         for (Artifact a : artifactMap.values()) {
             FileObject artifactFileObject = fsm.resolveFile(a.getCarPath() + a.getPath());
-            if (artifactFileObject.exists()) {
+            if (!artifactFileObject.exists()) {
+                log.warn("File does not exist: " + artifactFileObject.toString());
+            } else {
                 XdmNode artifactXml = getNodeFromFileObject(artifactFileObject);
+                log.debug(artifactFileObject.toString() + " contains the following XML: " + artifactXml.toString());
 
                 Set<Dependency> dependencies = new HashSet<Dependency>();
 
                 for (Dependency.DependencyType dt : Dependency.DependencyType.values()) {
                     // TASK_TO has special handling
                     if (dt == Dependency.DependencyType.TASK_TO) {
+                        log.info("Dependency type is TASK_TO");
                         continue;
                     }
 
+                    log.debug("Adding dependencies of type " + dt);
                     dependencies.addAll(getDepdendencySet(a, artifactXml, dt));
                 }
+
+                log.debug("Artifact type is: " + a.getType());
+                log.debug("Dependencies are empty: " + dependencies.isEmpty());
 
                 if (a.getType() == Artifact.ArtifactType.TASK && !dependencies.isEmpty()) {
                     // A task should only have a single dependency, a proxy or a sequence
