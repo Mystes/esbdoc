@@ -36,8 +36,6 @@ public class CarAnalyzer {
 
     private static Log log = LogFactory.getLog(CarAnalyzer.class);
 
-    private AXIOMXPath xpath;
-
     private final XPathSelector dependencyXPath;
     private final XPathSelector artifactFilenameXPath;
     private final XPathSelector artifactDescriptionXPath;
@@ -61,7 +59,6 @@ public class CarAnalyzer {
             artifactFilenameXPath = COMPILER.compile(ARTIFACT_FILENAME_XPATH_STRING).load();
             artifactDescriptionXPath = COMPILER.compile(ARTIFACT_DESCRIPTION_XPATH_STRING).load();
             testProjectXpath = COMPILER.compile(TESTCASE_XPATH_STRING).load();
-            xpath = new SynapseXPath();
         } catch (SaxonApiException e) {
             throw new RuntimeException("Unable to initialize the CarCallTree class", e);
         }
@@ -74,6 +71,10 @@ public class CarAnalyzer {
         public SynapseXPath() throws JaxenException {
             super(ARTIFACT_DESCRIPTION_XPATH_STRING);
             this.addNamespace(SYNAPSE_NAMESPACE_PREFIX, SYNAPSE_NAMESPACE_URI);
+        }
+
+        public static Object evaluateOmElement(OMElement omElement) throws JaxenException{
+            return new SynapseXPath().evaluate(omElement);
         }
     }
 
@@ -800,7 +801,7 @@ public class CarAnalyzer {
 
         OMElement root = OMXMLBuilderFactory.createOMBuilder(artifactFileObject.getContent().getInputStream()).getDocumentElement();
 
-        Object evaluationResult = xpath.evaluate(root);
+        Object evaluationResult = SynapseXPath.evaluateOmElement(root);
         if (evaluationResult instanceof List) {
             List resultList = (List) evaluationResult;
 
