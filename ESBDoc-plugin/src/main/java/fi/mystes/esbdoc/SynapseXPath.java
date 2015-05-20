@@ -12,7 +12,7 @@ import static fi.mystes.esbdoc.Constants.SYNAPSE_NAMESPACE;
  */
 public class SynapseXPath extends AXIOMXPath {
 
-    public SynapseXPath() throws JaxenException {
+    private SynapseXPath() throws JaxenException {
         super(ARTIFACT_DESCRIPTION_XPATH_STRING);
         this.addNamespace(SYNAPSE_NAMESPACE.PREFIX, SYNAPSE_NAMESPACE.URI);
     }
