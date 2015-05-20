@@ -1134,15 +1134,10 @@ public class CarAnalyzer {
      * @throws SaxonApiException
      */
     private Set<String> evaluateXPathToStringSet(XdmNode context, XPathSelector xpath) throws SaxonApiException {
-        Set<String> results = new HashSet<String>();
-        if (xpath != null) {
-            xpath.setContextItem(context);
-            for (XdmItem item : xpath) {
-                String itemString = item.getStringValue();
-                results.add(itemString);
-            }
+        if(null == xpath){
+            return new HashSet<String>();
         }
-        return results;
+        return SaxonXPath.apply(xpath).to(context).andReturnASetOf(String.class);
     }
 
 }
