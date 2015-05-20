@@ -35,11 +35,6 @@ public class CarAnalyzer {
 
     private static Log log = LogFactory.getLog(CarAnalyzer.class);
 
-    private final XPathSelector dependencyXPath;
-    private final XPathSelector artifactFilenameXPath;
-    private final XPathSelector artifactDescriptionXPath;
-    private final XPathSelector testProjectXpath;
-
     private SortedMap<String, Artifact> artifactMap = new TreeMap<String, Artifact>();
     private SortedMap<Artifact, Set<Dependency>> forwardDependencyMap = new TreeMap<Artifact, Set<Dependency>>();
     private SortedMap<Artifact, Set<Dependency>> reverseDependencyMap = new TreeMap<Artifact, Set<Dependency>>();
@@ -51,15 +46,7 @@ public class CarAnalyzer {
     private String currentObject = null; // Used for information logging if sequence or proxy has  invalid fields
 
     public CarAnalyzer() throws FileSystemException, ParserConfigurationException, JaxenException {
-        try {
             fsm = VFS.getManager();
-            dependencyXPath = COMPILER.compile(DEPENDENCY_XPATH_STRING).load();
-            artifactFilenameXPath = COMPILER.compile(ARTIFACT_FILENAME_XPATH_STRING).load();
-            artifactDescriptionXPath = COMPILER.compile(ARTIFACT_DESCRIPTION_XPATH_STRING).load();
-            testProjectXpath = COMPILER.compile(TESTCASE_XPATH_STRING).load();
-        } catch (SaxonApiException e) {
-            throw new RuntimeException("Unable to initialize the CarCallTree class", e);
-        }
     }
 
     private void processFileObjects(List<FileObject> carFileObjects, String outputDestination, List<FileObject> testFileObjects) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
@@ -402,9 +389,7 @@ public class CarAnalyzer {
         for (FileObject carFileObject : carFileObjects) {
             FileObject artifactsFileObject = carFileObject.getChild("artifacts.xml");
             log.info(MessageFormat.format("Processing artifacts.xml file: [{0}]", artifactsFileObject.getURL().toString()));
-            XdmNode artifactsNode = getNodeFromFileObject(artifactsFileObject);
-            dependencyXPath.setContextItem(artifactsNode);
-            XdmValue value = dependencyXPath.evaluate();
+            XdmValue value = SaxonXPath.apply(DEPENDENCY_XPATH_STRING).to(artifactsFileObject).andGiveMeAListOfItems();
             for (XdmItem item : value) {
                 Artifact a = getArtifact((XdmNode) item, carFileObject);
                 if (a != null) {
@@ -429,10 +414,7 @@ public class CarAnalyzer {
             for (FileObject testFileObject : testFileObjects) {
                 log.info(MessageFormat.format("Processing SoapUI file: [{0}]", testFileObject.getURL().toString()));
 
-                //find root element from file
-                XdmNode soapUINode = getNodeFromFileObject(testFileObject);
-                testProjectXpath.setContextItem(soapUINode);
-                XdmValue value = testProjectXpath.evaluate();
+                XdmValue value = SaxonXPath.apply(TESTCASE_XPATH_STRING).to(testFileObject).andGiveMeAListOfItems();
                 XdmNode rootElement = (XdmNode) value.itemAt(0);
 
                 //find artifacts from the file and map them to TestCases and TestSuites
@@ -678,7 +660,7 @@ public class CarAnalyzer {
                 }
                 */
             }
-            XdmNode xmlNode = BUILDER.build(new StreamSource(is));
+            XdmNode xmlNode = SaxonXPath.BUILDER.build(new StreamSource(is));
             XdmSequenceIterator i = xmlNode.axisIterator(Axis.CHILD);
             while (i.hasNext()) {
                 XdmItem item = i.next();
@@ -726,11 +708,7 @@ public class CarAnalyzer {
         }
 
         XdmNode artifactFileXml = getNodeFromFileObject(artifactFileObject);
-
-        artifactFilenameXPath.setContextItem(artifactFileXml);
-
-        String artifactFilePath = artifactFilenameXPath.evaluateSingle().toString();
-
+        String artifactFilePath = SaxonXPath.apply(ARTIFACT_FILENAME_XPATH_STRING).to(artifactFileXml).please();
         String artifactTypeString = artifactFileXml.getAttributeValue(TYPE_Q);
 
         Artifact.ArtifactType artifactType = Artifact.ArtifactType.getArtifactTypeByTypeString(artifactTypeString);

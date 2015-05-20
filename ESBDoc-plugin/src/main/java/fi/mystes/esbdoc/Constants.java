@@ -1,9 +1,6 @@
 package fi.mystes.esbdoc;
 
-import net.sf.saxon.s9api.DocumentBuilder;
-import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.QName;
-import net.sf.saxon.s9api.XPathCompiler;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -57,14 +54,6 @@ public class Constants {
     public static final Set<String> IGNORED_ARTIFACT_TYPES = new HashSet<String>(Arrays.asList(IGNORED_ARTIFACT_TYPE_STRINGS));
 
     public static final String FILE_SEPARATOR = ",";
-    public static final Processor PROCESSOR = new Processor(false);
-    public static final DocumentBuilder BUILDER = PROCESSOR.newDocumentBuilder();
-    public static final XPathCompiler COMPILER = PROCESSOR.newXPathCompiler();
-
-    static {
-        COMPILER.declareNamespace(SYNAPSE_NAMESPACE.PREFIX, SYNAPSE_NAMESPACE.URI);
-        COMPILER.declareNamespace(SOAPUI_CONFIG_NAMESPACE.PREFIX, SOAPUI_CONFIG_NAMESPACE.URI);
-    }
 
     public static final String DEPENDENCY_XPATH_STRING = "/artifacts/artifact[@type = 'carbon/application']/dependency";
     public static final String ARTIFACT_FILENAME_XPATH_STRING = "/artifact/file/text()";

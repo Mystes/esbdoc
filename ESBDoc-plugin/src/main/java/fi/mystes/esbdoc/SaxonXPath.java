@@ -12,9 +12,9 @@ import java.io.InputStream;
  */
 public class SaxonXPath {
 
-    public static final Processor PROCESSOR = Constants.PROCESSOR; //new Processor(false);
-    public static final DocumentBuilder BUILDER = Constants.BUILDER; //PROCESSOR.newDocumentBuilder();
-    public static final XPathCompiler COMPILER = Constants.COMPILER; //PROCESSOR.newXPathCompiler();
+    public static final Processor PROCESSOR = new Processor(false);
+    public static final DocumentBuilder BUILDER = PROCESSOR.newDocumentBuilder();
+    public static final XPathCompiler COMPILER = PROCESSOR.newXPathCompiler();
 
     static {
         COMPILER.declareNamespace(Constants.SYNAPSE_NAMESPACE.PREFIX, Constants.SYNAPSE_NAMESPACE.URI);
@@ -52,10 +52,20 @@ public class SaxonXPath {
             return this;
         }
 
-        public String please() throws SaxonApiException {
+        public XdmItem andGiveMeASingleItem() throws SaxonApiException {
             XPathSelector selector = load(this.xpathString);
             selector.setContextItem(node);
-            return selector.evaluateSingle().toString();
+            return selector.evaluateSingle();
+        }
+
+        public XdmValue andGiveMeAListOfItems() throws SaxonApiException {
+            XPathSelector selector = load(this.xpathString);
+            selector.setContextItem(node);
+            return selector.evaluate();
+        }
+
+        public String please() throws SaxonApiException {
+            return andGiveMeASingleItem().toString();
         }
 
         private XdmNode getNodeFromFileObject(FileObject xmlFo) throws SaxonApiException, IOException {
@@ -76,7 +86,7 @@ public class SaxonXPath {
                 }
                 */
                 }
-                XdmNode xmlNode = Constants.BUILDER.build(new StreamSource(is));
+                XdmNode xmlNode = BUILDER.build(new StreamSource(is));
                 XdmSequenceIterator i = xmlNode.axisIterator(Axis.CHILD);
                 while (i.hasNext()) {
                     XdmItem item = i.next();
