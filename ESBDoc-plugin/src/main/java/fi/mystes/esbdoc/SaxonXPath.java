@@ -23,6 +23,8 @@ public class SaxonXPath {
         COMPILER.declareNamespace(Constants.SOAPUI_CONFIG_NAMESPACE.PREFIX, Constants.SOAPUI_CONFIG_NAMESPACE.URI);
     }
 
+    private SaxonXPath(){};
+
     public static Builder apply(String thisXpath){
         return new Builder().using(thisXpath);
     }
@@ -64,6 +66,7 @@ public class SaxonXPath {
         private XPathSelector xpathSelector;
         private XdmNode node;
 
+        private Executor(){};
 
         public XdmItem andReturnAnXdmItem() throws SaxonApiException {
             XPathSelector selector = getSelector();
