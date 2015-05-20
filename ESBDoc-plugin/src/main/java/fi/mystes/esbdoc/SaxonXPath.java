@@ -6,6 +6,8 @@ import org.apache.commons.vfs2.FileObject;
 import javax.xml.transform.stream.StreamSource;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by mystes-am on 20.5.2015.
@@ -52,20 +54,38 @@ public class SaxonXPath {
             return this;
         }
 
-        public XdmItem andGiveMeASingleItem() throws SaxonApiException {
+        public XdmItem andReturnAnXdmItem() throws SaxonApiException {
             XPathSelector selector = load(this.xpathString);
             selector.setContextItem(node);
             return selector.evaluateSingle();
         }
 
-        public XdmValue andGiveMeAListOfItems() throws SaxonApiException {
+        public XdmValue andReturnAnXdmValue() throws SaxonApiException {
             XPathSelector selector = load(this.xpathString);
             selector.setContextItem(node);
             return selector.evaluate();
         }
 
-        public String please() throws SaxonApiException {
-            return andGiveMeASingleItem().toString();
+        public <T> T andReturnA(Class<T> type) throws SaxonApiException {
+            XdmItem item = andReturnAnXdmItem();
+            return convertXdmItemToType(item, type);
+        }
+
+        public <T> Set<T> andReturnASetOf(Class<?> type) throws SaxonApiException {
+            XdmValue xdmValue = andReturnAnXdmValue();
+            Set<T> resultSet = new HashSet<T>();
+            for(XdmItem item : xdmValue){
+                resultSet.add((T) convertXdmItemToType(item, type));
+            }
+            return resultSet;
+        }
+
+        private <T> T convertXdmItemToType(XdmItem item, Class<T> type){
+            if(String.class.equals(type)) {
+                return (T) item.toString();
+            }
+            //TODO support for booleans etc?
+            return (T) item;
         }
 
         private XdmNode getNodeFromFileObject(FileObject xmlFo) throws SaxonApiException, IOException {

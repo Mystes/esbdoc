@@ -389,7 +389,7 @@ public class CarAnalyzer {
         for (FileObject carFileObject : carFileObjects) {
             FileObject artifactsFileObject = carFileObject.getChild("artifacts.xml");
             log.info(MessageFormat.format("Processing artifacts.xml file: [{0}]", artifactsFileObject.getURL().toString()));
-            XdmValue value = SaxonXPath.apply(DEPENDENCY_XPATH_STRING).to(artifactsFileObject).andGiveMeAListOfItems();
+            XdmValue value = SaxonXPath.apply(DEPENDENCY_XPATH_STRING).to(artifactsFileObject).andReturnAnXdmValue();
             for (XdmItem item : value) {
                 Artifact a = getArtifact((XdmNode) item, carFileObject);
                 if (a != null) {
@@ -414,7 +414,7 @@ public class CarAnalyzer {
             for (FileObject testFileObject : testFileObjects) {
                 log.info(MessageFormat.format("Processing SoapUI file: [{0}]", testFileObject.getURL().toString()));
 
-                XdmValue value = SaxonXPath.apply(TESTCASE_XPATH_STRING).to(testFileObject).andGiveMeAListOfItems();
+                XdmValue value = SaxonXPath.apply(TESTCASE_XPATH_STRING).to(testFileObject).andReturnAnXdmValue();
                 XdmNode rootElement = (XdmNode) value.itemAt(0);
 
                 //find artifacts from the file and map them to TestCases and TestSuites
@@ -708,7 +708,7 @@ public class CarAnalyzer {
         }
 
         XdmNode artifactFileXml = getNodeFromFileObject(artifactFileObject);
-        String artifactFilePath = SaxonXPath.apply(ARTIFACT_FILENAME_XPATH_STRING).to(artifactFileXml).please();
+        String artifactFilePath = SaxonXPath.apply(ARTIFACT_FILENAME_XPATH_STRING).to(artifactFileXml).andReturnA(String.class);
         String artifactTypeString = artifactFileXml.getAttributeValue(TYPE_Q);
 
         Artifact.ArtifactType artifactType = Artifact.ArtifactType.getArtifactTypeByTypeString(artifactTypeString);
