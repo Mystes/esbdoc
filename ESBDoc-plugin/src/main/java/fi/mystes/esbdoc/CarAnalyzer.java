@@ -61,10 +61,19 @@ public class CarAnalyzer {
             artifactFilenameXPath = COMPILER.compile(ARTIFACT_FILENAME_XPATH_STRING).load();
             artifactDescriptionXPath = COMPILER.compile(ARTIFACT_DESCRIPTION_XPATH_STRING).load();
             testProjectXpath = COMPILER.compile(TESTCASE_XPATH_STRING).load();
-            xpath = new AXIOMXPath(ARTIFACT_DESCRIPTION_XPATH_STRING);
-            xpath.addNamespace("s", "http://ws.apache.org/ns/synapse");
+            xpath = new SynapseXPath();
         } catch (SaxonApiException e) {
             throw new RuntimeException("Unable to initialize the CarCallTree class", e);
+        }
+    }
+
+    public static class SynapseXPath extends AXIOMXPath {
+        public static final String SYNAPSE_NAMESPACE_PREFIX = "s";
+        public static final String SYNAPSE_NAMESPACE_URI = "http://ws.apache.org/ns/synapse";
+
+        public SynapseXPath() throws JaxenException {
+            super(ARTIFACT_DESCRIPTION_XPATH_STRING);
+            this.addNamespace(SYNAPSE_NAMESPACE_PREFIX, SYNAPSE_NAMESPACE_URI);
         }
     }
 
