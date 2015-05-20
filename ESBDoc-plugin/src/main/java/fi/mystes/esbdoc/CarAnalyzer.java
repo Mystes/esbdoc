@@ -27,6 +27,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.text.MessageFormat;
 import java.util.*;
+import static fi.mystes.esbdoc.Constants.*;
 
 /**
  * Created by Jarkko on 1.10.2014.
@@ -34,116 +35,6 @@ import java.util.*;
 public class CarAnalyzer {
 
     private static Log log = LogFactory.getLog(CarAnalyzer.class);
-
-    private static final String FILE_SEPARATOR = ",";
-
-    private static final Processor PROCESSOR = new Processor(false);
-    private static final DocumentBuilder BUILDER = PROCESSOR.newDocumentBuilder();
-    private static final XPathCompiler COMPILER = PROCESSOR.newXPathCompiler();
-
-    private static final QName ARTIFACT_Q = new QName("artifact");
-    private static final QName VERSION_Q = new QName("version");
-    private static final QName NAME_Q = new QName("name");
-    private static final QName TYPE_Q = new QName("type");
-
-    private static final javax.xml.namespace.QName PURPOSE_Q = new javax.xml.namespace.QName("http://ws.apache.org/ns/synapse", "purpose");
-    private static final javax.xml.namespace.QName RECEIVES_Q = new javax.xml.namespace.QName("http://ws.apache.org/ns/synapse", "receives");
-    private static final javax.xml.namespace.QName RETURNS_Q = new javax.xml.namespace.QName("http://ws.apache.org/ns/synapse", "returns");
-    private static final javax.xml.namespace.QName FIELD_Q = new javax.xml.namespace.QName("http://ws.apache.org/ns/synapse", "field");
-    private static final javax.xml.namespace.QName EXAMPLE_Q = new javax.xml.namespace.QName("http://ws.apache.org/ns/synapse", "example");
-    private static final javax.xml.namespace.QName DEPENDENCIES_Q = new javax.xml.namespace.QName("http://ws.apache.org/ns/synapse", "dependencies");
-    private static final javax.xml.namespace.QName DEPENDENCY_Q = new javax.xml.namespace.QName("http://ws.apache.org/ns/synapse", "dependency");
-
-    private static final javax.xml.namespace.QName DESCRIPTION_Q = new javax.xml.namespace.QName("description");
-    private static final javax.xml.namespace.QName PATH_Q = new javax.xml.namespace.QName("path");
-    private static final javax.xml.namespace.QName OPTIONAL_Q = new javax.xml.namespace.QName("optional");
-
-    /* API related attributes */
-    private static final javax.xml.namespace.QName CONTEXT_Q = new javax.xml.namespace.QName("context");
-    private static final javax.xml.namespace.QName URL_MAPPING_Q = new javax.xml.namespace.QName("url-mapping");
-    private static final javax.xml.namespace.QName METHODS_Q = new javax.xml.namespace.QName("methods");
-    private static final javax.xml.namespace.QName RESOURCE_Q = new javax.xml.namespace.QName("http://ws.apache.org/ns/synapse", "resource");
-
-    private static final QName SOAPUI_PROJECT_Q = new QName("http://eviware.com/soapui/config", "soapui-project");
-    private static final QName SOAPUI_TEST_SUITE_Q = new QName("http://eviware.com/soapui/config", "testSuite");
-    private static final QName SOAPUI_TEST_CASE_Q = new QName("http://eviware.com/soapui/config", "testCase");
-    private static final QName SOAPUI_TEST_STEP_Q = new QName("http://eviware.com/soapui/config", "testStep");
-    private static final QName SOAPUI_ENDPOINT_Q = new QName("http://eviware.com/soapui/config", "endpoint");
-    private static final QName SOAPUI_CONFIG_Q = new QName("http://eviware.com/soapui/config", "config");
-    private static final QName SOAPUI_RESOURCE_PATH_Q = new QName("resourcePath");
-    private static final QName SOAPUI_PROPERTIES_Q = new QName("http://eviware.com/soapui/config", "properties");
-    private static final QName SOAPUI_PROPERTY_Q = new QName("http://eviware.com/soapui/config", "property");
-    private static final QName SOAPUI_VALUE_Q = new QName("http://eviware.com/soapui/config", "value");
-    private static final QName SOAPUI_NAME_Q = new QName("http://eviware.com/soapui/config", "name");
-
-    private static final String[] IGNORED_ARTIFACT_TYPE_STRINGS = {
-        "synapse/local-entry"
-    };
-
-    private static final Set<String> IGNORED_ARTIFACT_TYPES = new HashSet<String>();
-
-    static {
-        IGNORED_ARTIFACT_TYPES.addAll(Arrays.asList(IGNORED_ARTIFACT_TYPE_STRINGS));
-        COMPILER.declareNamespace("s", "http://ws.apache.org/ns/synapse");
-        COMPILER.declareNamespace("con", "http://eviware.com/soapui/config");
-    }
-
-    private static final String DEPENDENCY_XPATH_STRING = "/artifacts/artifact[@type = 'carbon/application']/dependency";
-    private static final String ARTIFACT_FILENAME_XPATH_STRING = "/artifact/file/text()";
-    private static final String TESTCASE_XPATH_STRING = "/con:soapui-project";
-
-    private static final String ARTIFACT_DESCRIPTION_XPATH_STRING = "//s:description[s:purpose or s:receives or s:returns or s:dependencies]";
-
-    // XPath strings to find interesting bits of artifacts
-    private static final String SEQUENCE_XPATH_STRING = "//s:sequence/@key";
-    private static final String IN_SEQUENCE_XPATH_STRING = "//s:target/@inSequence";
-    private static final String OUT_SEQUENCE_XPATH_STRING = "//s:target/@outSequence";
-    private static final String FAULT_SEQUENCE_XPATH_STRING = "//s:target/@faultSequence";
-    private static final String ON_ERROR_SEQUENCE_XPATH_STRING = "/s:sequence/@onError";
-
-    private static final String PROXY_ENDPOINT_XPATH_STRING = "/s:proxy/s:target/@endpoint";
-    private static final String PROXY_ENDPOINT_ADDRESS_XPATH_STRING = "/s:proxy/s:target/s:endpoint/s:address/@uri";
-
-    private static final String CLONE_SEQUENCE_XPATH_STRING = "//s:clone/s:target/@sequence";
-    private static final String CLONE_ENDPOINT_XPATH_STRING = "//s:clone/s:target/@endpoint";
-    private static final String CLONE_INLINE_ENDPOINT_XPATH_STRING = "//s:clone/s:target/s:endpoint/s:address/@uri";
-
-    private static final String ITERATE_SEQUENCE_XPATH_STRING = "//s:iterate/s:target/@sequence";
-    private static final String ITERATE_ENDPOINT_XPATH_STRING = "//s:iterate/s:target/@endpoint";
-    private static final String ITERATE_INLINE_ENDPOINT_XPATH_STRING = "//s:iterate/s:target/s:endpoint/s:address/@uri";
-
-    private static final String SEND_ENDPOINT_XPATH_STRING = "//s:send/s:endpoint/@key";
-    private static final String SEND_ADDRESS_XPATH_STRING = "//s:send/s:endpoint/s:address/@uri";
-
-    private static final String CALL_ENDPOINT_XPATH_STRING = "//s:call/s:endpoint/@key";
-    private static final String CALL_ADDRESS_XPATH_STRING = "//s:call/s:endpoint/s:address/@uri";
-
-    private static final String CALLOUT_XPATH_STRING = "//s:callout/@serviceURL";
-    private static final String CUSTOM_CALLOUT_XPATH_STRING = "//s:customCallout/@serviceURL";
-
-    private static final String ENDPOINT_ADDRESS_XPATH_STRING = "/s:endpoint/s:address/@uri";
-
-    private static final String SCRIPT_RESOURCE_XPATH_STRING = "//s:script/@key";
-    private static final String XSLT_RESOURCE_XPATH_STRING = "//s:xslt/@key";
-    private static final String SMOOKS_XPATH_STRING = "//s:smooks/@config-key";
-    private static final String SCHEMA_XPATH_STRING = "//s:schema/@key";
-    private static final String WSDL_XPATH_STRING = "//s:publishWSDL/@key";
-    private static final String WSDL_RESOURCE_XPATH_STRING = "//s:publishWSDL/s:resource/@key";
-
-    // There is a potential point of discontinuity here since it can be quite non-trivial to determine the destination of a message stored in a message store
-    private static final String STORE_XPATH_STRING = "//s:store/@messageStore";
-
-    private static final String MESSAGE_PROCESSOR_STORE_XPATH_STRING = "/s:messageProcessor/@messageStore";
-
-    private static final String TASK_TARGET_XPATH_STRING = "/s:task/s:property[@name = 'sequenceName']/@value | /s:task/s:property[@name = 'proxyName']/@value";
-
-    private static final String TASK_TO_XPATH_STRING = "/s:task/s:property[@name = 'to']/@value";
-
-    private static final String USAGE_HELP = "Usage: java -jar CarAnalyzer.jar [carFiles] [outputFile] [soapUIFiles]\n"
-            + "  [carFiles]: comma-separated list of car file names\n"
-            + "  [outputFile]: full name of the output file WITHOUT extension.\n"
-            + "                Two files will be created, one with a .txt extension and another with a .json extension.\n"
-            + "  [soapUIFolders]: comma-separated list of SoapUI folder names. (Optional argument)";
 
     private AXIOMXPath xpath;
 
