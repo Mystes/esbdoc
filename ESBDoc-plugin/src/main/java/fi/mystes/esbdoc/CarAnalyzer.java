@@ -6,7 +6,6 @@ import net.sf.saxon.s9api.*;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.OMXMLBuilderFactory;
 import org.apache.axiom.om.impl.llom.OMElementImpl;
-import org.apache.axiom.om.xpath.AXIOMXPath;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -61,18 +60,6 @@ public class CarAnalyzer {
             testProjectXpath = COMPILER.compile(TESTCASE_XPATH_STRING).load();
         } catch (SaxonApiException e) {
             throw new RuntimeException("Unable to initialize the CarCallTree class", e);
-        }
-    }
-
-    public static class SynapseXPath extends AXIOMXPath {
-
-        public SynapseXPath() throws JaxenException {
-            super(ARTIFACT_DESCRIPTION_XPATH_STRING);
-            this.addNamespace(SYNAPSE_NAMESPACE.PREFIX, SYNAPSE_NAMESPACE.URI);
-        }
-
-        public static Object evaluateOmElement(OMElement omElement) throws JaxenException{
-            return new SynapseXPath().evaluate(omElement);
         }
     }
 
