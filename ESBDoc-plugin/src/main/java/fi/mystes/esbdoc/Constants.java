@@ -16,12 +16,6 @@ public class Constants {
     public static final Namespace SYNAPSE_NAMESPACE = new Namespace("s", "http://ws.apache.org/ns/synapse");
     public static final Namespace SOAPUI_CONFIG_NAMESPACE = new Namespace("con", "http://eviware.com/soapui/config");
 
-    public static final String FILE_SEPARATOR = ",";
-
-    public static final Processor PROCESSOR = new Processor(false);
-    public static final DocumentBuilder BUILDER = PROCESSOR.newDocumentBuilder();
-    public static final XPathCompiler COMPILER = PROCESSOR.newXPathCompiler();
-
     public static final QName ARTIFACT_Q = new QName("artifact");
     public static final QName VERSION_Q = new QName("version");
     public static final QName NAME_Q = new QName("name");
@@ -60,13 +54,16 @@ public class Constants {
     public static final String[] IGNORED_ARTIFACT_TYPE_STRINGS = {
             "synapse/local-entry"
     };
+    public static final Set<String> IGNORED_ARTIFACT_TYPES = new HashSet<String>(Arrays.asList(IGNORED_ARTIFACT_TYPE_STRINGS));
 
-    public static final Set<String> IGNORED_ARTIFACT_TYPES = new HashSet<String>();
+    public static final String FILE_SEPARATOR = ",";
+    public static final Processor PROCESSOR = new Processor(false);
+    public static final DocumentBuilder BUILDER = PROCESSOR.newDocumentBuilder();
+    public static final XPathCompiler COMPILER = PROCESSOR.newXPathCompiler();
 
     static {
-        IGNORED_ARTIFACT_TYPES.addAll(Arrays.asList(IGNORED_ARTIFACT_TYPE_STRINGS));
-        COMPILER.declareNamespace("s", "http://ws.apache.org/ns/synapse");
-        COMPILER.declareNamespace("con", "http://eviware.com/soapui/config");
+        COMPILER.declareNamespace(SYNAPSE_NAMESPACE.PREFIX, SYNAPSE_NAMESPACE.URI);
+        COMPILER.declareNamespace(SOAPUI_CONFIG_NAMESPACE.PREFIX, SOAPUI_CONFIG_NAMESPACE.URI);
     }
 
     public static final String DEPENDENCY_XPATH_STRING = "/artifacts/artifact[@type = 'carbon/application']/dependency";
@@ -113,11 +110,9 @@ public class Constants {
 
     // There is a potential point of discontinuity here since it can be quite non-trivial to determine the destination of a message stored in a message store
     public static final String STORE_XPATH_STRING = "//s:store/@messageStore";
-
     public static final String MESSAGE_PROCESSOR_STORE_XPATH_STRING = "/s:messageProcessor/@messageStore";
 
     public static final String TASK_TARGET_XPATH_STRING = "/s:task/s:property[@name = 'sequenceName']/@value | /s:task/s:property[@name = 'proxyName']/@value";
-
     public static final String TASK_TO_XPATH_STRING = "/s:task/s:property[@name = 'to']/@value";
 
     public static final String USAGE_HELP = "Usage: java -jar CarAnalyzer.jar [carFiles] [outputFile] [soapUIFiles]\n"
