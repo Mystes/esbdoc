@@ -33,6 +33,7 @@ public class Constants {
     public static final javax.xml.namespace.QName EXAMPLE_Q = new javax.xml.namespace.QName(SYNAPSE_NAMESPACE.URI, "example");
     public static final javax.xml.namespace.QName DEPENDENCIES_Q = new javax.xml.namespace.QName(SYNAPSE_NAMESPACE.URI, "dependencies");
     public static final javax.xml.namespace.QName DEPENDENCY_Q = new javax.xml.namespace.QName(SYNAPSE_NAMESPACE.URI, "dependency");
+    public static final javax.xml.namespace.QName RESOURCE_Q = new javax.xml.namespace.QName(SYNAPSE_NAMESPACE.URI, "resource");
 
     public static final javax.xml.namespace.QName DESCRIPTION_Q = new javax.xml.namespace.QName("description");
     public static final javax.xml.namespace.QName PATH_Q = new javax.xml.namespace.QName("path");
@@ -42,7 +43,6 @@ public class Constants {
     public static final javax.xml.namespace.QName CONTEXT_Q = new javax.xml.namespace.QName("context");
     public static final javax.xml.namespace.QName URL_MAPPING_Q = new javax.xml.namespace.QName("url-mapping");
     public static final javax.xml.namespace.QName METHODS_Q = new javax.xml.namespace.QName("methods");
-    public static final javax.xml.namespace.QName RESOURCE_Q = new javax.xml.namespace.QName(SYNAPSE_NAMESPACE.URI, "resource");
 
     public static final QName SOAPUI_PROJECT_Q = new QName("http://eviware.com/soapui/config", "soapui-project");
     public static final QName SOAPUI_TEST_SUITE_Q = new QName("http://eviware.com/soapui/config", "testSuite");
