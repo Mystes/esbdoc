@@ -65,8 +65,6 @@ public class CarAnalyzer {
     }
 
     public static class SynapseXPath extends AXIOMXPath {
-        public static final String SYNAPSE_NAMESPACE_PREFIX = "s";
-        public static final String SYNAPSE_NAMESPACE_URI = "http://ws.apache.org/ns/synapse";
 
         public SynapseXPath() throws JaxenException {
             super(ARTIFACT_DESCRIPTION_XPATH_STRING);
