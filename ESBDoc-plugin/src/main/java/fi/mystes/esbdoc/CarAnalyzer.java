@@ -733,11 +733,12 @@ public class CarAnalyzer {
 
         // some artifact names might be forbidden. Like in some projects there is a "services" resources in use in registry.
         // That name is bad for url parsing because "services" is found in every url
-        if (!forbiddenArtifactNames.contains(artifactName)) {
-            return new Artifact(artifactName, dependencyVersion, artifactType, dependencyDirectory + artifactFilePath, carFile.toString(), description);
-        } else {
+        if (forbiddenArtifactNames.contains(artifactName)) {
             return null;
         }
+
+        return new Artifact(artifactName, dependencyVersion, artifactType, dependencyDirectory + artifactFilePath, carFile.toString(), description);
+
     }
 
     private void getServicePath(Artifact.ArtifactType artifactType, String artifactName, String artifactFilePath) throws FileSystemException, JaxenException {
@@ -898,12 +899,11 @@ public class CarAnalyzer {
                 for (Dependency.DependencyType dt : Dependency.DependencyType.values()) {
                     // TASK_TO has special handling
                     if (dt == Dependency.DependencyType.TASK_TO) {
-                        log.info("Dependency type is TASK_TO");
                         continue;
                     }
 
                     log.debug("Adding dependencies of type " + dt);
-                    dependencies.addAll(getDepdendencySet(a, artifactXml, dt));
+                    dependencies.addAll(getDependencySet(a, artifactXml, dt));
                 }
 
                 log.debug("Artifact type is: " + a.getType());
@@ -991,7 +991,7 @@ public class CarAnalyzer {
      * @return
      * @throws SaxonApiException
      */
-    private Set<Dependency> getDepdendencySet(Artifact a, XdmNode context, Dependency.DependencyType dependencyType) throws SaxonApiException {
+    private Set<Dependency> getDependencySet(Artifact a, XdmNode context, Dependency.DependencyType dependencyType) throws SaxonApiException {
         Set<Dependency> dependencies = new HashSet<Dependency>();
         for (String dependencyString : evaluateXPathToStringSet(context, dependencyType.getXPath())) {
             currentObject = a.getName(); // Save current artifact for  warning logs.
@@ -1027,7 +1027,7 @@ public class CarAnalyzer {
                 } else if ("http".equals(scheme) || "https".equals(scheme)) {
                     return getArtifactFromHttpUri(uri);
                 } else if ("jms".equals(scheme)) {
-                    return getArtifactFromJsmUri(uri);
+                    return getArtifactFromJmsUri(uri);
                 } else if ("gov".equals(scheme) || "conf".equals(scheme)) {
                     return getArtifactFromRegistyUri(uri);
                 } else {
@@ -1120,7 +1120,7 @@ public class CarAnalyzer {
         return null;
     }
 
-    private Artifact getArtifactFromJsmUri(URI uri) {
+    private Artifact getArtifactFromJmsUri(URI uri) {
         String artifactNameCandidate = uri.getPath().replace("/", "");
         return artifactMap.get(artifactNameCandidate);
     }
@@ -1135,8 +1135,15 @@ public class CarAnalyzer {
      */
     private Set<String> evaluateXPathToStringSet(XdmNode context, XPathSelector xpath) throws SaxonApiException {
         if(null == xpath){
+            log.warn("Cannot apply XPath to Context: XPath is null! Returning empty HashSet...");
             return new HashSet<String>();
         }
+
+        if(null == context){
+            log.warn("Cannot apply XPath to Context: Context is null! Returning empty HashSet...");
+            return new HashSet<String>();
+        }
+
         return SaxonXPath.apply(xpath).to(context).andReturnASetOf(String.class);
     }
 
