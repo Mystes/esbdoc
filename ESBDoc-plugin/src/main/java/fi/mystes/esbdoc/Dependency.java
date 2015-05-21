@@ -33,8 +33,10 @@ public class Dependency implements Comparable<Dependency> {
     @Override
     public int compareTo(Dependency that) {
         if(null == that){ return -1; }
+
         boolean bothAreArtifacts = this.dependency instanceof Artifact && that.dependency instanceof Artifact;
         boolean bothAreStrings = this.dependency instanceof String && that.dependency instanceof String;
+
         if (bothAreArtifacts || bothAreStrings) {
             return ((Comparable) this.dependency).compareTo((Comparable) that.dependency);
         }
