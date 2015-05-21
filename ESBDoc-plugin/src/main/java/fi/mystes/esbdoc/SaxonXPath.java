@@ -113,7 +113,7 @@ public class SaxonXPath {
         }
     }
 
-    protected static class Helper {
+    private static class Helper {
 
         private static <T> T convertXdmItemToType(XdmItem item, Class<T> type){
             log.trace("convertXdmItemToType: Received request to convert XdmItem into " + type.getName());
