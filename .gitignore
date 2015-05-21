@@ -6,8 +6,10 @@ bower_components
 .sass-cache
 .editorconfig
 .DS_Store
-node_modules
 
 target
 .idea
 *.iml
+ESBDoc-plugin/resources/UI/.bowerrc
+ESBDoc-plugin/resources/UI/.jshintrc
+ESBDoc-plugin/resources/UI/.travis.yml
