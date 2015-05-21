@@ -421,26 +421,22 @@ public class SequenceDiagramBuilder {
      * @throws IOException
      */
     private String printDependencies(StringBuilder outputStr, String source, String parent, int indent, List<String> handledNodeList, Map<String, SequenceItem> nodeDependencies) throws FileNotFoundException, IOException {
+
+        if (containsCircularDependencies(handledNodeList, source)) {
+            return outputStr.toString();
+        }
+
+        handledNodeList.add(source);
+
+        if (parent != null) {
+            outputStr.append(dependency(parent, source));
+        }
+
         List<String> leaves = null;
         SequenceItem item = nodeDependencies.get(source);
         if (item != null) {
             leaves = item.getLeaves();
             //     System.out.println("Handling:"+item.getPayload());
-        }
-
-        // Just make sure there is no  circular references
-        if (handledNodeList.contains(source)) {
-            return outputStr.toString(); // This node and it's children is allready printed out.
-        }
-        handledNodeList.add(source);
-
-        if (parent != null) {
-            /* removed indentation for http://bramp.github.io/js-sequence-diagrams/ 
-             for (int x = 0; x < indent; x++) {
-             outputStr.append(" ");
-             }
-             */
-            outputStr.append(parent + "->" + source + ":\n");
         }
 
         if (leaves != null) {
@@ -450,10 +446,18 @@ public class SequenceDiagramBuilder {
         }
 
         if (parent != null) {
-            outputStr.append(source + "->" + parent + ":\n");
+            outputStr.append(dependency(source, parent));
         }
 
         return outputStr.toString(); // This node and it's children is allready printed out.
+    }
+
+    private boolean containsCircularDependencies(List<String> nodeList, String node){
+        return nodeList.contains(node);
+    }
+
+    private String dependency(String from, String to){
+        return from + "->" + to + ":\n";
     }
 
 }
