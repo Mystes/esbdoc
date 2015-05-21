@@ -102,27 +102,28 @@ public class Dependency implements Comparable<Dependency> {
     }
 
     @Override
-    public int compareTo(Dependency dependency) {
-        if (this.dependency instanceof Artifact && dependency.dependency instanceof Artifact
-                || this.dependency instanceof String && dependency.dependency instanceof String) {
-            return ((Comparable) this.dependency).compareTo((Comparable) dependency.dependency);
-        } else {
-            if (this.dependency instanceof Artifact) {
-                return -1;
-            } else {
-                return 1;
-            }
+    public int compareTo(Dependency that) {
+        if(null == that){ return -1; }
+        boolean bothAreArtifacts = this.dependency instanceof Artifact && that.dependency instanceof Artifact;
+        boolean bothAreStrings = this.dependency instanceof String && that.dependency instanceof String;
+        if (bothAreArtifacts || bothAreStrings) {
+            return ((Comparable) this.dependency).compareTo((Comparable) that.dependency);
         }
+
+        if (this.dependency instanceof Artifact) {
+            return -1;
+        }
+
+        return 1;
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o != null && o instanceof Dependency) {
-            Dependency other = (Dependency) o;
-            return dependent.equals(other.dependent) && dependency.equals(other.dependency) && type.equals(other.type);
-        }
+    public boolean equals(Object object) {
+        if(null == object){ return false; }
+        if(!(object instanceof Dependency)){return false; }
 
-        return false;
+        Dependency other = (Dependency) object;
+        return dependent.equals(other.dependent) && dependency.equals(other.dependency) && type.equals(other.type);
     }
 
     @Override
