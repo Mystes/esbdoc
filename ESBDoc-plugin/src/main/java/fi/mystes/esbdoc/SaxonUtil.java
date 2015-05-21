@@ -17,11 +17,18 @@ public class SaxonUtil {
     private static Log log = LogFactory.getLog(SaxonUtil.class);
 
     private static final Processor processor = new Processor(false);
-    public static final DocumentBuilder BUILDER = processor.newDocumentBuilder();
+    private static final DocumentBuilder builder = processor.newDocumentBuilder();
 
     private SaxonUtil(){}
 
+    public static XdmNode readToNode(InputStream inputStream) throws SaxonApiException {
+        //TODO null handler?
+        return builder.build(new StreamSource(inputStream));
+    }
+
+    //FIXME This method does more than one thing and that's against the laws of man and God too.
     public static XdmNode getNodeFromFileObject(FileObject xmlFileObject) throws SaxonApiException, IOException {
+        //TODO null handler?
         if (!isFileObjectASoapUiProject(xmlFileObject)) {
             log.debug("FileObject is not a SoapUI project and therefore it can be used to construct Sequence Diagrams.");
             buildSequenceDiagrams(xmlFileObject);
@@ -46,7 +53,7 @@ public class SaxonUtil {
     }
 
     private static XdmNode findRootElement(InputStream inputStream) throws SaxonApiException {
-        XdmNode xdmNode = BUILDER.build(new StreamSource(inputStream));
+        XdmNode xdmNode = builder.build(new StreamSource(inputStream));
         XdmSequenceIterator i = xdmNode.axisIterator(Axis.CHILD);
         return findRootElement(xdmNode);
     }

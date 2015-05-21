@@ -17,7 +17,6 @@ import org.jaxen.JaxenException;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.stream.StreamSource;
 import javax.xml.xpath.XPathExpressionException;
 import java.io.*;
 import java.net.URI;
@@ -660,7 +659,7 @@ public class CarAnalyzer {
                 }
                 */
             }
-            XdmNode xmlNode = SaxonUtil.BUILDER.build(new StreamSource(is));
+            XdmNode xmlNode = SaxonUtil.readToNode(is);
             XdmSequenceIterator i = xmlNode.axisIterator(Axis.CHILD);
             while (i.hasNext()) {
                 XdmItem item = i.next();
