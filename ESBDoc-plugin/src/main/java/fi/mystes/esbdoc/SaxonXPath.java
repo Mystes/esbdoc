@@ -123,29 +123,55 @@ public class SaxonXPath {
                 buildSequenceDiagrams(xmlFileObject);
             }
 
-            InputStream inputStream = null;
+            log.debug("Starting to look for the root element of given file object...");
+            return findRootElement(xmlFileObject);
+        }
+
+        private static XdmNode findRootElement(FileObject xmlFileObject) throws SaxonApiException, IOException {
+            InputStream inputStream = xmlFileObject.getContent().getInputStream();
+            if (null == inputStream) {
+                log.debug("getNodeFromFileObject: InputStream is null, nothing to do!");
+                return null;
+            }
             try {
-                inputStream = xmlFileObject.getContent().getInputStream();
-                XdmNode xdmNode = BUILDER.build(new StreamSource(inputStream));
-                XdmSequenceIterator i = xdmNode.axisIterator(Axis.CHILD);
-                while (i.hasNext()) {
-                    XdmItem item = i.next();
-                    if (item instanceof XdmNode) {
-                        xdmNode = (XdmNode) item;
-                        if (xdmNode.getNodeKind() == XdmNodeKind.ELEMENT) {
-                            return xdmNode;
-                        }
-                    }
-                }
-                throw new RuntimeException("Failed to find the root element");
+                return findRootElement(inputStream);
             } finally {
-                if (null == inputStream) {
-                    log.warn("getNodeFromFileObject: Cannot close InputStream because it is null!");
-                } else {
-                    log.debug("getNodeFromFileObject: Closing InputStream...");
-                    inputStream.close();
+                log.debug("getNodeFromFileObject: Closing InputStream...");
+                inputStream.close();
+            }
+        }
+
+        private static XdmNode findRootElement(InputStream inputStream) throws SaxonApiException {
+            XdmNode xdmNode = BUILDER.build(new StreamSource(inputStream));
+            XdmSequenceIterator i = xdmNode.axisIterator(Axis.CHILD);
+            return findRootElement(xdmNode);
+        }
+
+        private static XdmNode findRootElement(XdmNode xdmNode){
+            XdmSequenceIterator i = xdmNode.axisIterator(Axis.CHILD);
+            while (i.hasNext()) {
+                XdmItem item = i.next();
+                if (isRootElement(item)) {
+                    return (XdmNode) item;
                 }
             }
+            throw new RuntimeException("Failed to find the root element");
+        }
+
+        private static boolean isRootElement(XdmItem xdmItem){
+            return isXdmNode(xdmItem) && isElement(xdmItem);
+        }
+
+        private static boolean isXdmNode(XdmItem xdmItem){
+            return xdmItem instanceof XdmNode;
+        }
+
+        private static boolean isElement(XdmItem xdmItem){
+            return isElement((XdmNode) xdmItem);
+        }
+
+        private static boolean isElement(XdmNode xdmNode){
+            return xdmNode.getNodeKind() == XdmNodeKind.ELEMENT;
         }
 
         private static boolean isFileObjectASoapUiProject(FileObject fileObject){
