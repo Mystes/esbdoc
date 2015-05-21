@@ -29,17 +29,14 @@ public class SequenceDiagramBuilder {
     private static SequenceDiagramBuilder instance = null;
     private String filesHome;
     private HashMap<String, SequenceItem> parsed = new HashMap();
-    private Map<String, String> visited = new HashMap();
+    private Map<String, String> visited = new HashMap<String, String>();
     private StringBuilder output = null;
 
     private SequenceDiagramBuilder(String wso2Home) {
         filesHome = wso2Home + RELATIVE_PATH_TO_CONFIGURATION_FILES;
-        visited = new HashMap<String, String>();
     }
 
-    private SequenceDiagramBuilder() {
-        visited = new HashMap<String, String>();
-    }
+    private SequenceDiagramBuilder() { }
 
     public static SequenceDiagramBuilder instance() {
         if (null == instance) {
@@ -50,17 +47,22 @@ public class SequenceDiagramBuilder {
     }
 
     private SequenceDiagramBuilder build(String file) throws SAXException, IOException, ParserConfigurationException {
-        SAXParserFactory parserFactor = SAXParserFactory.newInstance();
-        SAXParser parser = parserFactor.newSAXParser();
-        parser.parse(new FileInputStream(filesHome + file), getNewHandler());
+        parser().parse(new FileInputStream(filesHome + file), getNewHandler());
         return this;
     }
 
     private SequenceDiagramBuilder build(InputStream is) throws SAXException, IOException, ParserConfigurationException {
-        SAXParserFactory parserFactor = SAXParserFactory.newInstance();
-        SAXParser parser = parserFactor.newSAXParser();
-        parser.parse(is, getNewHandler());
+        parser().parse(is, getNewHandler());
         return this;
+    }
+
+    public SAXHandler getNewHandler() {
+        return new SAXHandler(this);
+    }
+
+    private SAXParser parser() throws SAXException, ParserConfigurationException{
+        SAXParserFactory parserFactory = SAXParserFactory.newInstance();
+        return parserFactory.newSAXParser();
     }
 
     public String buildPipe(String file) {
@@ -100,10 +102,6 @@ public class SequenceDiagramBuilder {
             e.printStackTrace();
         }
         return null;
-    }
-
-    public SAXHandler getNewHandler() {
-        return new SAXHandler(this);
     }
 
     /**
@@ -366,46 +364,8 @@ public class SequenceDiagramBuilder {
             return null;
         }
     }
-    /*
-     Write call graph using following json format:
-    
-     {
-     "models": {
-     "model": [
-     {
-     "name": "Material provisioning",
-     "description": "
-     Material provisioning covers the provisioning of school and user materials in D2L according to access rights data in UMS DB. The actual material that is provisioned is maintained in D2L MaCo (Master Course Offering) structure. UMS holds the information of access rights of users and schools to UMS packages, and the packages contain the actual MaCo rights. The actual material provisioning copies the MaCo workspace contents to School Specific Course Offerings (SSCOs) or User Specific Course Offerings (USCOs) in D2L. The materials that ESB provisions have two main types
-     Method materials (a.k.a. Veloituksettomat materiaalit): These are additional digital contents to physical book series bought by schools. E.g. a school that purchases \"Matikka 3\" books get the method materials to Matikka 3 in D2L without extra charge. The method materials are only available to schools
-     Licence materials (a.k.a. e-materials a.k.a. lisenssimateriaalit): These are digital contents that schools and individual users can purchase in Sanoma Pro portal. 
-     Material access rights are updated to UMS from several sources:
-     Method rights are maintained in SAP and provisioned to UMS and Liferay 
-     License materials for webshop purchases and access rights added by CS using Liferay CS UI are provisioned to UMS by Liferay 
-     It is also possible to add access rights to both types of materials directly via UMSAdmin 
-     ",
-     "sequence": "SAP->ESB: BP02 update
-     note left of ESB: /ratkoo/api/bpOutbound
-     ESB->Liferay: BP02 update
-     UMS->ESB: poll method right changes
-     note right of ESB: ESB proxies BP02 messages to Liferay\\n note right of ESB: ESB stores method data locally.\\n note right of ESB: Methods of main school and side branches are synced\\n note right of ESB: (synced method data is also sent to Liferay).\"
-     "
-     },
-     {
-     "name": "Material provisioning flow - method access rights from SAP to UMS/Liferay",
-     "description": "
-     ",
-     "sequence": "SAP->ESB: BP02 update
-     note left of ESB: /ratkoo/api/bpOutbound
-     ESB->Liferay: BP02 update
-     UMS->ESB: poll method right changes
-     note right of ESB: ESB proxies BP02 messages to Liferay\\n note right of ESB: ESB stores method data locally.\\n note right of ESB: Methods of main school and side branches are synced\\n note right of ESB: (synced method data is also sent to Liferay).\"
-     "
-     }
-     ]
-     }
-     }            */
 
-    public void writeOutputFiles(String outputFilename) throws FileNotFoundException, IOException {
+    public void writeOutputFiles(String outputFilename) throws IOException {
         new File(outputFilename).getParentFile().mkdirs();
         ArrayList<String> handledNodeList = new ArrayList();
 
@@ -431,7 +391,6 @@ public class SequenceDiagramBuilder {
 
             StringBuilder seqString = new StringBuilder();
             String block = printDependencies(seqString, current, null, 0, handledNodeList, parsed);
-//            System.out.println(StringEscapeUtils.escapeJson(block));
             generator.writeStringField("sequence", StringEscapeUtils.escapeJson(block));
             generator.writeEndObject();
             handledNodeList.clear();
@@ -441,51 +400,6 @@ public class SequenceDiagramBuilder {
         generator.close();
     }
 
-    /*
-     public void writeOutputFiles(String outputFilename) throws FileNotFoundException, IOException {
-     new File(outputFilename).getParentFile().mkdirs();
-     ArrayList<String> handledNodeList = new ArrayList();
-
-     System.out.println("Writing out:" + outputFilename);
-     FileOutputStream fis = null;
-     fis = new FileOutputStream(new File(outputFilename + "-seq.json"));
-     // write Header
-     fis.write("{\n\"models\": {\n".getBytes("UTF-8"));
-     fis.write("   {\n      \"model\": [\n".getBytes("UTF-8"));
-     Set<String> keys = parsed.keySet();
-     Iterator<String> it = keys.iterator();
-     while (it.hasNext()) {
-     String current = it.next();
-     System.out.println("----------------" + current + "---------------------");
-            
-     // Single object 
-     fis.write("        {\n".getBytes("UTF-8"));
-     fis.write("            \"name\": \"".getBytes("UTF-8"));
-     fis.write(current.getBytes("UTF-8"));
-     fis.write("\",          \n".getBytes("UTF-8"));
-
-     StringBuilder seqString = new StringBuilder();
-     String block = printDependencies(seqString, it.next(), null, 0, handledNodeList, parsed);
-     seqString = null;
-     System.out.println(StringEscapeUtils.escapeJson(block));
-     fis.write("            \"sequence\": \"".getBytes("UTF-8"));
-
-     fis.write(StringEscapeUtils.escapeJson(block).getBytes("UTF-8"));
-     fis.write("\"\n        }".getBytes("UTF-8"));
-
-     block = null;
-     handledNodeList.clear();
-     if(it.hasNext()){
-     fis.write(",\n".getBytes("UTF-8"));                
-     }
-     else 
-     fis.write("\n".getBytes("UTF-8"));                
-     }
-     fis.write("        ]\n}".getBytes("UTF-8"));        
-     fis.close();
-     }
-            
-     */
     /**
      * Recursively prints out each dependency graph for given proxy or sequency.
      * It uses depth-first style handling.
@@ -510,10 +424,8 @@ public class SequenceDiagramBuilder {
         if (item != null) {
             leaves = item.getLeaves();
             //     System.out.println("Handling:"+item.getPayload());
-        } else {
-            // Termination
-//            System.out.println("Missing leaves for: <"+source+"> ");
         }
+
         // Just make sure there is no  circular references
         if (handledNodeList.contains(source)) {
             return outputStr.toString(); // This node and it's children is allready printed out.
@@ -527,15 +439,14 @@ public class SequenceDiagramBuilder {
              }
              */
             outputStr.append(parent + "->" + source + ":\n");
-        } else {
-//            outputStr.append("title " + source + "\n");
-            // Main-level
         }
+
         if (leaves != null) {
             for (String s : leaves) {
                 printDependencies(outputStr, s, source, indent + 1, handledNodeList, nodeDependencies);
             }
         }
+        
         if (parent != null) {
             outputStr.append(source + "->" + parent + ":\n");
         }
