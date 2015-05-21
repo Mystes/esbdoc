@@ -19,7 +19,6 @@ public class SaxonXPath {
     private static Log log = LogFactory.getLog(SaxonXPath.class);
 
     private static final Processor processor = new Processor(false);
-    public static final DocumentBuilder BUILDER = processor.newDocumentBuilder();
     private static final XPathCompiler compiler = processor.newXPathCompiler();
 
     static {
@@ -118,7 +117,8 @@ public class SaxonXPath {
         }
     }
 
-    private static class Helper {
+    protected static class Helper {
+        public static final DocumentBuilder BUILDER = processor.newDocumentBuilder();
 
         private static XdmNode getNodeFromFileObject(FileObject xmlFileObject) throws SaxonApiException, IOException {
             //TODO This logic should be relocated
