@@ -660,7 +660,7 @@ public class CarAnalyzer {
                 }
                 */
             }
-            XdmNode xmlNode = SaxonXPath.Helper.BUILDER.build(new StreamSource(is));
+            XdmNode xmlNode = SaxonUtil.BUILDER.build(new StreamSource(is));
             XdmSequenceIterator i = xmlNode.axisIterator(Axis.CHILD);
             while (i.hasNext()) {
                 XdmItem item = i.next();
