@@ -346,11 +346,15 @@ public class SequenceDiagramBuilder {
         private String getTargetFromEndPointURI(String uri) {
             //uri="http://localhost:8280/services/DeleteMacoContentsFromSSCOByQueueProxy"
             //uri="jms:/GetMacoContentProductKeyQueueProxy?transport.jms.ConnectionFactoryJ...
+
             if (uri.startsWith("http")) {
                 return getUrlTargetNode(uri);
-            } else if (uri.startsWith("jms")) {
+            }
+
+            if (uri.startsWith("jms")) {
                 return uri.split("\\?")[0].split("/")[1];
             }
+
             return null;
         }
     }
@@ -367,7 +371,7 @@ public class SequenceDiagramBuilder {
         new File(outputFilename).getParentFile().mkdirs();
         ArrayList<String> handledNodeList = new ArrayList();
 
-        System.out.println("Writing out:" + outputFilename);
+        log.info("Writing out: " + outputFilename);
         FileOutputStream fis = null;
         fis = new FileOutputStream(new File(outputFilename + "-seq.json"));
 
@@ -382,7 +386,7 @@ public class SequenceDiagramBuilder {
         Iterator<String> it = keys.iterator();
         while (it.hasNext()) {
             String current = it.next();
-            System.out.println("Jasonifying:" + current);
+            log.info("Jasonifying: " + current);
             generator.writeStartObject();
             generator.writeStringField("name", current);
             generator.writeStringField("description", "");
