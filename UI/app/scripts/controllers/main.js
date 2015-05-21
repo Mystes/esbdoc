@@ -72,6 +72,11 @@ angular.module('esbdocPocApp')
       $scope.testCoverage = (((resourceAmount - notReached.length) / resourceAmount) * 100).toFixed(0);
     };
 
+    $scope.humanizedNameFunc = function(resource)
+    {
+      return resource.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/_/g, ' ');
+    }
+
     var resourcesNotReachedByTests = function() {
       var notReached = new Array();
       var tests = $scope.esbDoc.tests;
