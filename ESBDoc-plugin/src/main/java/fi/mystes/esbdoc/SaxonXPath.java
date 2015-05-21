@@ -1,6 +1,9 @@
 package fi.mystes.esbdoc;
 
 import net.sf.saxon.s9api.*;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.commons.vfs2.FileObject;
 
 import javax.xml.transform.stream.StreamSource;
@@ -13,6 +16,7 @@ import java.util.Set;
  * Created by mystes-am on 20.5.2015.
  */
 public class SaxonXPath {
+    private static Log log = LogFactory.getLog(SaxonXPath.class);
 
     public static final Processor PROCESSOR = new Processor(false);
     public static final DocumentBuilder BUILDER = PROCESSOR.newDocumentBuilder();
@@ -112,25 +116,14 @@ public class SaxonXPath {
 
     private static class Helper {
 
-        private static XdmNode getNodeFromFileObject(FileObject xmlFo) throws SaxonApiException, IOException {
-            InputStream is = null;
-            InputStream isSeq = null; // This stream is used for sequenceDiagram generation
+        private static XdmNode getNodeFromFileObject(FileObject xmlFileObject) throws SaxonApiException, IOException {
+            InputStream inputStream = null;
             try {
-                is = xmlFo.getContent().getInputStream();
-                // Don't search sequences under soapUI-tests
-                // "-soapui-project.xml" is uded as filename match pattern
-                if (xmlFo.getName().getBaseName().indexOf("-soapui-project.xml") == -1) {
-                    // Sequence diagram parser can't hande testa
-                    isSeq = xmlFo.getContent().getInputStream();
-                    String seg = SequenceDiagramBuilder.instance().buildPipe(isSeq);
-                    isSeq.close();
-                /*
-                if (seg != null && !seg.isEmpty()) {
-                    System.out.println("VALUE:" + seg);
+                inputStream = xmlFileObject.getContent().getInputStream();
+                if (!isFileObjectASoapUiProject(xmlFileObject)) {
+                    buildSequenceDiagrams(xmlFileObject);
                 }
-                */
-                }
-                XdmNode xmlNode = BUILDER.build(new StreamSource(is));
+                XdmNode xmlNode = BUILDER.build(new StreamSource(inputStream));
                 XdmSequenceIterator i = xmlNode.axisIterator(Axis.CHILD);
                 while (i.hasNext()) {
                     XdmItem item = i.next();
@@ -143,18 +136,41 @@ public class SaxonXPath {
                 }
                 throw new RuntimeException("Failed to find the root element");
             } finally {
-                if (is != null) {
-                    is.close();
+                if (null == inputStream) {
+                    log.warn("getNodeFromFileObject: Cannot close InputStream because it is null!");
+                } else {
+                    log.debug("getNodeFromFileObject: Closing InputStream...");
+                    inputStream.close();
                 }
+            }
+        }
+
+        private static boolean isFileObjectASoapUiProject(FileObject fileObject){
+            String fileName = fileObject.getName().getBaseName();
+            return StringUtils.contains(fileName, "-soapui-project.xml");
+        }
+
+        /**
+         * FIXME This has nothing to do with SaxonXPath processing and needs to be relocated elsewhere!
+         */
+        private static void buildSequenceDiagrams(FileObject fileObject) {
+            try {
+                InputStream inputStreamForSequenceDiagrams = fileObject.getContent().getInputStream();
+                String seg = SequenceDiagramBuilder.instance().buildPipe(inputStreamForSequenceDiagrams);
+                inputStreamForSequenceDiagrams.close();
+            } catch (IOException ioe){
+                log.error("Could not close InputStream for SequenceDiagrams! Reason: " + ioe.getMessage());
             }
         }
 
 
         private static <T> T convertXdmItemToType(XdmItem item, Class<T> type){
+            log.trace("convertXdmItemToType: Received request to convert XdmItem into " + type.getName());
             if(String.class.equals(type)) {
                 return (T) item.getStringValue();
             }
             //TODO support for booleans etc?
+            log.warn("convertXdmItemToType: Unsupported conversion request. I'll give it my best shot but this is probably doomed to fail.");
             return (T) item;
         }
     }
