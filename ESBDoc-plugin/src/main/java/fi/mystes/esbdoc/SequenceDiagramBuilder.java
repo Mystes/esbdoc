@@ -392,7 +392,7 @@ public class SequenceDiagramBuilder {
             generator.writeStringField("description", "");
 
             StringBuilder seqString = new StringBuilder();
-            String block = printDependencies(seqString, current, null, 0, handledNodeList, parsed);
+            String block = printDependenciesRecursively(seqString, current, null, 0, handledNodeList, parsed);
             generator.writeStringField("sequence", StringEscapeUtils.escapeJson(block));
             generator.writeEndObject();
             handledNodeList.clear();
@@ -420,32 +420,33 @@ public class SequenceDiagramBuilder {
      * @throws FileNotFoundException
      * @throws IOException
      */
-    private String printDependencies(StringBuilder outputStr, String source, String parent, int indent, List<String> handledNodeList, Map<String, SequenceItem> nodeDependencies) throws FileNotFoundException, IOException {
+    private String printDependenciesRecursively(StringBuilder outputStr, String source, String parent, int indent, List<String> handledNodeList, Map<String, SequenceItem> nodeDependencies) throws IOException {
 
         if (containsCircularDependencies(handledNodeList, source)) {
             return outputStr.toString();
         }
 
-        handledNodeList.add(source);
-
         if (parent != null) {
             outputStr.append(dependency(parent, source));
         }
 
-        SequenceItem item = nodeDependencies.get(source);
-        List<String> leaves =  getLeaves(item);
-
-        if (leaves != null) {
-            for (String s : leaves) {
-                printDependencies(outputStr, s, source, indent + 1, handledNodeList, nodeDependencies);
-            }
-        }
+        handledNodeList.add(source);
+        populateLeaves(outputStr, source, indent, handledNodeList, nodeDependencies);
 
         if (parent != null) {
             outputStr.append(dependency(source, parent));
         }
 
-        return outputStr.toString(); // This node and it's children is allready printed out.
+        return outputStr.toString();
+    }
+
+    private void populateLeaves(StringBuilder outputStr, String source, int indent, List<String> handledNodeList, Map<String, SequenceItem> nodeDependencies) throws IOException {
+        SequenceItem item = nodeDependencies.get(source);
+        List<String> leaves =  getLeaves(item);
+
+        for (String s : leaves) {
+            printDependenciesRecursively(outputStr, s, source, indent + 1, handledNodeList, nodeDependencies);
+        }
     }
 
     private boolean containsCircularDependencies(List<String> nodeList, String node){
@@ -458,7 +459,7 @@ public class SequenceDiagramBuilder {
 
     private List<String> getLeaves(SequenceItem item){
         if (null == item) {
-            return null;
+            return new ArrayList<String>();
         }
         return item.getLeaves();
     }
