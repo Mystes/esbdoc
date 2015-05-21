@@ -15,8 +15,7 @@ import java.util.Set;
 public class SaxonXPath {
     private static Log log = LogFactory.getLog(SaxonXPath.class);
 
-    private static final Processor processor = SaxonUtil.processor;
-    private static final XPathCompiler compiler = processor.newXPathCompiler();
+    private static final XPathCompiler compiler = SaxonUtil.getProcessor().newXPathCompiler();
 
     static {
         compiler.declareNamespace(Constants.SYNAPSE_NAMESPACE.PREFIX, Constants.SYNAPSE_NAMESPACE.URI);

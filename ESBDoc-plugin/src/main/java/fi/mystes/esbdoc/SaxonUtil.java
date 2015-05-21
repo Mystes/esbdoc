@@ -16,8 +16,10 @@ import java.io.InputStream;
 public class SaxonUtil {
     private static Log log = LogFactory.getLog(SaxonUtil.class);
 
-    public static final Processor processor = new Processor(false);
+    private static final Processor processor = new Processor(false);
     public static final DocumentBuilder BUILDER = processor.newDocumentBuilder();
+
+    private SaxonUtil(){}
 
     public static XdmNode getNodeFromFileObject(FileObject xmlFileObject) throws SaxonApiException, IOException {
         if (!isFileObjectASoapUiProject(xmlFileObject)) {
@@ -95,5 +97,9 @@ public class SaxonUtil {
         } catch (IOException ioe){
             log.error("buildSequenceDiagrams: Could not close InputStream! Reason: " + ioe.getMessage());
         }
+    }
+
+    public static Processor getProcessor(){
+        return processor;
     }
 }
