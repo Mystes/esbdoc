@@ -6,6 +6,7 @@ package fi.mystes.esbdoc;
 
 import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.XPathSelector;
+import org.apache.commons.lang3.StringUtils;
 
 import static fi.mystes.esbdoc.Constants.*;
 
@@ -39,8 +40,8 @@ public class Dependency implements Comparable<Dependency> {
         WSDL("wsdl", WSDL_XPATH_STRING),
         WSDL_RESOURCE("wsdl resource", WSDL_RESOURCE_XPATH_STRING);
 
-        final String typeString;
-        final XPathSelector xPath;
+        private final String typeString;
+        private final XPathSelector xPath;
 
         public String getTypeString() {
             return typeString;
@@ -51,26 +52,18 @@ public class Dependency implements Comparable<Dependency> {
         }
 
         DependencyType(String typeString, String... xPaths) {
+            String xPathUnion = StringUtils.join(xPaths, " | ");
+            xPathUnion = StringUtils.trimToEmpty(xPathUnion);
+            this.xPath = xPathForString(xPathUnion);
             this.typeString = typeString;
+        }
 
-            String xPathUnion = "";
-            boolean first = true;
-            for (String xPath : xPaths) {
-                if (!first) {
-                    xPathUnion += " | ";
-                }
-                xPathUnion += xPath;
-                first = false;
-            }
-
-            if (!xPathUnion.trim().isEmpty()) {
-                try {
-                    this.xPath = SaxonXPath.forString(xPathUnion);
-                } catch (SaxonApiException e) {
-                    throw new Error("Unable to initialize the DependencyType enum. Unable to compile XPath.", e);
-                }
-            } else {
-                this.xPath = null;
+        private XPathSelector xPathForString(String xpathString){
+            if(StringUtils.isEmpty(xpathString)) { return null; }
+            try {
+                return SaxonXPath.forString(xpathString);
+            } catch (SaxonApiException e) {
+                throw new Error("Unable to initialize the DependencyType enum. Unable to compile XPath.", e);
             }
         }
 
