@@ -432,12 +432,8 @@ public class SequenceDiagramBuilder {
             outputStr.append(dependency(parent, source));
         }
 
-        List<String> leaves = null;
         SequenceItem item = nodeDependencies.get(source);
-        if (item != null) {
-            leaves = item.getLeaves();
-            //     System.out.println("Handling:"+item.getPayload());
-        }
+        List<String> leaves =  getLeaves(item);
 
         if (leaves != null) {
             for (String s : leaves) {
@@ -458,6 +454,13 @@ public class SequenceDiagramBuilder {
 
     private String dependency(String from, String to){
         return from + "->" + to + ":\n";
+    }
+
+    private List<String> getLeaves(SequenceItem item){
+        if (null == item) {
+            return null;
+        }
+        return item.getLeaves();
     }
 
 }
