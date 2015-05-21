@@ -18,9 +18,9 @@ import java.util.Set;
 public class SaxonXPath {
     private static Log log = LogFactory.getLog(SaxonXPath.class);
 
-    public static final Processor PROCESSOR = new Processor(false);
-    public static final DocumentBuilder BUILDER = PROCESSOR.newDocumentBuilder();
-    public static final XPathCompiler COMPILER = PROCESSOR.newXPathCompiler();
+    private static final Processor processor = new Processor(false);
+    public static final DocumentBuilder BUILDER = processor.newDocumentBuilder();
+    public static final XPathCompiler COMPILER = processor.newXPathCompiler();
 
     static {
         COMPILER.declareNamespace(Constants.SYNAPSE_NAMESPACE.PREFIX, Constants.SYNAPSE_NAMESPACE.URI);
@@ -155,6 +155,7 @@ public class SaxonXPath {
                     return (XdmNode) item;
                 }
             }
+            //TODO Is RuntimeException really The Thing to throw - or should we have a custom exception?
             throw new RuntimeException("Failed to find the root element");
         }
 
