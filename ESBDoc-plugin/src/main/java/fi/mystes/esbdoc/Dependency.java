@@ -65,7 +65,7 @@ public class Dependency implements Comparable<Dependency> {
 
             if (!xPathUnion.trim().isEmpty()) {
                 try {
-                    this.xPath = SaxonXPath.COMPILER.compile(xPathUnion).load();
+                    this.xPath = SaxonXPath.forString(xPathUnion);
                 } catch (SaxonApiException e) {
                     throw new Error("Unable to initialize the DependencyType enum. Unable to compile XPath.", e);
                 }

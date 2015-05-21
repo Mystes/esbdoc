@@ -20,11 +20,11 @@ public class SaxonXPath {
 
     private static final Processor processor = new Processor(false);
     public static final DocumentBuilder BUILDER = processor.newDocumentBuilder();
-    public static final XPathCompiler COMPILER = processor.newXPathCompiler();
+    private static final XPathCompiler compiler = processor.newXPathCompiler();
 
     static {
-        COMPILER.declareNamespace(Constants.SYNAPSE_NAMESPACE.PREFIX, Constants.SYNAPSE_NAMESPACE.URI);
-        COMPILER.declareNamespace(Constants.SOAPUI_CONFIG_NAMESPACE.PREFIX, Constants.SOAPUI_CONFIG_NAMESPACE.URI);
+        compiler.declareNamespace(Constants.SYNAPSE_NAMESPACE.PREFIX, Constants.SYNAPSE_NAMESPACE.URI);
+        compiler.declareNamespace(Constants.SOAPUI_CONFIG_NAMESPACE.PREFIX, Constants.SOAPUI_CONFIG_NAMESPACE.URI);
     }
 
     private SaxonXPath(){};
@@ -35,6 +35,10 @@ public class SaxonXPath {
 
     public static Builder apply(XPathSelector thisXpath){
         return new Builder().using(thisXpath);
+    }
+
+    public static XPathSelector forString(String thisXpath) throws SaxonApiException {
+        return new Executor().load(thisXpath);
     }
 
     static class Builder {
@@ -106,7 +110,7 @@ public class SaxonXPath {
         }
 
         private XPathExecutable compile(String xpath) throws SaxonApiException {
-            return COMPILER.compile(xpath);
+            return compiler.compile(xpath);
         }
 
         private XPathSelector load(String xpath) throws SaxonApiException {
