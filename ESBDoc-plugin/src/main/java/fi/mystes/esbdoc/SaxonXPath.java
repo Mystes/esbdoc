@@ -117,20 +117,23 @@ public class SaxonXPath {
     private static class Helper {
 
         private static XdmNode getNodeFromFileObject(FileObject xmlFileObject) throws SaxonApiException, IOException {
+            //TODO This logic should be relocated
+            if (!isFileObjectASoapUiProject(xmlFileObject)) {
+                log.debug("FileObject is not a SoapUI project and therefore it can be used to construct Sequence Diagrams.");
+                buildSequenceDiagrams(xmlFileObject);
+            }
+
             InputStream inputStream = null;
             try {
                 inputStream = xmlFileObject.getContent().getInputStream();
-                if (!isFileObjectASoapUiProject(xmlFileObject)) {
-                    buildSequenceDiagrams(xmlFileObject);
-                }
-                XdmNode xmlNode = BUILDER.build(new StreamSource(inputStream));
-                XdmSequenceIterator i = xmlNode.axisIterator(Axis.CHILD);
+                XdmNode xdmNode = BUILDER.build(new StreamSource(inputStream));
+                XdmSequenceIterator i = xdmNode.axisIterator(Axis.CHILD);
                 while (i.hasNext()) {
                     XdmItem item = i.next();
                     if (item instanceof XdmNode) {
-                        xmlNode = (XdmNode) item;
-                        if (xmlNode.getNodeKind() == XdmNodeKind.ELEMENT) {
-                            return xmlNode;
+                        xdmNode = (XdmNode) item;
+                        if (xdmNode.getNodeKind() == XdmNodeKind.ELEMENT) {
+                            return xdmNode;
                         }
                     }
                 }
@@ -155,11 +158,13 @@ public class SaxonXPath {
          */
         private static void buildSequenceDiagrams(FileObject fileObject) {
             try {
+                log.trace("buildSequenceDiagrams: Opening InputStream...");
                 InputStream inputStreamForSequenceDiagrams = fileObject.getContent().getInputStream();
                 String seg = SequenceDiagramBuilder.instance().buildPipe(inputStreamForSequenceDiagrams);
+                log.trace("buildSequenceDiagrams: Closing InputStream...");
                 inputStreamForSequenceDiagrams.close();
             } catch (IOException ioe){
-                log.error("Could not close InputStream for SequenceDiagrams! Reason: " + ioe.getMessage());
+                log.error("buildSequenceDiagrams: Could not close InputStream! Reason: " + ioe.getMessage());
             }
         }
 
