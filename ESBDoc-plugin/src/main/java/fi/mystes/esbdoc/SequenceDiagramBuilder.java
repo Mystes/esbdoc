@@ -356,13 +356,11 @@ public class SequenceDiagramBuilder {
     }
 
     public SequenceItem create_callSeqStructure(String source) {
-        String name = null;
-        if (!source.isEmpty()) {
-            SequenceItem item = new SequenceItem(source);
-            return item;
-        } else {
+        if(source.isEmpty()){
             return null;
         }
+
+        return new SequenceItem(source);
     }
 
     public void writeOutputFiles(String outputFilename) throws IOException {
@@ -446,7 +444,7 @@ public class SequenceDiagramBuilder {
                 printDependencies(outputStr, s, source, indent + 1, handledNodeList, nodeDependencies);
             }
         }
-        
+
         if (parent != null) {
             outputStr.append(source + "->" + parent + ":\n");
         }
