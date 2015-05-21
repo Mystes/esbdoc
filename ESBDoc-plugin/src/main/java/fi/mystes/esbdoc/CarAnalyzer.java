@@ -895,9 +895,9 @@ public class CarAnalyzer {
 
                 Set<Dependency> dependencies = new HashSet<Dependency>();
 
-                for (Dependency.DependencyType dt : Dependency.DependencyType.values()) {
+                for (DependencyType dt : DependencyType.values()) {
                     // TASK_TO has special handling
-                    if (dt == Dependency.DependencyType.TASK_TO) {
+                    if (dt == DependencyType.TASK_TO) {
                         continue;
                     }
 
@@ -914,7 +914,7 @@ public class CarAnalyzer {
                         System.out.println("The task: " + a.getName() + " has multiple dependencies. This is probably an error.");
                     }
 
-                    Dependency.DependencyType dt = Dependency.DependencyType.TASK_TO;
+                    DependencyType dt = DependencyType.TASK_TO;
                     Set<String> dependencyString = evaluateXPathToStringSet(artifactXml, dt.getXPath());
 
                     if (dependencyString != null && !dependencyString.isEmpty()) {
@@ -956,7 +956,7 @@ public class CarAnalyzer {
                             artifactDependencies = new HashSet<Dependency>();
                             forwardDependencyMap.put(a, artifactDependencies);
                         }
-                        artifactDependencies.add(new Dependency(a, dependency, Dependency.DependencyType.DOCUMENTED));
+                        artifactDependencies.add(new Dependency(a, dependency, DependencyType.DOCUMENTED));
                     }
                 }
             }
@@ -990,7 +990,7 @@ public class CarAnalyzer {
      * @return
      * @throws SaxonApiException
      */
-    private Set<Dependency> getDependencySet(Artifact a, XdmNode context, Dependency.DependencyType dependencyType) throws SaxonApiException {
+    private Set<Dependency> getDependencySet(Artifact a, XdmNode context, DependencyType dependencyType) throws SaxonApiException {
         Set<Dependency> dependencies = new HashSet<Dependency>();
         for (String dependencyString : evaluateXPathToStringSet(context, dependencyType.getXPath())) {
             currentObject = a.getName(); // Save current artifact for  warning logs.
