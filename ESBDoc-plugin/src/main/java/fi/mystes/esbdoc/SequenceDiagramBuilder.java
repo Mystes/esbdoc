@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import net.sf.saxon.s9api.SaxonApiException;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -19,16 +21,19 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class SequenceDiagramBuilder {
+    private static Log log = LogFactory.getLog(SequenceDiagramBuilder.class);
+
+    private static final String PATH_TO_ESB = "/home/kreshnikg/Applications/wso2esb-4.5.1"; //FIXME that's user-specific
+    private static final String RELATIVE_PATH_TO_CONFIGURATION_FILES = "/repository/deployment/server/synapse-configs/default/";
 
     private static SequenceDiagramBuilder instance = null;
-
     private String filesHome;
     private HashMap<String, SequenceItem> parsed = new HashMap();
     private Map<String, String> visited = new HashMap();
     private StringBuilder output = null;
 
     private SequenceDiagramBuilder(String wso2Home) {
-        filesHome = wso2Home + "/repository/deployment/server/synapse-configs/default/";
+        filesHome = wso2Home + RELATIVE_PATH_TO_CONFIGURATION_FILES;
         visited = new HashMap<String, String>();
     }
 
@@ -36,21 +41,22 @@ public class SequenceDiagramBuilder {
         visited = new HashMap<String, String>();
     }
 
-    public static SequenceDiagramBuilder instance(){
-        if(null == instance){
+    public static SequenceDiagramBuilder instance() {
+        if (null == instance) {
+            log.info("Creating a new instance of the SequenceDiagramBuilder.");
             instance = new SequenceDiagramBuilder();
         }
         return instance;
     }
 
-    private SequenceDiagramBuilder build(String file) throws FileNotFoundException, SAXException, IOException, ParserConfigurationException {
+    private SequenceDiagramBuilder build(String file) throws SAXException, IOException, ParserConfigurationException {
         SAXParserFactory parserFactor = SAXParserFactory.newInstance();
         SAXParser parser = parserFactor.newSAXParser();
         parser.parse(new FileInputStream(filesHome + file), getNewHandler());
         return this;
     }
 
-    private SequenceDiagramBuilder build(InputStream is) throws FileNotFoundException, SAXException, IOException, ParserConfigurationException {
+    private SequenceDiagramBuilder build(InputStream is) throws SAXException, IOException, ParserConfigurationException {
         SAXParserFactory parserFactor = SAXParserFactory.newInstance();
         SAXParser parser = parserFactor.newSAXParser();
         parser.parse(is, getNewHandler());
@@ -112,7 +118,7 @@ public class SequenceDiagramBuilder {
      */
     public static void main(String[] args) {
 
-        String result = new SequenceDiagramBuilder("/home/kreshnikg/Applications/wso2esb-4.5.1").buildPipe(args[7]);
+        String result = new SequenceDiagramBuilder(PATH_TO_ESB).buildPipe(args[7]);
         System.out.println(result);
     }
 
