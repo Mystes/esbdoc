@@ -370,10 +370,19 @@ public class SequenceDiagramBuilder {
         new File(outputFilename).getParentFile().mkdirs();
 
         JsonGenerator generator = createJsonGenerator(outputFilename);
+
         generator.writeStartObject();
         generator.writeObjectFieldStart("models");
         generator.writeArrayFieldStart("sequence-models");
 
+        writeSequenceItems(generator);
+
+        generator.writeEndArray();
+        generator.writeEndObject();
+        generator.close();
+    }
+
+    private void writeSequenceItems(JsonGenerator generator) throws IOException {
         ArrayList<String> handledNodeList = new ArrayList();
         Set<String> keys = getSequenceItemMap().keySet();
         for (String key : keys) {
@@ -387,9 +396,6 @@ public class SequenceDiagramBuilder {
             generator.writeEndObject();
             handledNodeList.clear();
         }
-        generator.writeEndArray();
-        generator.writeEndObject();
-        generator.close();
     }
 
     private JsonGenerator createJsonGenerator(String outputFilename) throws IOException {
