@@ -366,9 +366,6 @@ public class SequenceDiagramBuilder {
     public void writeOutputFile(String outputFilename) throws IOException {
         log.info("Writing out: " + outputFilename);
 
-        //TODO what's this?
-        new File(outputFilename).getParentFile().mkdirs();
-
         JsonGenerator generator = createJsonGenerator(outputFilename);
 
         generator.writeStartObject();
