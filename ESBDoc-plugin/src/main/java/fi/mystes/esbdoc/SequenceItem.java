@@ -36,12 +36,15 @@ class SequenceItem {
 
         for (String line : lines) {
             if (StringUtils.contains(line, "->")) {
-                int ind = line.indexOf("->");
-                // Remove also ':'-from the line
-                String target = line.substring(ind + 4, line.length()-1);
+                int indexOfArrow = line.indexOf("->");
+                String target = removeColonFromLine(line, indexOfArrow);
                 leaves.add(target);
             }
         }
+    }
+
+    private String removeColonFromLine(String line, int indexOfArrow) {
+        return line.substring(indexOfArrow + 4, line.length()-1);
     }
 
     /**
