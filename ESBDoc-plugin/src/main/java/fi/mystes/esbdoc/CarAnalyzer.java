@@ -53,7 +53,7 @@ public class CarAnalyzer {
         getForwardDependencyMap();
         buildTestFileMap(testFileObjects);
         // Process sequence diagrams 
-        Map<String, SequenceItem> seqs = SequenceDiagramBuilder.instance().getParsed();
+        Map<String, SequenceItem> seqs = SequenceDiagramBuilder.instance().getSequenceItemMap();
         writeOutputFiles(outputDestination);
         SequenceDiagramBuilder.instance().writeOutputFiles(outputDestination);
     }

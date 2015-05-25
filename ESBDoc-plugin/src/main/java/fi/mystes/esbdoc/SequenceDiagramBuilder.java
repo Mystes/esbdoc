@@ -2,8 +2,8 @@ package fi.mystes.esbdoc;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
-import net.sf.saxon.s9api.SaxonApiException;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.xml.sax.Attributes;
@@ -46,20 +46,10 @@ public class SequenceDiagramBuilder {
         return instance;
     }
 
-    private SequenceDiagramBuilder build(String file) throws SAXException, IOException, ParserConfigurationException {
-        log.info("Trying to parse from file: " + file);
-        parser().parse(new FileInputStream(filesHome + file), getNewHandler());
-        return this;
-    }
-
-    private SequenceDiagramBuilder build(InputStream is) throws SAXException, IOException, ParserConfigurationException {
-        log.info("Trying to parse from InputStream...: ");
-        parser().parse(is, getNewHandler());
-        return this;
-    }
-
-    public SAXHandler getNewHandler() {
-        return new SAXHandler(this);
+    public static void main(String[] args) {
+        //TODO What information does magic argument number seven carry and what about the other args?
+        String result = new SequenceDiagramBuilder(PATH_TO_ESB).buildPipe(args[7]);
+        log.info(result);
     }
 
     private SAXParser parser() throws SAXException, ParserConfigurationException{
@@ -72,6 +62,7 @@ public class SequenceDiagramBuilder {
         try {
             log.info("Building a pipe from file.");
             //TODO What pipe? A single pipe or many pipes?
+            //TODO why should the processing be different when building from inputstream than when building from string?
             visited = new HashMap<String, String>();
             output = new StringBuilder();
             build(file);
@@ -92,8 +83,9 @@ public class SequenceDiagramBuilder {
             output = new StringBuilder();
             build(is);
             //TODO wtf does this condition mean?
+            //TODO why should the processing be different when building from inputstream than when building from string?
             if (output.length() > 6) {
-                SequenceItem item = create_callSeqStructure(output.toString());
+                SequenceItem item = createSequenceItem(output.toString());
                 saveItemForFurtherProcessing(item);
             }
             return output.toString();
@@ -107,30 +99,27 @@ public class SequenceDiagramBuilder {
         return null;
     }
 
+    private SequenceDiagramBuilder build(String file) throws SAXException, IOException, ParserConfigurationException {
+        log.info("Trying to parse from file: " + file);
+        parser().parse(new FileInputStream(filesHome + file), getNewHandler());
+        return this;
+    }
+
+    private SequenceDiagramBuilder build(InputStream is) throws SAXException, IOException, ParserConfigurationException {
+        log.info("Trying to parse from InputStream...: ");
+        parser().parse(is, getNewHandler());
+        return this;
+    }
+
+    public SAXHandler getNewHandler() {
+        return new SAXHandler(this);
+    }
+
     private void saveItemForFurtherProcessing(SequenceItem item) {
-        getParsed().put(item.getName(), item);
+        getSequenceItemMap().put(item.getName(), item);
     }
 
-    /**
-     * Main set up environment and generates all graphs. It uses WSO2_HOME as a
-     * starting point where to find proxies and sequences.
-     *
-     * @param args
-     * @throws SaxonApiException
-     * @throws ParserConfigurationException
-     * @throws IOException
-     * @throws SAXException
-     */
-    public static void main(String[] args) {
-
-        String result = new SequenceDiagramBuilder(PATH_TO_ESB).buildPipe(args[7]);
-        System.out.println(result);
-    }
-
-    /**
-     * @return the parsed
-     */
-    public HashMap<String, SequenceItem> getParsed() {
+    public HashMap<String, SequenceItem> getSequenceItemMap() {
         return parsed;
     }
 
@@ -366,11 +355,10 @@ public class SequenceDiagramBuilder {
         }
     }
 
-    public SequenceItem create_callSeqStructure(String source) {
-        if(source.isEmpty()){
+    private SequenceItem createSequenceItem(String source) {
+        if(StringUtils.isEmpty(source)){
             return null;
         }
-
         return new SequenceItem(source);
     }
 
