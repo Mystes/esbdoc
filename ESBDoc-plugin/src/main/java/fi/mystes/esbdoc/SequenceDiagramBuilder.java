@@ -395,11 +395,7 @@ public class SequenceDiagramBuilder {
     }
 
     private String generateSequenceItemString(String key) throws IOException {
-        StringBuilder stringBuilder = new StringBuilder();
-        String parent = null;
-        int indent = 0;
-        List<String> handledNodeList = new ArrayList();
-        return printDependenciesRecursively(stringBuilder, key, parent, indent, handledNodeList);
+        return printDependenciesRecursively(new SequenceItemParameters(key));
     }
 
     private JsonGenerator createJsonGenerator(String outputFilename) throws IOException {
@@ -408,47 +404,38 @@ public class SequenceDiagramBuilder {
         return factory.createGenerator(fis);
     }
 
-    /**
-     * Recursively prints out each dependency graph for given proxy or sequency.
-     * It uses depth-first style handling.
-     *
-     * @param stringBuilder StringBuilder where it writes out current dependency
-     * block
-     * @param key name of the current node
-     * @param parent name of the parent node. If parent is null, we have whole
-     * new proxy or sequence
-     * @param indent just count of how many  <space> to print before node
-     * @param handledNodeList list which collects information whether this node
-     * is already printed. It removes circular references.
-     * @throws FileNotFoundException
-     * @throws IOException
-     */
-    private String printDependenciesRecursively(StringBuilder stringBuilder, String key, String parent, int indent, List<String> handledNodeList) throws IOException {
+    private String printDependenciesRecursively(SequenceItemParameters params) throws IOException {
+        String key = params.getKey();
+        String parent = params.getParent();
 
-        if (containsCircularDependencies(handledNodeList, key)) {
-            return stringBuilder.toString();
+        if (containsCircularDependencies(params.getHandledNodeList(), key)) {
+            return params.getStringBuilder().toString();
         }
 
         if (parent != null) {
-            stringBuilder.append(dependency(parent, key));
+            params.getStringBuilder().append(dependency(parent, key));
         }
 
-        handledNodeList.add(key);
-        populateLeaves(stringBuilder, key, indent, handledNodeList);
+        params.getHandledNodeList().add(key);
+        populateLeaves(params);
 
         if (parent != null) {
-            stringBuilder.append(dependency(key, parent));
+            params.getStringBuilder().append(dependency(key, parent));
         }
 
-        return stringBuilder.toString();
+        return params.getStringBuilder().toString();
     }
 
-    private void populateLeaves(StringBuilder stringBuilder, String key, int indent, List<String> handledNodeList) throws IOException {
+    private void populateLeaves(SequenceItemParameters params) throws IOException {
+        String key = params.getKey();
         SequenceItem item = getSequenceItemMap().get(key);
         List<String> leaves =  getLeaves(item);
 
         for (String s : leaves) {
-            printDependenciesRecursively(stringBuilder, s, key, indent + 1, handledNodeList);
+            params.setParent(key);
+            params.setKey(s);
+            params.indent();
+            printDependenciesRecursively(params);
         }
     }
 
@@ -467,11 +454,25 @@ public class SequenceDiagramBuilder {
         return item.getLeaves();
     }
 
+    /**
+     * stringBuilder StringBuilder where it writes out current dependency
+     * block
+     *
+     * key name of the current node
+     *
+     * parent name of the parent node. If parent is null, we have whole
+     * new proxy or sequence
+     *
+     * indent just count of how many  <space> to print before node
+     *
+     * handledNodeList list which collects information whether this node
+     * is already printed. It removes circular references.
+     */
     private class SequenceItemParameters {
         private final StringBuilder stringBuilder = new StringBuilder();
         private final List<String> handledNodeList = new ArrayList();
-        private final String key;
 
+        private String key;
         private String parent = null;
         private int indent = 0;
 
@@ -491,6 +492,10 @@ public class SequenceDiagramBuilder {
             return this.key;
         }
 
+        private void setKey(String key){
+            this.key = key;
+        }
+
         private String getParent(){
             return this.parent;
         }
@@ -500,7 +505,7 @@ public class SequenceDiagramBuilder {
         }
 
         private int indent(){
-            return this.indent++;
+            return ++this.indent;
         }
 
     }
