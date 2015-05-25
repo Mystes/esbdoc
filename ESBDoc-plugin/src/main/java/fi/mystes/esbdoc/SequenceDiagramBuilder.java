@@ -434,7 +434,6 @@ public class SequenceDiagramBuilder {
         for (String s : leaves) {
             params.setParent(key);
             params.setKey(s);
-            params.indent();
             printDependenciesRecursively(params);
         }
     }
@@ -474,7 +473,6 @@ public class SequenceDiagramBuilder {
 
         private String key;
         private String parent = null;
-        private int indent = 0;
 
         private SequenceItemParameters(String key){
             this.key = key;
@@ -502,10 +500,6 @@ public class SequenceDiagramBuilder {
 
         private void setParent(String parent){
             this.parent = parent;
-        }
-
-        private int indent(){
-            return ++this.indent;
         }
 
     }
