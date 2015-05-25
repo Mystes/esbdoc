@@ -60,46 +60,16 @@ class SequenceItem {
         return line.substring(indexOfArrow + 4, line.length()-1);
     }
 
-    /**
-     * @return the name
-     */
     public String getName() {
         return name;
     }
 
-    /**
-     * @param name the name to set
-     */
     public void setName(String name) {
         this.name = name;
     }
 
-    /**
-     * @return the payload
-     */
-    public String getPayload() {
-        return payload;
-    }
-
-    /**
-     * @param payload the payload to set
-     */
-    public void setPayload(String payload) {
-        this.payload = payload;
-    }
-
-    /**
-     * @return the leaves
-     */
     public ArrayList<String> getLeaves() {
         return leaves;
-    }
-
-    /**
-     * @param leaves the leaves to set
-     */
-    public void setLeaves(ArrayList<String> leaves) {
-        this.leaves = leaves;
     }
     
 }
