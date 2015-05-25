@@ -416,7 +416,7 @@ public class SequenceDiagramBuilder {
             params.addDependency(parent, key);
         }
 
-        params.getHandledNodeList().add(key);
+        params.addHandledNode(key);
         populateLeaves(params);
 
         if (parent != null) {
@@ -496,6 +496,10 @@ public class SequenceDiagramBuilder {
 
         private String dependency(String from, String to){
             return from + "->" + to + ":\n";
+        }
+
+        public void addHandledNode(String key){
+            this.getHandledNodeList().add(key);
         }
 
     }
