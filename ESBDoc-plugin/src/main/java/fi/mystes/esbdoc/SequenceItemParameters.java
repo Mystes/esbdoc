@@ -62,4 +62,8 @@ public class SequenceItemParameters {
         this.getHandledNodeList().add(key);
     }
 
+    public boolean hasParent(){
+        return this.getParent() != null;
+    }
+
 }

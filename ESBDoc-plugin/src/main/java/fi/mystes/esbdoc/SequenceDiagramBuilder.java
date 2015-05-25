@@ -407,19 +407,20 @@ public class SequenceDiagramBuilder {
     private String printDependenciesRecursively(SequenceItemParameters params) throws IOException {
         String key = params.getKey();
         String parent = params.getParent();
+        boolean parentExists = params.hasParent();
 
         if (params.containsCircularDependencies()) {
             return params.toString();
         }
 
-        if (parent != null) {
+        if (parentExists) {
             params.addDependency(parent, key);
         }
 
         params.addHandledNode(key);
         populateLeaves(params);
 
-        if (parent != null) {
+        if (parentExists) {
             params.addDependency(key, parent);
         }
 
