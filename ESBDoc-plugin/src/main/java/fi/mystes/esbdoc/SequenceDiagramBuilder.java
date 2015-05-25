@@ -23,12 +23,13 @@ import java.util.logging.Logger;
 public class SequenceDiagramBuilder {
     private static Log log = LogFactory.getLog(SequenceDiagramBuilder.class);
 
+    public static final String FILE_SUFFIX = "-seq.json";
     private static final String PATH_TO_ESB = "/home/kreshnikg/Applications/wso2esb-4.5.1"; //FIXME that's user-specific
     private static final String RELATIVE_PATH_TO_CONFIGURATION_FILES = "/repository/deployment/server/synapse-configs/default/";
 
     private static SequenceDiagramBuilder instance = null;
     private String filesHome;
-    private HashMap<String, SequenceItem> parsed = new HashMap();
+    private HashMap<String, SequenceItem> sequenceItemMap = new HashMap();
     private Map<String, String> visited = new HashMap<String, String>();
     private StringBuilder output = null;
 
@@ -120,7 +121,7 @@ public class SequenceDiagramBuilder {
     }
 
     public HashMap<String, SequenceItem> getSequenceItemMap() {
-        return parsed;
+        return sequenceItemMap;
     }
 
     class SAXHandler extends DefaultHandler {
@@ -363,21 +364,18 @@ public class SequenceDiagramBuilder {
     }
 
     public void writeOutputFiles(String outputFilename) throws IOException {
-        new File(outputFilename).getParentFile().mkdirs();
-        ArrayList<String> handledNodeList = new ArrayList();
-
         log.info("Writing out: " + outputFilename);
-        FileOutputStream fis = null;
-        fis = new FileOutputStream(new File(outputFilename + "-seq.json"));
 
-        JsonFactory factory = new JsonFactory();
-        JsonGenerator generator = factory.createGenerator(fis);
+        //TODO what's this?
+        new File(outputFilename).getParentFile().mkdirs();
+
+        JsonGenerator generator = createJsonGenerator(outputFilename);
         generator.writeStartObject();
         generator.writeObjectFieldStart("models");
         generator.writeArrayFieldStart("sequence-models");
 
-        // write H
-        Set<String> keys = parsed.keySet();
+        ArrayList<String> handledNodeList = new ArrayList();
+        Set<String> keys = getSequenceItemMap().keySet();
         Iterator<String> it = keys.iterator();
         while (it.hasNext()) {
             String current = it.next();
@@ -386,8 +384,7 @@ public class SequenceDiagramBuilder {
             generator.writeStringField("name", current);
             generator.writeStringField("description", "");
 
-            StringBuilder seqString = new StringBuilder();
-            String block = printDependenciesRecursively(seqString, current, null, 0, handledNodeList, parsed);
+            String block = printDependenciesRecursively(new StringBuilder(), current, null, 0, handledNodeList, getSequenceItemMap());
             generator.writeStringField("sequence", StringEscapeUtils.escapeJson(block));
             generator.writeEndObject();
             handledNodeList.clear();
@@ -395,6 +392,12 @@ public class SequenceDiagramBuilder {
         generator.writeEndArray();
         generator.writeEndObject();
         generator.close();
+    }
+
+    private JsonGenerator createJsonGenerator(String outputFilename) throws IOException {
+        FileOutputStream fis = new FileOutputStream(new File(outputFilename + FILE_SUFFIX));
+        JsonFactory factory = new JsonFactory();
+        return factory.createGenerator(fis);
     }
 
     /**
