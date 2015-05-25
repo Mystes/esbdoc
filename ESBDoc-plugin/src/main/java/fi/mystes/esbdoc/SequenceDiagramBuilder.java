@@ -387,11 +387,20 @@ public class SequenceDiagramBuilder {
             generator.writeStringField("name", key);
             generator.writeStringField("description", "");
 
-            String block = printDependenciesRecursively(new StringBuilder(), key, null, 0, new ArrayList(), getSequenceItemMap());
+            String sequenceItemString = generateSequenceItemString(key);
+            generator.writeStringField("sequence", StringEscapeUtils.escapeJson(sequenceItemString));
 
-            generator.writeStringField("sequence", StringEscapeUtils.escapeJson(block));
             generator.writeEndObject();
         }
+    }
+
+    private String generateSequenceItemString(String key) throws IOException {
+        StringBuilder stringBuilder = new StringBuilder();
+        String parent = null;
+        int indent = 0;
+        List<String> handledNodeList = new ArrayList();
+        Map<String, SequenceItem> nodeDependencies = getSequenceItemMap();
+        return printDependenciesRecursively(stringBuilder, key, parent, indent, handledNodeList, nodeDependencies);
     }
 
     private JsonGenerator createJsonGenerator(String outputFilename) throws IOException {
