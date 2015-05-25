@@ -409,7 +409,7 @@ public class SequenceDiagramBuilder {
         String parent = params.getParent();
 
         if (containsCircularDependencies(params.getHandledNodeList(), key)) {
-            return params.getStringBuilder().toString();
+            return params.toString();
         }
 
         if (parent != null) {
@@ -423,7 +423,7 @@ public class SequenceDiagramBuilder {
             params.getStringBuilder().append(dependency(key, parent));
         }
 
-        return params.getStringBuilder().toString();
+        return params.toString();
     }
 
     private void populateLeaves(SequenceItemParameters params) throws IOException {
@@ -453,20 +453,6 @@ public class SequenceDiagramBuilder {
         return item.getLeaves();
     }
 
-    /**
-     * stringBuilder StringBuilder where it writes out current dependency
-     * block
-     *
-     * key name of the current node
-     *
-     * parent name of the parent node. If parent is null, we have whole
-     * new proxy or sequence
-     *
-     * indent just count of how many  <space> to print before node
-     *
-     * handledNodeList list which collects information whether this node
-     * is already printed. It removes circular references.
-     */
     private class SequenceItemParameters {
         private final StringBuilder stringBuilder = new StringBuilder();
         private final List<String> handledNodeList = new ArrayList();
@@ -474,7 +460,7 @@ public class SequenceDiagramBuilder {
         private String key;
         private String parent = null;
 
-        private SequenceItemParameters(String key){
+        public SequenceItemParameters(String key){
             this.key = key;
         }
 
@@ -486,20 +472,24 @@ public class SequenceDiagramBuilder {
             return this.handledNodeList;
         }
 
-        private String getKey(){
+        public String getKey(){
             return this.key;
         }
 
-        private void setKey(String key){
+        public void setKey(String key){
             this.key = key;
         }
 
-        private String getParent(){
+        public String getParent(){
             return this.parent;
         }
 
-        private void setParent(String parent){
+        public void setParent(String parent){
             this.parent = parent;
+        }
+
+        public String toString(){
+            return this.getStringBuilder().toString();
         }
 
     }
