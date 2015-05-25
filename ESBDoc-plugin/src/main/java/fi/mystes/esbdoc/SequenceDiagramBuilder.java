@@ -380,7 +380,6 @@ public class SequenceDiagramBuilder {
     }
 
     private void writeSequenceItems(JsonGenerator generator) throws IOException {
-        ArrayList<String> handledNodeList = new ArrayList();
         Set<String> keys = getSequenceItemMap().keySet();
         for (String key : keys) {
             log.info("Jasonifying: " + key);
@@ -388,10 +387,10 @@ public class SequenceDiagramBuilder {
             generator.writeStringField("name", key);
             generator.writeStringField("description", "");
 
-            String block = printDependenciesRecursively(new StringBuilder(), key, null, 0, handledNodeList, getSequenceItemMap());
+            String block = printDependenciesRecursively(new StringBuilder(), key, null, 0, new ArrayList(), getSequenceItemMap());
+
             generator.writeStringField("sequence", StringEscapeUtils.escapeJson(block));
             generator.writeEndObject();
-            handledNodeList.clear();
         }
     }
 
