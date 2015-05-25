@@ -376,15 +376,13 @@ public class SequenceDiagramBuilder {
 
         ArrayList<String> handledNodeList = new ArrayList();
         Set<String> keys = getSequenceItemMap().keySet();
-        Iterator<String> it = keys.iterator();
-        while (it.hasNext()) {
-            String current = it.next();
-            log.info("Jasonifying: " + current);
+        for (String key : keys) {
+            log.info("Jasonifying: " + key);
             generator.writeStartObject();
-            generator.writeStringField("name", current);
+            generator.writeStringField("name", key);
             generator.writeStringField("description", "");
 
-            String block = printDependenciesRecursively(new StringBuilder(), current, null, 0, handledNodeList, getSequenceItemMap());
+            String block = printDependenciesRecursively(new StringBuilder(), key, null, 0, handledNodeList, getSequenceItemMap());
             generator.writeStringField("sequence", StringEscapeUtils.escapeJson(block));
             generator.writeEndObject();
             handledNodeList.clear();
