@@ -399,8 +399,7 @@ public class SequenceDiagramBuilder {
         String parent = null;
         int indent = 0;
         List<String> handledNodeList = new ArrayList();
-        Map<String, SequenceItem> nodeDependencies = getSequenceItemMap();
-        return printDependenciesRecursively(stringBuilder, key, parent, indent, handledNodeList, nodeDependencies);
+        return printDependenciesRecursively(stringBuilder, key, parent, indent, handledNodeList);
     }
 
     private JsonGenerator createJsonGenerator(String outputFilename) throws IOException {
@@ -421,13 +420,10 @@ public class SequenceDiagramBuilder {
      * @param indent just count of how many  <space> to print before node
      * @param handledNodeList list which collects information whether this node
      * is already printed. It removes circular references.
-     * @param nodeDependencies list which contains all known nodes. Function
-     * uses <source> as a key when getting all leaves that given source has.
-     * Then it proceeds each leave similarly.
      * @throws FileNotFoundException
      * @throws IOException
      */
-    private String printDependenciesRecursively(StringBuilder stringBuilder, String key, String parent, int indent, List<String> handledNodeList, Map<String, SequenceItem> nodeDependencies) throws IOException {
+    private String printDependenciesRecursively(StringBuilder stringBuilder, String key, String parent, int indent, List<String> handledNodeList) throws IOException {
 
         if (containsCircularDependencies(handledNodeList, key)) {
             return stringBuilder.toString();
@@ -438,7 +434,7 @@ public class SequenceDiagramBuilder {
         }
 
         handledNodeList.add(key);
-        populateLeaves(stringBuilder, key, indent, handledNodeList, nodeDependencies);
+        populateLeaves(stringBuilder, key, indent, handledNodeList);
 
         if (parent != null) {
             stringBuilder.append(dependency(key, parent));
@@ -447,12 +443,12 @@ public class SequenceDiagramBuilder {
         return stringBuilder.toString();
     }
 
-    private void populateLeaves(StringBuilder stringBuilder, String key, int indent, List<String> handledNodeList, Map<String, SequenceItem> nodeDependencies) throws IOException {
-        SequenceItem item = nodeDependencies.get(key);
+    private void populateLeaves(StringBuilder stringBuilder, String key, int indent, List<String> handledNodeList) throws IOException {
+        SequenceItem item = getSequenceItemMap().get(key);
         List<String> leaves =  getLeaves(item);
 
         for (String s : leaves) {
-            printDependenciesRecursively(stringBuilder, s, key, indent + 1, handledNodeList, nodeDependencies);
+            printDependenciesRecursively(stringBuilder, s, key, indent + 1, handledNodeList);
         }
     }
 
