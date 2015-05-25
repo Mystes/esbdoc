@@ -363,7 +363,7 @@ public class SequenceDiagramBuilder {
         return new SequenceItem(source);
     }
 
-    public void writeOutputFiles(String outputFilename) throws IOException {
+    public void writeOutputFile(String outputFilename) throws IOException {
         log.info("Writing out: " + outputFilename);
 
         //TODO what's this?

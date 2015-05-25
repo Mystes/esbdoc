@@ -55,7 +55,7 @@ public class CarAnalyzer {
         // Process sequence diagrams 
         Map<String, SequenceItem> seqs = SequenceDiagramBuilder.instance().getSequenceItemMap();
         writeOutputFiles(outputDestination);
-        SequenceDiagramBuilder.instance().writeOutputFiles(outputDestination);
+        SequenceDiagramBuilder.instance().writeOutputFile(outputDestination);
     }
 
     public void run(File[] carFiles, String outputDestination, File[] testFolders) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
