@@ -467,4 +467,42 @@ public class SequenceDiagramBuilder {
         return item.getLeaves();
     }
 
+    private class SequenceItemParameters {
+        private final StringBuilder stringBuilder = new StringBuilder();
+        private final List<String> handledNodeList = new ArrayList();
+        private final String key;
+
+        private String parent = null;
+        private int indent = 0;
+
+        private SequenceItemParameters(String key){
+            this.key = key;
+        }
+
+        private StringBuilder getStringBuilder(){
+            return this.stringBuilder;
+        }
+
+        private List<String> getHandledNodeList(){
+            return this.handledNodeList;
+        }
+
+        private String getKey(){
+            return this.key;
+        }
+
+        private String getParent(){
+            return this.parent;
+        }
+
+        private void setParent(String parent){
+            this.parent = parent;
+        }
+
+        private int indent(){
+            return this.indent++;
+        }
+
+    }
+
 }
