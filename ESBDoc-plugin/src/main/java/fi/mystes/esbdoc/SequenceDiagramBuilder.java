@@ -47,11 +47,13 @@ public class SequenceDiagramBuilder {
     }
 
     private SequenceDiagramBuilder build(String file) throws SAXException, IOException, ParserConfigurationException {
+        log.info("Trying to parse from file: " + file);
         parser().parse(new FileInputStream(filesHome + file), getNewHandler());
         return this;
     }
 
     private SequenceDiagramBuilder build(InputStream is) throws SAXException, IOException, ParserConfigurationException {
+        log.info("Trying to parse from InputStream...: ");
         parser().parse(is, getNewHandler());
         return this;
     }
@@ -61,47 +63,52 @@ public class SequenceDiagramBuilder {
     }
 
     private SAXParser parser() throws SAXException, ParserConfigurationException{
+        log.debug("Instantiating a new SAX Parser...");
         SAXParserFactory parserFactory = SAXParserFactory.newInstance();
         return parserFactory.newSAXParser();
     }
 
     public String buildPipe(String file) {
-        visited = new HashMap<String, String>();
-        output = new StringBuilder();
         try {
+            log.info("Building a pipe from file.");
+            //TODO What pipe? A single pipe or many pipes?
+            visited = new HashMap<String, String>();
+            output = new StringBuilder();
             build(file);
             return output.toString();
         } catch (SAXException e) {
-            e.printStackTrace();
+            log.error("buildPipe encountered a SAX Exception: " + e.getMessage());
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("buildPipe encountered an IO Exception: " + e.getMessage());
         } catch (ParserConfigurationException e) {
-            e.printStackTrace();
+            log.error("buildPipe encountered a Parser Configuration Exception: " + e.getMessage());
         }
-
         return null;
     }
 
     public String buildPipe(InputStream is) {
-        visited = new HashMap<String, String>();
-        output = new StringBuilder();
         try {
+            visited = new HashMap<String, String>();
+            output = new StringBuilder();
             build(is);
+            //TODO wtf does this condition mean?
             if (output.length() > 6) {
-                // Try to resolve  name and use it as a key
                 SequenceItem item = create_callSeqStructure(output.toString());
-                // Save item into hashmap for further processing.                
-                getParsed().put(item.getName(), item);
+                saveItemForFurtherProcessing(item);
             }
             return output.toString();
         } catch (SAXException e) {
-            e.printStackTrace();
+            log.error("buildPipe encountered a SAX Exception: " + e.getMessage());
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("buildPipe encountered an IO Exception: " + e.getMessage());
         } catch (ParserConfigurationException e) {
-            e.printStackTrace();
+            log.error("buildPipe encountered a Parser Configuration Exception: " + e.getMessage());
         }
         return null;
+    }
+
+    private void saveItemForFurtherProcessing(SequenceItem item) {
+        getParsed().put(item.getName(), item);
     }
 
     /**
