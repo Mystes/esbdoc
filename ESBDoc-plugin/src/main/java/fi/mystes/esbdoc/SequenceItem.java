@@ -25,6 +25,7 @@ class SequenceItem {
 
         payload = source;
 
+        //TODO what the hell?
         String[] lines = StringUtils.split(source, "\n");
         if (lines[0].contains("Title ")) {
             name = lines[0].substring(6); //TODO why 6?
@@ -35,12 +36,24 @@ class SequenceItem {
         }
 
         for (String line : lines) {
-            if (StringUtils.contains(line, "->")) {
-                int indexOfArrow = line.indexOf("->");
-                String target = removeColonFromLine(line, indexOfArrow);
-                leaves.add(target);
+            if (isTargetDefined(line)) {
+                addTargetAsNewLeaf(line);
             }
         }
+    }
+
+    private boolean isTargetDefined(String line){
+        return StringUtils.contains(line, "->");
+    }
+
+    private void addTargetAsNewLeaf(String line){
+        String target = findTarget(line);
+        leaves.add(target);
+    }
+
+    private String findTarget(String line){
+        int indexOfArrow = line.indexOf("->");
+        return removeColonFromLine(line, indexOfArrow);
     }
 
     private String removeColonFromLine(String line, int indexOfArrow) {
