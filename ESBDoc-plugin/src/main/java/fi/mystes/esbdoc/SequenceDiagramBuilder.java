@@ -408,19 +408,19 @@ public class SequenceDiagramBuilder {
         String key = params.getKey();
         String parent = params.getParent();
 
-        if (containsCircularDependencies(params.getHandledNodeList(), key)) {
+        if (params.containsCircularDependencies()) {
             return params.toString();
         }
 
         if (parent != null) {
-            params.getStringBuilder().append(dependency(parent, key));
+            params.addDependency(parent, key);
         }
 
         params.getHandledNodeList().add(key);
         populateLeaves(params);
 
         if (parent != null) {
-            params.getStringBuilder().append(dependency(key, parent));
+            params.addDependency(key, parent);
         }
 
         return params.toString();
@@ -431,20 +431,14 @@ public class SequenceDiagramBuilder {
         SequenceItem item = getSequenceItemMap().get(key);
         List<String> leaves =  getLeaves(item);
 
-        for (String s : leaves) {
+        for (String leaf : leaves) {
             params.setParent(key);
-            params.setKey(s);
+            params.setKey(leaf);
             printDependenciesRecursively(params);
         }
     }
 
-    private boolean containsCircularDependencies(List<String> nodeList, String node){
-        return nodeList.contains(node);
-    }
 
-    private String dependency(String from, String to){
-        return from + "->" + to + ":\n";
-    }
 
     private List<String> getLeaves(SequenceItem item){
         if (null == item) {
@@ -490,6 +484,18 @@ public class SequenceDiagramBuilder {
 
         public String toString(){
             return this.getStringBuilder().toString();
+        }
+
+        public boolean containsCircularDependencies(){
+            return this.getHandledNodeList().contains(this.getKey());
+        }
+
+        public void addDependency(String from, String to){
+            this.getStringBuilder().append(dependency(from, to));
+        }
+
+        private String dependency(String from, String to){
+            return from + "->" + to + ":\n";
         }
 
     }
