@@ -404,9 +404,9 @@ public class SequenceDiagramBuilder {
      * Recursively prints out each dependency graph for given proxy or sequency.
      * It uses depth-first style handling.
      *
-     * @param outputStr StringBuilder where it writes out current dependency
+     * @param stringBuilder StringBuilder where it writes out current dependency
      * block
-     * @param source name of the current node
+     * @param key name of the current node
      * @param parent name of the parent node. If parent is null, we have whole
      * new proxy or sequence
      * @param indent just count of how many  <space> to print before node
@@ -418,32 +418,32 @@ public class SequenceDiagramBuilder {
      * @throws FileNotFoundException
      * @throws IOException
      */
-    private String printDependenciesRecursively(StringBuilder outputStr, String source, String parent, int indent, List<String> handledNodeList, Map<String, SequenceItem> nodeDependencies) throws IOException {
+    private String printDependenciesRecursively(StringBuilder stringBuilder, String key, String parent, int indent, List<String> handledNodeList, Map<String, SequenceItem> nodeDependencies) throws IOException {
 
-        if (containsCircularDependencies(handledNodeList, source)) {
-            return outputStr.toString();
+        if (containsCircularDependencies(handledNodeList, key)) {
+            return stringBuilder.toString();
         }
 
         if (parent != null) {
-            outputStr.append(dependency(parent, source));
+            stringBuilder.append(dependency(parent, key));
         }
 
-        handledNodeList.add(source);
-        populateLeaves(outputStr, source, indent, handledNodeList, nodeDependencies);
+        handledNodeList.add(key);
+        populateLeaves(stringBuilder, key, indent, handledNodeList, nodeDependencies);
 
         if (parent != null) {
-            outputStr.append(dependency(source, parent));
+            stringBuilder.append(dependency(key, parent));
         }
 
-        return outputStr.toString();
+        return stringBuilder.toString();
     }
 
-    private void populateLeaves(StringBuilder outputStr, String source, int indent, List<String> handledNodeList, Map<String, SequenceItem> nodeDependencies) throws IOException {
-        SequenceItem item = nodeDependencies.get(source);
+    private void populateLeaves(StringBuilder stringBuilder, String key, int indent, List<String> handledNodeList, Map<String, SequenceItem> nodeDependencies) throws IOException {
+        SequenceItem item = nodeDependencies.get(key);
         List<String> leaves =  getLeaves(item);
 
         for (String s : leaves) {
-            printDependenciesRecursively(outputStr, s, source, indent + 1, handledNodeList, nodeDependencies);
+            printDependenciesRecursively(stringBuilder, s, key, indent + 1, handledNodeList, nodeDependencies);
         }
     }
 
