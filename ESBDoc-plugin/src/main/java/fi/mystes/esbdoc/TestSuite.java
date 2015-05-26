@@ -33,36 +33,28 @@ public class TestSuite implements Comparable<TestSuite> {
 
     @Override
     public String toString() {
-        return new StringBuilder()
-                .append("{name: \"")
-                .append(name)
-                .append("\"}")
-                .toString();
+        return "{name: \"" + name + "\"}";
     }
 
     @Override
-    public int compareTo(TestSuite suite) {
-        int difference = this.name.compareTo(suite.name);
-        return difference;
+    public int compareTo(TestSuite that) {
+        return this.name.compareTo(that.name);
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o != null && o instanceof TestSuite) {
-            TestSuite other = (TestSuite) o;
-
-            return name.equals(other.name);
+    public boolean equals(Object object) {
+        if(null == object){
+            return false;
         }
-
-        return false;
+        if(!(object instanceof TestSuite)){
+            return false;
+        }
+        TestSuite that = (TestSuite) object;
+        return this.name.equals(that.name);
     }
 
     @Override
     public int hashCode() {
-        int result = 37;
-
-        result = 37 * result + name.hashCode();
-
-        return result;
+        return 37 * 37 + name.hashCode(); //TODO why like this?
     }
 }

@@ -13,7 +13,7 @@ public class TestCase implements Comparable<TestCase> {
 
     public TestCase(String name) {
         if (name == null) {
-            throw new IllegalArgumentException("All TestSuite constructor parameters must be non-null");
+            throw new IllegalArgumentException("All TestCase constructor parameters must be non-null");
         }
 
         this.name = name;
@@ -25,36 +25,28 @@ public class TestCase implements Comparable<TestCase> {
 
     @Override
     public String toString() {
-        return new StringBuilder()
-                .append("{name: \"")
-                .append(name)
-                .append("\"}")
-                .toString();
+        return "{name: \"" + name + "\"}";
     }
 
     @Override
-    public int compareTo(TestCase c) {
-        int difference = this.name.compareTo(c.name);
-        return difference;
+    public int compareTo(TestCase that) {
+        return this.name.compareTo(that.name);
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o != null && o instanceof TestCase) {
-            TestCase other = (TestCase) o;
-
-            return name.equals(other.name);
+    public boolean equals(Object object) {
+        if(null == object){
+            return false;
         }
-
-        return false;
+        if(!(object instanceof TestCase)){
+            return false;
+        }
+        TestCase that = (TestCase) object;
+        return this.name.equals(that.name);
     }
 
     @Override
     public int hashCode() {
-        int result = 37;
-
-        result = 37 * result + name.hashCode();
-
-        return result;
+        return 37 * 37 + name.hashCode(); //TODO why like this?
     }
 }

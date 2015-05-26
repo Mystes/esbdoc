@@ -19,10 +19,6 @@ public class TestProject implements Comparable<TestProject> {
 
         final String prefixString;
 
-        public String getPrefixString() {
-            return prefixString;
-        }
-
         PropertyType(String prefixString) {
             this.prefixString = prefixString;
         }
@@ -61,36 +57,28 @@ public class TestProject implements Comparable<TestProject> {
 
     @Override
     public String toString() {
-        return new StringBuilder()
-                .append("{name: \"")
-                .append(name)
-                .append("\"}")
-                .toString();
+        return "{name: \"" + name + "\"}";
     }
 
     @Override
-    public int compareTo(TestProject project) {
-        int difference = this.name.compareTo(project.name);
-        return difference;
+    public int compareTo(TestProject that) {
+        return this.name.compareTo(that.name);
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o != null && o instanceof TestProject) {
-            TestProject other = (TestProject) o;
-
-            return name.equals(other.name);
+    public boolean equals(Object object) {
+        if(null == object){
+            return false;
         }
-
-        return false;
+        if(!(object instanceof TestProject)){
+            return false;
+        }
+        TestProject that = (TestProject) object;
+        return this.name.equals(that.name);
     }
 
     @Override
     public int hashCode() {
-        int result = 37;
-
-        result = 37 * result + name.hashCode();
-
-        return result;
+        return 37 * 37 + name.hashCode(); //TODO why like this?
     }
 }
