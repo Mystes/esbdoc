@@ -12,11 +12,15 @@ public class TestCase implements Comparable<TestCase> {
     private final String name;
 
     public TestCase(String name) {
-        if (name == null) {
-            throw new IllegalArgumentException("All TestCase constructor parameters must be non-null");
-        }
+        assertNotNull("name", name);
 
         this.name = name;
+    }
+
+    private void assertNotNull(String paramName, Object param){
+        if(null == param){
+            throw new IllegalArgumentException("TestCase constructor parameter '" + paramName + "' must be non-null!");
+        }
     }
 
     public String getName() {

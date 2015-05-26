@@ -16,13 +16,19 @@ public class TestProject implements Comparable<TestProject> {
     private final Set<TestSuite> suites;
 
     public TestProject(String name, String filename, Set<TestSuite> suites) {
-        if (name == null || filename == null || suites == null) {
-            throw new IllegalArgumentException("All TestProject constructor parameters must be non-null");
-        }
+        assertNotNull("name", name);
+        assertNotNull("filename", filename);
+        assertNotNull("suites", suites);
 
         this.name = name;
         this.filename = filename;
         this.suites = suites;
+    }
+
+    private void assertNotNull(String paramName, Object param){
+        if(null == param){
+            throw new IllegalArgumentException("TestProject constructor parameter '" + paramName + "' must be non-null!");
+        }
     }
 
     public String getName() {

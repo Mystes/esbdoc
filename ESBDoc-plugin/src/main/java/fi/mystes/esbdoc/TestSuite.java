@@ -15,12 +15,17 @@ public class TestSuite implements Comparable<TestSuite> {
     private final Set<TestCase> cases;
 
     public TestSuite(String name, Set<TestCase> cases) {
-        if (name == null || cases == null) {
-            throw new IllegalArgumentException("All TestSuite constructor parameters must be non-null");
-        }
+        assertNotNull("name", name);
+        assertNotNull("cases", cases);
 
         this.name = name;
         this.cases = cases;
+    }
+
+    private void assertNotNull(String paramName, Object param){
+        if(null == param){
+            throw new IllegalArgumentException("TestSuite constructor parameter '" + paramName + "' must be non-null!");
+        }
     }
 
     public String getName() {
