@@ -11,7 +11,7 @@ import java.util.Set;
  */
 public class TestProject implements Comparable<TestProject> {
 
-    public enum PropertyType {
+    public enum TestItemType {
 
         PROJECT("Project"),
         TEST_SUITE("TestSuite"),
@@ -19,7 +19,7 @@ public class TestProject implements Comparable<TestProject> {
 
         final String prefixString;
 
-        PropertyType(String prefixString) {
+        TestItemType(String prefixString) {
             this.prefixString = prefixString;
         }
 
