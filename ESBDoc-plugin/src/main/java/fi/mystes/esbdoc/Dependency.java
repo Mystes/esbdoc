@@ -38,7 +38,7 @@ public class Dependency implements Comparable<Dependency> {
         boolean bothAreStrings = this.dependency instanceof String && that.dependency instanceof String;
 
         if (bothAreArtifacts || bothAreStrings) {
-            return ((Comparable) this.dependency).compareTo((Comparable) that.dependency);
+            return ((Comparable) this.dependency).compareTo(that.dependency);
         }
 
         if (this.dependency instanceof Artifact) {
@@ -53,8 +53,11 @@ public class Dependency implements Comparable<Dependency> {
         if(null == object){ return false; }
         if(!(object instanceof Dependency)){return false; }
 
-        Dependency other = (Dependency) object;
-        return dependent.equals(other.dependent) && dependency.equals(other.dependency) && type.equals(other.type);
+        Dependency that = (Dependency) object;
+        boolean dependentsEqual = this.dependent.equals(that.dependent);
+        boolean dependenciesEqual = this.dependency.equals(that.dependency);
+        boolean typesEqual = this.type.equals(that.type);
+        return dependentsEqual && dependenciesEqual && typesEqual;
     }
 
     @Override
