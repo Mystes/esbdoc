@@ -446,7 +446,7 @@ public class CarAnalyzer {
      */
     private SortedMap<String, Set<TestSuite>> buildTestSuiteMap(XdmNode soapUIProjectRoot) throws IOException, SaxonApiException {
         SortedMap<String, String> testProjectPropertiesMap = new TreeMap<String, String>();
-        processProperties(soapUIProjectRoot, testProjectPropertiesMap, TestProject.TestItemType.PROJECT);
+        processProperties(soapUIProjectRoot, testProjectPropertiesMap, TestItemType.PROJECT);
 
         XdmSequenceIterator testSuites = soapUIProjectRoot.axisIterator(Axis.DESCENDANT, SOAPUI_TEST_SUITE_Q);
         SortedMap<String, Set<TestSuite>> testSuiteMap = new TreeMap<String, Set<TestSuite>>();
@@ -459,7 +459,7 @@ public class CarAnalyzer {
                 XdmNode testSuiteNode = (XdmNode) testSuite;
                 SortedMap<String, String> testSuitePropertiesMap = new TreeMap<String, String>(testProjectPropertiesMap);
 
-                processProperties(testSuiteNode, testSuitePropertiesMap, TestProject.TestItemType.TEST_SUITE);
+                processProperties(testSuiteNode, testSuitePropertiesMap, TestItemType.TEST_SUITE);
 
                 // iterate through all the test cases under test suite
                 XdmSequenceIterator testCases = testSuiteNode.axisIterator(Axis.DESCENDANT, SOAPUI_TEST_CASE_Q);
@@ -483,7 +483,7 @@ public class CarAnalyzer {
                                     SortedMap<String, String> testCasePropertiesMap = new TreeMap<String, String>();
 
                                     // combine project, test suite and test case properties
-                                    processProperties(testCaseNode, testCasePropertiesMap, TestProject.TestItemType.TEST_CASE);
+                                    processProperties(testCaseNode, testCasePropertiesMap, TestItemType.TEST_CASE);
                                     testCasePropertiesMap.putAll(testSuitePropertiesMap);
 
                                     XdmNode endpoint = (XdmNode) endpoints.next();
@@ -543,7 +543,7 @@ public class CarAnalyzer {
      * @param currentPropertiesMap
      * @param type
      */
-    private void processProperties(XdmNode propertiesParent, SortedMap<String, String> currentPropertiesMap, TestProject.TestItemType type) {
+    private void processProperties(XdmNode propertiesParent, SortedMap<String, String> currentPropertiesMap, TestItemType type) {
         // if TestSuite has properties
         if (propertiesParent.axisIterator(Axis.CHILD, SOAPUI_PROPERTIES_Q).hasNext()) {
             XdmNode propertiesNode = (XdmNode) propertiesParent.axisIterator(Axis.CHILD, SOAPUI_PROPERTIES_Q).next();
@@ -560,9 +560,9 @@ public class CarAnalyzer {
                 if (value != null) {
                     // it's a test case property
                     String key;
-                    if (TestProject.TestItemType.TEST_CASE == type) {
+                    if (TestItemType.TEST_CASE == type) {
                         key = "${#TestCase#" + name.getStringValue() + "}";
-                    } else if (TestProject.TestItemType.TEST_SUITE == type) {
+                    } else if (TestItemType.TEST_SUITE == type) {
                         key = "${#TestSuite#" + name.getStringValue() + "}";
                     } else {
                         key = "${#Project#" + name.getStringValue() + "}";
