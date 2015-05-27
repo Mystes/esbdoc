@@ -154,6 +154,10 @@ public class SAXHandler extends DefaultHandler {
             return StringUtils.isNotEmpty(this.get(attributeName));
         }
 
+        protected boolean doesNotHave(Value value){
+            return !has(value);
+        }
+
         protected boolean doesNotHave(String attributeName){
             return !has(attributeName);
         }
@@ -164,6 +168,14 @@ public class SAXHandler extends DefaultHandler {
 
         protected String get(String attributeName){
             return this.getAttributes().getValue(attributeName);
+        }
+
+        protected boolean valueEquals(Value target, String expectedValue){
+            if(doesNotHave(target)){
+                return false;
+            }
+            String actualValue = get(target);
+            return StringUtils.equalsIgnoreCase(expectedValue, actualValue);
         }
 
         protected String getName(){
@@ -281,14 +293,14 @@ public class SAXHandler extends DefaultHandler {
             append("loop ").append(element.get(EXPRESSION)).append("\n");
         }
         if (element.is(PROPERTY) && element.has(NAME)) {
-            if (element.get(NAME).toLowerCase().equals("simpleiterator.splitexpression")) {
-                simpleIteratorSplitExpression = element.get("value");
+            if (element.valueEquals(NAME, "simpleiterator.splitexpression")) {
+                simpleIteratorSplitExpression = element.get(VALUE);
 
-            } else if (element.get(NAME).toLowerCase().equals("simpleiterator.target")) {
+            } else if (element.valueEquals(NAME, "simpleiterator.target")) {
                 simpleIteratorTarget = element.get(VALUE);
             }
         }
-        if (element.is(SPRING) && element.has(BEAN) && element.get(BEAN).toLowerCase().equals("simpleiterator")) {
+        if (element.is(SPRING) && element.valueEquals(BEAN, "simpleiterator")) {
             if (simpleIteratorSplitExpression != null && simpleIteratorTarget != null) {
                 callOnDemand(simpleIteratorTarget, null);
                 simpleIteratorSplitExpression = null;
