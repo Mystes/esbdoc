@@ -32,10 +32,10 @@ public class EndpointURI {
         return null;
     }
 
+    //TODO This still needs refactoring
     private String parseHttpTarget(String parseThis) {
         try {
-            URL url = new URL(parseThis);
-            String target = url.getFile();
+            String target = asFilename(parseThis);
             target = target.substring(target.lastIndexOf("/") + 1, target.length());
             if (target.lastIndexOf(".") > 0) {
                 int start = target.lastIndexOf(".") + 1;
@@ -53,6 +53,12 @@ public class EndpointURI {
         }
     }
 
+    private String asFilename(String parseThis) throws MalformedURLException {
+        URL url = new URL(parseThis);
+        return url.getFile();
+    }
+
+    //TODO This still needs refactoring
     private String parseJmsTarget(String parseThis){
         return parseThis.split("\\?")[0].split("/")[1];
     }
