@@ -116,7 +116,7 @@ public class SAXHandler extends DefaultHandler {
                 callSequenceOnDemand(callableSequence);
             }
         }
-        else if (!(!qName.equals("customcallout") && !qName.equals("callout"))) { //gotta love this negation of negations
+        else if (element.isAnyOf("customcallout", "callout")) {
             String service = attributes.getValue("serviceURL");
             if (service != null) {
                 if (service.startsWith("http")) {
