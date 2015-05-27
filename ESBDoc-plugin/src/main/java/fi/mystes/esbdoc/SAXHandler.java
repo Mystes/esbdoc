@@ -170,8 +170,7 @@ public class SAXHandler extends DefaultHandler {
     private void callOnDemand(String name, String dir) throws SAXException {
         addPositiveRelation(root, name);
         try {
-            //in case of recursive sequence call
-            if (!this.diagramBuilder.visited.containsKey(name)) {
+            if (isNotVisited(name)) {
                 String tempName = name + "-1.0.0.xml";
                 if (fileExists(tempName, dir)) {
                     diagramBuilder.build(dir + "/" + tempName);
@@ -179,10 +178,18 @@ public class SAXHandler extends DefaultHandler {
             }
 
         } catch (Exception e) {
-            addNegativeRelation(name, root);
             throw new SAXException(e);
+        } finally {
+            addNegativeRelation(name, root);
         }
-        addNegativeRelation(name, root);
+    }
+
+    private boolean isNotVisited(String name){
+        return !isVisited(name);
+    }
+
+    private boolean isVisited(String name){
+        return this.diagramBuilder.visited.containsKey(name);
     }
 
     private void addPositiveRelation(String from, String to){
