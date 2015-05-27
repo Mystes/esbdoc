@@ -7,6 +7,9 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import java.io.File;
 
+import static fi.mystes.esbdoc.SAXHandler.Element.Type.PROXY;
+import static fi.mystes.esbdoc.SAXHandler.Element.Value.*;
+
 /**
  * Created by mystes-am on 26.5.2015.
  * TODO why does this have to suck so much?
@@ -23,13 +26,46 @@ public class SAXHandler extends DefaultHandler {
     private static final String POSITIVE = " ->+ ";
     private static final String NEGATIVE = " ->- ";
 
-    private static class Element {
+    public static class Element {
+
+        public enum Type {
+            PROXY("proxy");
+
+            private final String name;
+
+            Type(String name){
+                this.name = name;
+            }
+
+            public String getName(){
+                return this.name;
+            }
+        }
+
+        public enum Value {
+            NAME("name");
+
+            private final String name;
+
+            Value(String name){
+                this.name = name;
+            }
+
+            public String getName(){
+                return this.name;
+            }
+        }
+
         private final String name;
         private final Attributes attributes;
 
         protected Element(String name, Attributes attributes){
             this.name = name;
             this.attributes = attributes;
+        }
+
+        protected boolean is(Type type){
+            return is(type.getName().toLowerCase());
         }
 
         protected boolean is(String type){
@@ -40,7 +76,7 @@ public class SAXHandler extends DefaultHandler {
             return StringUtils.contains(this.name.toLowerCase(), partOfname.toLowerCase());
         }
 
-        protected boolean isNot(String type){
+        protected boolean isNot(Type type){
             return !is(type);
         }
 
@@ -58,14 +94,18 @@ public class SAXHandler extends DefaultHandler {
         }
 
         protected boolean has(String attributeName){
-            return StringUtils.isNotEmpty(this.getValue(attributeName));
+            return StringUtils.isNotEmpty(this.get(attributeName));
         }
 
         protected boolean doesNotHave(String attributeName){
             return !has(attributeName);
         }
 
-        protected String getValue(String attributeName){
+        protected String get(Value value){
+            return get(value.getName());
+        }
+
+        protected String get(String attributeName){
             return this.getAttributes().getValue(attributeName);
         }
 
@@ -87,15 +127,15 @@ public class SAXHandler extends DefaultHandler {
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
         super.startElement(uri, localName, qName, attributes);
         Element element = new Element(qName, attributes);
-        if (element.is("proxy")) {
-            String proxyName = element.getValue("name");
+        if (element.is(PROXY)) {
+            String proxyName = element.get(NAME);
             root = proxyName;
             this.diagramBuilder.visited.put(proxyName, "visited");
             this.diagramBuilder.output.append("Title " + proxyName + "\n");
         }
         if (element.is("endpoint")) {
-            String name = element.getValue("name");
-            String callable = element.getValue("key");
+            String name = element.get("name");
+            String callable = element.get("key");
             if (name != null) {
                 root = name;
                 this.diagramBuilder.visited.put(name, "visited");
@@ -106,9 +146,9 @@ public class SAXHandler extends DefaultHandler {
             }
         }
         if (element.is("address")) {
-            String uriTarget = element.getValue("uri");
+            String uriTarget = element.get("uri");
             if (uriTarget.toLowerCase().contains("proxy")) {
-                String proxy = new EndpointURI(element.getValue("uri")).getTarget();
+                String proxy = new EndpointURI(element.get("uri")).getTarget();
                 if (proxy != null) {
                     callProxyOnDemand(proxy);
                 }
@@ -117,8 +157,8 @@ public class SAXHandler extends DefaultHandler {
             }
         }
         if (element.is("sequence")) {
-            String sequenceName = element.getValue("name");
-            String callableSequence = element.getValue("key");
+            String sequenceName = element.get("name");
+            String callableSequence = element.get("key");
             if (sequenceName != null) {
                 root = sequenceName;
                 this.diagramBuilder.visited.put(sequenceName, "visited");
@@ -129,32 +169,32 @@ public class SAXHandler extends DefaultHandler {
             }
         }
         if (element.isAnyOf("customcallout", "callout")) {
-            String service = element.getValue("serviceURL");
+            String service = element.get("serviceURL");
             if (service != null) {
                 if (service.startsWith("http")) {
                     service = new EndpointURI(service).getTarget();
                 }
                 callProxyOnDemand(service);
             } else {
-                service = element.getValue("endpointKey");
+                service = element.get("endpointKey");
                 callEndPointOnDemand(service);
             }
         }
         if (element.is("target")) {
             if (element.has("inSequence")) {
-                callSequenceOnDemand(element.getValue("inSequence"));
+                callSequenceOnDemand(element.get("inSequence"));
             }
             if (attributes.getValue("outSequence") != null) {
-                callSequenceOnDemand(element.getValue("outSequence"));
+                callSequenceOnDemand(element.get("outSequence"));
             }
             if (attributes.getValue("sequence") != null) {
-                callSequenceOnDemand(element.getValue("sequence"));
+                callSequenceOnDemand(element.get("sequence"));
             }
         }
         if (element.is("filter")) {
-            String condition = element.getValue("xpath");
+            String condition = element.get("xpath");
             if (condition == null) {
-                condition = element.getValue("source") + " == " + element.getValue("regex");
+                condition = element.get("source") + " == " + element.get("regex");
             }
             this.diagramBuilder.output.append("alt ").append(condition).append("\n");
         }
@@ -162,7 +202,7 @@ public class SAXHandler extends DefaultHandler {
             this.diagramBuilder.output.append("else\n");
         }
         if (element.is("switch")) {
-            this.diagramBuilder.output.append("alt ").append(element.getValue("source")).append("");
+            this.diagramBuilder.output.append("alt ").append(element.get("source")).append("");
             firstCase = true;
         }
         if (element.is("case")) {
@@ -172,7 +212,7 @@ public class SAXHandler extends DefaultHandler {
                 this.diagramBuilder.output.append(" == ");
                 firstCase = false;
             }
-            this.diagramBuilder.output.append("\"").append(element.getValue("regex")).append("\"\n");
+            this.diagramBuilder.output.append("\"").append(element.get("regex")).append("\"\n");
         }
         if (element.is("default")) {
             this.diagramBuilder.output.append("else\n");
@@ -181,17 +221,17 @@ public class SAXHandler extends DefaultHandler {
             this.diagramBuilder.output.append("alt SOAP fault occurred\n");
         }
         if (element.is("iterate")) {
-            this.diagramBuilder.output.append("loop ").append(element.getValue("expression")).append("\n");
+            this.diagramBuilder.output.append("loop ").append(element.get("expression")).append("\n");
         }
         if (element.is("property") && element.has("name")) {
-            if (element.getValue("name").toLowerCase().equals("simpleiterator.splitexpression")) {
-                simpleIteratorSplitExpression = element.getValue("value");
+            if (element.get("name").toLowerCase().equals("simpleiterator.splitexpression")) {
+                simpleIteratorSplitExpression = element.get("value");
 
-            } else if (element.getValue("name").toLowerCase().equals("simpleiterator.target")) {
-                simpleIteratorTarget = element.getValue("value");
+            } else if (element.get("name").toLowerCase().equals("simpleiterator.target")) {
+                simpleIteratorTarget = element.get("value");
             }
         }
-        if (element.is("spring") && element.has("bean") && element.getValue("bean").toLowerCase().equals("simpleiterator")) {
+        if (element.is("spring") && element.has("bean") && element.get("bean").toLowerCase().equals("simpleiterator")) {
             if (simpleIteratorSplitExpression != null && simpleIteratorTarget != null) {
                 callOnDemand(simpleIteratorTarget, null);
                 simpleIteratorSplitExpression = null;
@@ -199,10 +239,10 @@ public class SAXHandler extends DefaultHandler {
             }
         }
         if (element.nameContains("store")) {
-            callOnDemand(element.getValue("messageStore"), null);
+            callOnDemand(element.get("messageStore"), null);
         }
         if (element.is("class")) {
-            callOnDemand(element.getValue("name"), null);
+            callOnDemand(element.get("name"), null);
         }
     }
 
