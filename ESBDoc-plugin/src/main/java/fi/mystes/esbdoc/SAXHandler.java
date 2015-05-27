@@ -36,6 +36,10 @@ public class SAXHandler extends DefaultHandler {
             return StringUtils.equals(this.name.toLowerCase(), type.toLowerCase());
         }
 
+        protected boolean nameContains(String partOfname){
+            return StringUtils.contains(this.name.toLowerCase(), partOfname.toLowerCase());
+        }
+
         protected boolean isNot(String type){
             return !is(type);
         }
@@ -51,6 +55,14 @@ public class SAXHandler extends DefaultHandler {
 
         protected boolean isNoneOf(String... types){
             return !isAnyOf(types);
+        }
+
+        protected boolean has(String attributeName){
+            return StringUtils.isNotEmpty(this.getValue(attributeName));
+        }
+
+        protected boolean doesNotHave(String attributeName){
+            return !has(attributeName);
         }
 
         protected String getValue(String attributeName){
@@ -75,7 +87,6 @@ public class SAXHandler extends DefaultHandler {
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
         super.startElement(uri, localName, qName, attributes);
         Element element = new Element(qName, attributes);
-        qName = qName.toLowerCase();
         if (element.is("proxy")) {
             String proxyName = element.getValue("name");
             root = proxyName;
@@ -83,8 +94,8 @@ public class SAXHandler extends DefaultHandler {
             this.diagramBuilder.output.append("Title " + proxyName + "\n");
         }
         if (element.is("endpoint")) {
-            String name = attributes.getValue("name");
-            String callable = attributes.getValue("key");
+            String name = element.getValue("name");
+            String callable = element.getValue("key");
             if (name != null) {
                 root = name;
                 this.diagramBuilder.visited.put(name, "visited");
@@ -93,10 +104,11 @@ public class SAXHandler extends DefaultHandler {
             if (callable != null) {
                 callEndPointOnDemand(callable);
             }
-        } else if (element.is("address")) {
-            String uriTarget = attributes.getValue("uri");
+        }
+        if (element.is("address")) {
+            String uriTarget = element.getValue("uri");
             if (uriTarget.toLowerCase().contains("proxy")) {
-                String proxy = new EndpointURI(attributes.getValue("uri")).getTarget();
+                String proxy = new EndpointURI(element.getValue("uri")).getTarget();
                 if (proxy != null) {
                     callProxyOnDemand(proxy);
                 }
@@ -105,8 +117,8 @@ public class SAXHandler extends DefaultHandler {
             }
         }
         if (element.is("sequence")) {
-            String sequenceName = attributes.getValue("name");
-            String callableSequence = attributes.getValue("key");
+            String sequenceName = element.getValue("name");
+            String callableSequence = element.getValue("key");
             if (sequenceName != null) {
                 root = sequenceName;
                 this.diagramBuilder.visited.put(sequenceName, "visited");
@@ -116,32 +128,33 @@ public class SAXHandler extends DefaultHandler {
                 callSequenceOnDemand(callableSequence);
             }
         }
-        else if (element.isAnyOf("customcallout", "callout")) {
-            String service = attributes.getValue("serviceURL");
+        if (element.isAnyOf("customcallout", "callout")) {
+            String service = element.getValue("serviceURL");
             if (service != null) {
                 if (service.startsWith("http")) {
                     service = new EndpointURI(service).getTarget();
                 }
                 callProxyOnDemand(service);
             } else {
-                service = attributes.getValue("endpointKey");
+                service = element.getValue("endpointKey");
                 callEndPointOnDemand(service);
             }
-        } else if (element.is("target")) {
-            if (attributes.getValue("inSequence") != null) {
-                callSequenceOnDemand(attributes.getValue("inSequence"));
+        }
+        if (element.is("target")) {
+            if (element.has("inSequence")) {
+                callSequenceOnDemand(element.getValue("inSequence"));
             }
             if (attributes.getValue("outSequence") != null) {
-                callSequenceOnDemand(attributes.getValue("outSequence"));
+                callSequenceOnDemand(element.getValue("outSequence"));
             }
             if (attributes.getValue("sequence") != null) {
-                callSequenceOnDemand(attributes.getValue("sequence"));
+                callSequenceOnDemand(element.getValue("sequence"));
             }
         }
         if (element.is("filter")) {
-            String condition = attributes.getValue("xpath");
+            String condition = element.getValue("xpath");
             if (condition == null) {
-                condition = attributes.getValue("source") + " == " + attributes.getValue("regex");
+                condition = element.getValue("source") + " == " + element.getValue("regex");
             }
             this.diagramBuilder.output.append("alt ").append(condition).append("\n");
         }
@@ -149,7 +162,7 @@ public class SAXHandler extends DefaultHandler {
             this.diagramBuilder.output.append("else\n");
         }
         if (element.is("switch")) {
-            this.diagramBuilder.output.append("alt ").append(attributes.getValue("source")).append("");
+            this.diagramBuilder.output.append("alt ").append(element.getValue("source")).append("");
             firstCase = true;
         }
         if (element.is("case")) {
@@ -159,7 +172,7 @@ public class SAXHandler extends DefaultHandler {
                 this.diagramBuilder.output.append(" == ");
                 firstCase = false;
             }
-            this.diagramBuilder.output.append("\"").append(attributes.getValue("regex")).append("\"\n");
+            this.diagramBuilder.output.append("\"").append(element.getValue("regex")).append("\"\n");
         }
         if (element.is("default")) {
             this.diagramBuilder.output.append("else\n");
@@ -168,28 +181,28 @@ public class SAXHandler extends DefaultHandler {
             this.diagramBuilder.output.append("alt SOAP fault occurred\n");
         }
         if (element.is("iterate")) {
-            this.diagramBuilder.output.append("loop ").append(attributes.getValue("expression")).append("\n");
+            this.diagramBuilder.output.append("loop ").append(element.getValue("expression")).append("\n");
         }
-        if (element.is("property") && attributes.getValue("name") != null) {
-            if (attributes.getValue("name").toLowerCase().equals("simpleiterator.splitexpression")) {
-                simpleIteratorSplitExpression = attributes.getValue("value");
+        if (element.is("property") && element.has("name")) {
+            if (element.getValue("name").toLowerCase().equals("simpleiterator.splitexpression")) {
+                simpleIteratorSplitExpression = element.getValue("value");
 
-            } else if (attributes.getValue("name").toLowerCase().equals("simpleiterator.target")) {
-                simpleIteratorTarget = attributes.getValue("value");
+            } else if (element.getValue("name").toLowerCase().equals("simpleiterator.target")) {
+                simpleIteratorTarget = element.getValue("value");
             }
         }
-        if (element.is("spring") && attributes.getValue("bean") != null && attributes.getValue("bean").toLowerCase().equals("simpleiterator")) {
+        if (element.is("spring") && element.has("bean") && element.getValue("bean").toLowerCase().equals("simpleiterator")) {
             if (simpleIteratorSplitExpression != null && simpleIteratorTarget != null) {
                 callOnDemand(simpleIteratorTarget, null);
                 simpleIteratorSplitExpression = null;
                 simpleIteratorTarget = null;
             }
         }
-        if (qName.toLowerCase().contains("store")) {
-            callOnDemand(attributes.getValue("messageStore"), null);
+        if (element.nameContains("store")) {
+            callOnDemand(element.getValue("messageStore"), null);
         }
-        if (qName.equals("class")) {
-            callOnDemand(attributes.getValue("name"), null);
+        if (element.is("class")) {
+            callOnDemand(element.getValue("name"), null);
         }
     }
 
