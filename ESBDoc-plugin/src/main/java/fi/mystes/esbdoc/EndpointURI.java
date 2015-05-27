@@ -20,28 +20,23 @@ public class EndpointURI {
     }
 
     public String getTarget() {
-        //uri="http://localhost:8280/services/DeleteMacoContentsFromSSCOByQueueProxy"
-        //uri="jms:/GetMacoContentProductKeyQueueProxy?transport.jms.ConnectionFactoryJ...
 
-        if (StringUtils.startsWith(uriString, "http")) {
-            return parseHttpTarget(uriString);
+        if (StringUtils.startsWith(this.uriString, "http")) {
+            return parseHttpTarget(this.uriString);
         }
 
-        if (StringUtils.startsWith(uriString, "jms")) {
-            return parseJmsTarget(uriString);
+        if (StringUtils.startsWith(this.uriString, "jms")) {
+            return parseJmsTarget(this.uriString);
         }
 
         return null;
     }
 
-    private String parseHttpTarget(String targ) {
+    private String parseHttpTarget(String parseThis) {
         try {
-            String target = null;
-            // This should be URL so  resolve  target
-            URL url = new URL(targ);
-            target = url.getFile();
+            URL url = new URL(parseThis);
+            String target = url.getFile();
             target = target.substring(target.lastIndexOf("/") + 1, target.length());
-            //If it is  still on  notation xxx.yyy, use last part
             if (target.lastIndexOf(".") > 0) {
                 int start = target.lastIndexOf(".") + 1;
                 int end = target.length();
@@ -58,7 +53,7 @@ public class EndpointURI {
         }
     }
 
-    private String parseJmsTarget(String target){
-        return target.split("\\?")[0].split("/")[1];
+    private String parseJmsTarget(String parseThis){
+        return parseThis.split("\\?")[0].split("/")[1];
     }
 }
