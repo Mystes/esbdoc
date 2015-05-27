@@ -12,6 +12,8 @@ import java.io.IOException;
 
 import static fi.mystes.esbdoc.SAXHandler.Element.Type.*;
 import static fi.mystes.esbdoc.SAXHandler.Element.Attribute.*;
+import static fi.mystes.esbdoc.SAXHandler.Element.SpringBean.*;
+import static fi.mystes.esbdoc.SAXHandler.Element.Springproperty.*;
 
 /**
  * Created by mystes-am on 26.5.2015.
@@ -95,6 +97,41 @@ public class SAXHandler extends DefaultHandler {
             }
         }
 
+        public enum SpringBean {
+            SIMPLE_ITERATOR("simpleIterator");
+
+            private final String name;
+            private final Springproperty[] properties;
+
+            SpringBean(String name, Springproperty... properties){
+                this.name = name;
+                this.properties = properties;
+            }
+
+            public String getName(){
+                return this.name;
+            }
+
+            public Springproperty[] getProperties(){
+                return this.properties;
+            }
+        }
+
+        public enum Springproperty {
+            SIMPLE_ITERATOR_SPLIT_EXPRESSION("simpleiterator.splitexpression"),
+            SIMPLE_ITERATOR_TARGET("simpleiterator.target");
+
+            private final String name;
+
+            Springproperty(String name){
+                this.name = name;
+            }
+
+            public String getName(){
+                return this.name;
+            }
+        }
+
         private final String name;
         private final Attributes attributes;
 
@@ -170,7 +207,7 @@ public class SAXHandler extends DefaultHandler {
             return this.getAttributes().getValue(attributeName);
         }
 
-        protected boolean valueEquals(Attribute target, String expectedValue){
+        protected boolean attributeValueEquals(Attribute target, String expectedValue){
             if(doesNotHave(target)){
                 return false;
             }
@@ -184,6 +221,22 @@ public class SAXHandler extends DefaultHandler {
 
         protected Attributes getAttributes(){
             return this.attributes;
+        }
+
+        protected boolean isSpringBean(SpringBean bean){
+            return isSpringBean(bean.getName());
+        }
+
+        protected boolean isSpringBean(String beanName){
+            return this.is(SPRING) && this.attributeValueEquals(BEAN, beanName);
+        }
+
+        protected boolean hasSpringProperty(Springproperty property){
+            return hasSpringProperty(property.getName());
+        }
+
+        protected boolean hasSpringProperty(String propertyName){
+            return this.is(PROPERTY) && this.attributeValueEquals(NAME, propertyName);
         }
 
     }
@@ -292,15 +345,14 @@ public class SAXHandler extends DefaultHandler {
         if (element.is(ITERATE)) {
             append("loop ").append(element.get(EXPRESSION)).append("\n");
         }
-        if (element.is(PROPERTY) && element.has(NAME)) {
-            if (element.valueEquals(NAME, "simpleiterator.splitexpression")) {
-                simpleIteratorSplitExpression = element.get(VALUE);
+        if (element.hasSpringProperty(SIMPLE_ITERATOR_SPLIT_EXPRESSION)) {
+            simpleIteratorSplitExpression = element.get(VALUE);
 
-            } else if (element.valueEquals(NAME, "simpleiterator.target")) {
-                simpleIteratorTarget = element.get(VALUE);
-            }
         }
-        if (element.is(SPRING) && element.valueEquals(BEAN, "simpleiterator")) {
+        if (element.hasSpringProperty(SIMPLE_ITERATOR_TARGET)) {
+            simpleIteratorTarget = element.get(VALUE);
+        }
+        if (element.isSpringBean(SIMPLE_ITERATOR)) {
             if (simpleIteratorSplitExpression != null && simpleIteratorTarget != null) {
                 callOnDemand(simpleIteratorTarget, null);
                 simpleIteratorSplitExpression = null;
