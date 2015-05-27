@@ -3,6 +3,7 @@ package fi.mystes.esbdoc;
 import org.apache.commons.lang3.StringUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
+import org.xml.sax.helpers.AttributesImpl;
 import org.xml.sax.helpers.DefaultHandler;
 
 import java.io.File;
@@ -88,6 +89,11 @@ public class SAXHandler extends DefaultHandler {
 
         private final String name;
         private final Attributes attributes;
+
+        protected Element(String name){
+            this.name = name;
+            this.attributes = new AttributesImpl();
+        }
 
         protected Element(String name, Attributes attributes){
             this.name = name;
@@ -292,8 +298,9 @@ public class SAXHandler extends DefaultHandler {
     @Override
     public void endElement(String uri, String localName, String qName) throws SAXException {
         super.endElement(uri, localName, qName);
+        Element element = new Element(qName);
         qName = qName.toLowerCase();
-        if (!(!qName.equals("iterate") && !qName.equals("switch") && !qName.equals("filter") && !qName.equals("faultsequence"))) {
+        if (!(element.isNot(ITERATE) && element.isNot(SWITCH) && element.isNot(FILTER) && element.isNot(FAULT_SEQUENCE))) {
             this.diagramBuilder.output.append("end\n");
         }
     }
