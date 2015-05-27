@@ -1,5 +1,6 @@
 package fi.mystes.esbdoc;
 
+import org.apache.commons.lang3.StringUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -12,14 +13,59 @@ import java.io.File;
  */
 public class SAXHandler extends DefaultHandler {
 
-    private String root;
     private SequenceDiagramBuilder diagramBuilder;
+
+    private String root;
     private String simpleIteratorSplitExpression;
     private String simpleIteratorTarget;
     private boolean firstCase = true;
 
     private static final String POSITIVE = " ->+ ";
     private static final String NEGATIVE = " ->- ";
+
+    private static class Element {
+        private final String name;
+        private final Attributes attributes;
+
+        protected Element(String name, Attributes attributes){
+            this.name = name;
+            this.attributes = attributes;
+        }
+
+        protected boolean is(String type){
+            return StringUtils.equals(this.name.toLowerCase(), type.toLowerCase());
+        }
+
+        protected boolean isNot(String type){
+            return !is(type);
+        }
+
+        protected boolean isAnyOf(String... types){
+            for(String type : types){
+                if(this.is(type)){
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        protected boolean isNoneOf(String... types){
+            return !isAnyOf(types);
+        }
+
+        protected String getValue(String attributeName){
+            return this.getAttributes().getValue(attributeName);
+        }
+
+        protected String getName(){
+            return this.name;
+        }
+
+        protected Attributes getAttributes(){
+            return this.attributes;
+        }
+
+    }
 
     public SAXHandler(SequenceDiagramBuilder builder) {
         this.diagramBuilder = builder;
@@ -28,14 +74,15 @@ public class SAXHandler extends DefaultHandler {
     @Override
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
         super.startElement(uri, localName, qName, attributes);
+        Element element = new Element(qName, attributes);
         qName = qName.toLowerCase();
-        if (qName.equals("proxy")) {
-            String proxyName = attributes.getValue("name");
+        if (element.is("proxy")) {
+            String proxyName = element.getValue("name");
             root = proxyName;
             this.diagramBuilder.visited.put(proxyName, "visited");
             this.diagramBuilder.output.append("Title " + proxyName + "\n");
         }
-        if (qName.equals("endpoint")) {
+        if (element.is("endpoint")) {
             String name = attributes.getValue("name");
             String callable = attributes.getValue("key");
             if (name != null) {
@@ -46,7 +93,7 @@ public class SAXHandler extends DefaultHandler {
             if (callable != null) {
                 callEndPointOnDemand(callable);
             }
-        } else if (qName.equals("address")) {
+        } else if (element.is("address")) {
             String uriTarget = attributes.getValue("uri");
             if (uriTarget.toLowerCase().contains("proxy")) {
                 String proxy = new EndpointURI(attributes.getValue("uri")).getTarget();
@@ -57,7 +104,7 @@ public class SAXHandler extends DefaultHandler {
                 callEndPointOnDemand("\"" + uriTarget + "\"");
             }
         }
-        if (qName.equals("sequence")) {
+        if (element.is("sequence")) {
             String sequenceName = attributes.getValue("name");
             String callableSequence = attributes.getValue("key");
             if (sequenceName != null) {
@@ -69,7 +116,7 @@ public class SAXHandler extends DefaultHandler {
                 callSequenceOnDemand(callableSequence);
             }
         }
-        else if (!(!qName.equals("customcallout") && !qName.equals("callout"))) {
+        else if (!(!qName.equals("customcallout") && !qName.equals("callout"))) { //gotta love this negation of negations
             String service = attributes.getValue("serviceURL");
             if (service != null) {
                 if (service.startsWith("http")) {
@@ -80,7 +127,7 @@ public class SAXHandler extends DefaultHandler {
                 service = attributes.getValue("endpointKey");
                 callEndPointOnDemand(service);
             }
-        } else if (qName.equals("target")) {
+        } else if (element.is("target")) {
             if (attributes.getValue("inSequence") != null) {
                 callSequenceOnDemand(attributes.getValue("inSequence"));
             }
@@ -91,21 +138,21 @@ public class SAXHandler extends DefaultHandler {
                 callSequenceOnDemand(attributes.getValue("sequence"));
             }
         }
-        if (qName.equals("filter")) {
+        if (element.is("filter")) {
             String condition = attributes.getValue("xpath");
             if (condition == null) {
                 condition = attributes.getValue("source") + " == " + attributes.getValue("regex");
             }
             this.diagramBuilder.output.append("alt ").append(condition).append("\n");
         }
-        if (qName.equals("else")) {
+        if (element.is("else")) {
             this.diagramBuilder.output.append("else\n");
         }
-        if (qName.equals("switch")) {
+        if (element.is("switch")) {
             this.diagramBuilder.output.append("alt ").append(attributes.getValue("source")).append("");
             firstCase = true;
         }
-        if (qName.equals("case")) {
+        if (element.is("case")) {
             if (!firstCase) {
                 this.diagramBuilder.output.append("else ");
             } else {
@@ -114,16 +161,16 @@ public class SAXHandler extends DefaultHandler {
             }
             this.diagramBuilder.output.append("\"").append(attributes.getValue("regex")).append("\"\n");
         }
-        if (qName.equals("default")) {
+        if (element.is("default")) {
             this.diagramBuilder.output.append("else\n");
         }
-        if (qName.equals("faultsequence")) {
+        if (element.is("faultsequence")) {
             this.diagramBuilder.output.append("alt SOAP fault occurred\n");
         }
-        if (qName.equals("iterate")) {
+        if (element.is("iterate")) {
             this.diagramBuilder.output.append("loop ").append(attributes.getValue("expression")).append("\n");
         }
-        if (qName.equals("property") && attributes.getValue("name") != null) {
+        if (element.is("property") && attributes.getValue("name") != null) {
             if (attributes.getValue("name").toLowerCase().equals("simpleiterator.splitexpression")) {
                 simpleIteratorSplitExpression = attributes.getValue("value");
 
@@ -131,7 +178,7 @@ public class SAXHandler extends DefaultHandler {
                 simpleIteratorTarget = attributes.getValue("value");
             }
         }
-        if (qName.equals("spring") && attributes.getValue("bean") != null && attributes.getValue("bean").toLowerCase().equals("simpleiterator")) {
+        if (element.is("spring") && attributes.getValue("bean") != null && attributes.getValue("bean").toLowerCase().equals("simpleiterator")) {
             if (simpleIteratorSplitExpression != null && simpleIteratorTarget != null) {
                 callOnDemand(simpleIteratorTarget, null);
                 simpleIteratorSplitExpression = null;
