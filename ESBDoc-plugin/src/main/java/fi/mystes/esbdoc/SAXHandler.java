@@ -27,6 +27,12 @@ public class SAXHandler extends DefaultHandler {
     private static final String POSITIVE = " ->+ ";
     private static final String NEGATIVE = " ->- ";
 
+    private static final String SEQUENCE_DIRECTORY = "sequences";
+    private static final String PROXY_DIRECTORY = "proxy-services";
+    private static final String ENDPOINT_DIRECTORY = "endpoints";
+
+    private static final String FILE_SUFFIX = "-1.0.0.xml";
+
     public static class Element {
 
         public enum Type {
@@ -305,15 +311,15 @@ public class SAXHandler extends DefaultHandler {
     }
 
     private void callSequenceOnDemand(String name) throws SAXException {
-        callOnDemand(name, "sequences");
+        callOnDemand(name, SEQUENCE_DIRECTORY);
     }
 
     private void callProxyOnDemand(String name) throws SAXException {
-        callOnDemand(name, "proxy-services");
+        callOnDemand(name, PROXY_DIRECTORY);
     }
 
     private void callEndPointOnDemand(String name) throws SAXException {
-        callOnDemand(name, "endpoints");
+        callOnDemand(name, ENDPOINT_DIRECTORY);
     }
 
     private void callOnDemand(String name, String dir) throws SAXException {
@@ -322,7 +328,7 @@ public class SAXHandler extends DefaultHandler {
             if(isVisited(name)){
                 return;
             }
-            String tempName = name + "-1.0.0.xml";
+            String tempName = name + FILE_SUFFIX;
             if (fileExists(tempName, dir)) {
                 diagramBuilder.build(dir + "/" + tempName);
             }
