@@ -188,7 +188,7 @@ public class SAXHandler extends DefaultHandler {
             String proxyName = element.get(NAME);
             root = proxyName;
             this.diagramBuilder.visited.put(proxyName, "visited");
-            this.diagramBuilder.output.append("Title " + proxyName + "\n");
+            append("Title " + proxyName + "\n");
         }
         if (element.is(ENDPOINT)) {
             String name = element.get(NAME);
@@ -196,7 +196,7 @@ public class SAXHandler extends DefaultHandler {
             if (name != null) {
                 root = name;
                 this.diagramBuilder.visited.put(name, "visited");
-                this.diagramBuilder.output.append("Title " + name + "\n");
+                append("Title " + name + "\n");
             }
             if (callable != null) {
                 callEndPointOnDemand(callable);
@@ -219,7 +219,7 @@ public class SAXHandler extends DefaultHandler {
             if (sequenceName != null) {
                 root = sequenceName;
                 this.diagramBuilder.visited.put(sequenceName, "visited");
-                this.diagramBuilder.output.append("Title " + sequenceName + "\n");
+                append("Title " + sequenceName + "\n");
             }
             if (callableSequence != null) {
                 callSequenceOnDemand(callableSequence);
@@ -253,32 +253,32 @@ public class SAXHandler extends DefaultHandler {
             if (condition == null) {
                 condition = element.get(SOURCE) + " == " + element.get(REGEX);
             }
-            this.diagramBuilder.output.append("alt ").append(condition).append("\n");
+            append("alt ").append(condition).append("\n");
         }
         if (element.is(ELSE)) {
-            this.diagramBuilder.output.append("else\n");
+            append("else\n");
         }
         if (element.is(SWITCH)) {
-            this.diagramBuilder.output.append("alt ").append(element.get(SOURCE)).append("");
+            append("alt ").append(element.get(SOURCE)).append("");
             firstCase = true;
         }
         if (element.is(CASE)) {
             if (!firstCase) {
-                this.diagramBuilder.output.append("else ");
+                append("else ");
             } else {
-                this.diagramBuilder.output.append(" == ");
+                append(" == ");
                 firstCase = false;
             }
-            this.diagramBuilder.output.append("\"").append(element.get(REGEX)).append("\"\n");
+            append("\"").append(element.get(REGEX)).append("\"\n");
         }
         if (element.is(DEFAULT)) {
-            this.diagramBuilder.output.append("else\n");
+            append("else\n");
         }
         if (element.is(FAULT_SEQUENCE)) {
-            this.diagramBuilder.output.append("alt SOAP fault occurred\n");
+            append("alt SOAP fault occurred\n");
         }
         if (element.is(ITERATE)) {
-            this.diagramBuilder.output.append("loop ").append(element.get(EXPRESSION)).append("\n");
+            append("loop ").append(element.get(EXPRESSION)).append("\n");
         }
         if (element.is(PROPERTY) && element.has(NAME)) {
             if (element.get(NAME).toLowerCase().equals("simpleiterator.splitexpression")) {
@@ -308,7 +308,7 @@ public class SAXHandler extends DefaultHandler {
         super.endElement(uri, localName, qName);
         Element element = new Element(qName);
         if (element.isAnyOf(ITERATE, SWITCH, FILTER, FAULT_SEQUENCE)) {
-            this.diagramBuilder.output.append("end\n");
+            append("end\n");
         }
     }
 
@@ -350,11 +350,15 @@ public class SAXHandler extends DefaultHandler {
     }
 
     private void addPositiveRelation(String from, String to){
-        this.diagramBuilder.output.append(relation(from, to, POSITIVE));
+        append(relation(from, to, POSITIVE));
     }
 
     private void addNegativeRelation(String from, String to){
-        this.diagramBuilder.output.append(relation(from, to, NEGATIVE));
+        append(relation(from, to, NEGATIVE));
+    }
+
+    private StringBuilder append(String diagramItem){
+        return this.diagramBuilder.output.append(diagramItem);
     }
 
     private String relation(String from, String to, String type){
