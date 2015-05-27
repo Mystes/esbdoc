@@ -7,7 +7,7 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import java.io.File;
 
-import static fi.mystes.esbdoc.SAXHandler.Element.Type.PROXY;
+import static fi.mystes.esbdoc.SAXHandler.Element.Type.*;
 import static fi.mystes.esbdoc.SAXHandler.Element.Value.*;
 
 /**
@@ -29,7 +29,23 @@ public class SAXHandler extends DefaultHandler {
     public static class Element {
 
         public enum Type {
-            PROXY("proxy");
+            PROXY("proxy"),
+            ENDPOINT("endpoint"),
+            ADDRESS("address"),
+            SEQUENCE("sequence"),
+            CUSTOM_CALLOUT("customcallout"),
+            CALLOUT("callout"),
+            TARGET("target"),
+            FILTER("filter"),
+            ELSE("else"),
+            SWITCH("switch"),
+            CASE("case"),
+            DEFAULT("default"),
+            FAULT_SEQUENCE("faultsequence"),
+            ITERATE("iterate"),
+            PROPERTY("property"),
+            SPRING("spring"),
+            CLASS("class");
 
             private final String name;
 
@@ -78,6 +94,15 @@ public class SAXHandler extends DefaultHandler {
 
         protected boolean isNot(Type type){
             return !is(type);
+        }
+
+        protected boolean isAnyOf(Type... types){
+            for(Type type : types){
+                if(this.is(type)){
+                    return true;
+                }
+            }
+            return false;
         }
 
         protected boolean isAnyOf(String... types){
@@ -133,7 +158,7 @@ public class SAXHandler extends DefaultHandler {
             this.diagramBuilder.visited.put(proxyName, "visited");
             this.diagramBuilder.output.append("Title " + proxyName + "\n");
         }
-        if (element.is("endpoint")) {
+        if (element.is(ENDPOINT)) {
             String name = element.get("name");
             String callable = element.get("key");
             if (name != null) {
@@ -145,7 +170,7 @@ public class SAXHandler extends DefaultHandler {
                 callEndPointOnDemand(callable);
             }
         }
-        if (element.is("address")) {
+        if (element.is(ADDRESS)) {
             String uriTarget = element.get("uri");
             if (uriTarget.toLowerCase().contains("proxy")) {
                 String proxy = new EndpointURI(element.get("uri")).getTarget();
@@ -156,7 +181,7 @@ public class SAXHandler extends DefaultHandler {
                 callEndPointOnDemand("\"" + uriTarget + "\"");
             }
         }
-        if (element.is("sequence")) {
+        if (element.is(SEQUENCE)) {
             String sequenceName = element.get("name");
             String callableSequence = element.get("key");
             if (sequenceName != null) {
@@ -168,7 +193,7 @@ public class SAXHandler extends DefaultHandler {
                 callSequenceOnDemand(callableSequence);
             }
         }
-        if (element.isAnyOf("customcallout", "callout")) {
+        if (element.isAnyOf(CUSTOM_CALLOUT, CALLOUT)) {
             String service = element.get("serviceURL");
             if (service != null) {
                 if (service.startsWith("http")) {
@@ -180,7 +205,7 @@ public class SAXHandler extends DefaultHandler {
                 callEndPointOnDemand(service);
             }
         }
-        if (element.is("target")) {
+        if (element.is(TARGET)) {
             if (element.has("inSequence")) {
                 callSequenceOnDemand(element.get("inSequence"));
             }
@@ -191,21 +216,21 @@ public class SAXHandler extends DefaultHandler {
                 callSequenceOnDemand(element.get("sequence"));
             }
         }
-        if (element.is("filter")) {
+        if (element.is(FILTER)) {
             String condition = element.get("xpath");
             if (condition == null) {
                 condition = element.get("source") + " == " + element.get("regex");
             }
             this.diagramBuilder.output.append("alt ").append(condition).append("\n");
         }
-        if (element.is("else")) {
+        if (element.is(ELSE)) {
             this.diagramBuilder.output.append("else\n");
         }
-        if (element.is("switch")) {
+        if (element.is(SWITCH)) {
             this.diagramBuilder.output.append("alt ").append(element.get("source")).append("");
             firstCase = true;
         }
-        if (element.is("case")) {
+        if (element.is(CASE)) {
             if (!firstCase) {
                 this.diagramBuilder.output.append("else ");
             } else {
@@ -214,16 +239,16 @@ public class SAXHandler extends DefaultHandler {
             }
             this.diagramBuilder.output.append("\"").append(element.get("regex")).append("\"\n");
         }
-        if (element.is("default")) {
+        if (element.is(DEFAULT)) {
             this.diagramBuilder.output.append("else\n");
         }
-        if (element.is("faultsequence")) {
+        if (element.is(FAULT_SEQUENCE)) {
             this.diagramBuilder.output.append("alt SOAP fault occurred\n");
         }
-        if (element.is("iterate")) {
+        if (element.is(ITERATE)) {
             this.diagramBuilder.output.append("loop ").append(element.get("expression")).append("\n");
         }
-        if (element.is("property") && element.has("name")) {
+        if (element.is(PROPERTY) && element.has("name")) {
             if (element.get("name").toLowerCase().equals("simpleiterator.splitexpression")) {
                 simpleIteratorSplitExpression = element.get("value");
 
@@ -231,7 +256,7 @@ public class SAXHandler extends DefaultHandler {
                 simpleIteratorTarget = element.get("value");
             }
         }
-        if (element.is("spring") && element.has("bean") && element.get("bean").toLowerCase().equals("simpleiterator")) {
+        if (element.is(SPRING) && element.has("bean") && element.get("bean").toLowerCase().equals("simpleiterator")) {
             if (simpleIteratorSplitExpression != null && simpleIteratorTarget != null) {
                 callOnDemand(simpleIteratorTarget, null);
                 simpleIteratorSplitExpression = null;
@@ -241,7 +266,7 @@ public class SAXHandler extends DefaultHandler {
         if (element.nameContains("store")) {
             callOnDemand(element.get("messageStore"), null);
         }
-        if (element.is("class")) {
+        if (element.is(CLASS)) {
             callOnDemand(element.get("name"), null);
         }
     }
