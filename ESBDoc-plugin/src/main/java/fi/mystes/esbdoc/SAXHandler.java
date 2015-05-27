@@ -18,6 +18,9 @@ public class SAXHandler extends DefaultHandler {
     private String simpleIteratorTarget;
     private boolean firstCase = true;
 
+    private static final String POSITIVE = " ->+ ";
+    private static final String NEGATIVE = " ->- ";
+
     public SAXHandler(SequenceDiagramBuilder builder) {
         this.diagramBuilder = builder;
     }
@@ -165,7 +168,7 @@ public class SAXHandler extends DefaultHandler {
     }
 
     private void callOnDemand(String name, String dir) throws SAXException {
-        this.diagramBuilder.output.append(root).append(" ->+ ").append(name).append(":\n");
+        addPositiveRelation(root, name);
         try {
             //in case of recursive sequence call
             if (!this.diagramBuilder.visited.containsKey(name)) {
@@ -176,10 +179,22 @@ public class SAXHandler extends DefaultHandler {
             }
 
         } catch (Exception e) {
-            this.diagramBuilder.output.append(name).append(" ->- ").append(root).append(":\n");
+            addNegativeRelation(name, root);
             throw new SAXException(e);
         }
-        this.diagramBuilder.output.append(name).append(" ->- ").append(root).append(":\n");
+        addNegativeRelation(name, root);
+    }
+
+    private void addPositiveRelation(String from, String to){
+        this.diagramBuilder.output.append(relation(from, to, POSITIVE));
+    }
+
+    private void addNegativeRelation(String from, String to){
+        this.diagramBuilder.output.append(relation(from, to, NEGATIVE));
+    }
+
+    private String relation(String from, String to, String type){
+        return from + type + to + ":\n";
     }
 
     private boolean fileExists(String name, String dir) {
