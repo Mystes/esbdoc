@@ -1,16 +1,18 @@
 package fi.mystes.esbdoc;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Created by mystes-am on 26.5.2015.
  */
 public class EndpointURI {
+    private static Log log = LogFactory.getLog(EndpointURI.class);
+
     private final String uriString;
 
     public EndpointURI(String uriString){
@@ -51,7 +53,7 @@ public class EndpointURI {
             }
             return target;
         } catch (MalformedURLException ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+            log.error(ex);
             return null;
         }
     }
