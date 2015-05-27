@@ -11,7 +11,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static fi.mystes.esbdoc.SAXHandler.Element.Type.*;
-import static fi.mystes.esbdoc.SAXHandler.Element.Value.*;
+import static fi.mystes.esbdoc.SAXHandler.Element.Attribute.*;
 
 /**
  * Created by mystes-am on 26.5.2015.
@@ -67,7 +67,7 @@ public class SAXHandler extends DefaultHandler {
             }
         }
 
-        public enum Value {
+        public enum Attribute {
             NAME("name"),
             KEY("key"),
             URI("uri"),
@@ -86,7 +86,7 @@ public class SAXHandler extends DefaultHandler {
 
             private final String name;
 
-            Value(String name){
+            Attribute(String name){
                 this.name = name;
             }
 
@@ -146,31 +146,31 @@ public class SAXHandler extends DefaultHandler {
             return !isAnyOf(types);
         }
 
-        protected boolean has(Value value){
-            return has(value.getName());
+        protected boolean has(Attribute attribute){
+            return has(attribute.getName());
         }
 
         protected boolean has(String attributeName){
             return StringUtils.isNotEmpty(this.get(attributeName));
         }
 
-        protected boolean doesNotHave(Value value){
-            return !has(value);
+        protected boolean doesNotHave(Attribute attribute){
+            return !has(attribute);
         }
 
         protected boolean doesNotHave(String attributeName){
             return !has(attributeName);
         }
 
-        protected String get(Value value){
-            return get(value.getName());
+        protected String get(Attribute attribute){
+            return get(attribute.getName());
         }
 
         protected String get(String attributeName){
             return this.getAttributes().getValue(attributeName);
         }
 
-        protected boolean valueEquals(Value target, String expectedValue){
+        protected boolean valueEquals(Attribute target, String expectedValue){
             if(doesNotHave(target)){
                 return false;
             }
