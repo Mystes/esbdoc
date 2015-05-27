@@ -299,8 +299,7 @@ public class SAXHandler extends DefaultHandler {
     public void endElement(String uri, String localName, String qName) throws SAXException {
         super.endElement(uri, localName, qName);
         Element element = new Element(qName);
-        qName = qName.toLowerCase();
-        if (!(element.isNot(ITERATE) && element.isNot(SWITCH) && element.isNot(FILTER) && element.isNot(FAULT_SEQUENCE))) {
+        if (element.isAnyOf(ITERATE, SWITCH, FILTER, FAULT_SEQUENCE)) {
             this.diagramBuilder.output.append("end\n");
         }
     }
