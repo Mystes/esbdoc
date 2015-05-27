@@ -170,11 +170,12 @@ public class SAXHandler extends DefaultHandler {
     private void callOnDemand(String name, String dir) throws SAXException {
         addPositiveRelation(root, name);
         try {
-            if (isNotVisited(name)) {
-                String tempName = name + "-1.0.0.xml";
-                if (fileExists(tempName, dir)) {
-                    diagramBuilder.build(dir + "/" + tempName);
-                }
+            if(isVisited(name)){
+                return;
+            }
+            String tempName = name + "-1.0.0.xml";
+            if (fileExists(tempName, dir)) {
+                diagramBuilder.build(dir + "/" + tempName);
             }
 
         } catch (Exception e) {
@@ -182,10 +183,6 @@ public class SAXHandler extends DefaultHandler {
         } finally {
             addNegativeRelation(name, root);
         }
-    }
-
-    private boolean isNotVisited(String name){
-        return !isVisited(name);
     }
 
     private boolean isVisited(String name){
