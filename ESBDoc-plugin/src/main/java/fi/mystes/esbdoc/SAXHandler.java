@@ -6,7 +6,9 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
 import org.xml.sax.helpers.DefaultHandler;
 
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
+import java.io.IOException;
 
 import static fi.mystes.esbdoc.SAXHandler.Element.Type.*;
 import static fi.mystes.esbdoc.SAXHandler.Element.Value.*;
@@ -325,18 +327,21 @@ public class SAXHandler extends DefaultHandler {
     private void callOnDemand(String name, String dir) throws SAXException {
         addPositiveRelation(root, name);
         try {
-            if(isVisited(name)){
-                return;
-            }
-            String tempName = name + FILE_SUFFIX;
-            if (fileExists(tempName, dir)) {
-                diagramBuilder.build(dir + "/" + tempName);
-            }
-
+            buildDiagramFromFile(name, dir);
         } catch (Exception e) {
             throw new SAXException(e);
         } finally {
             addNegativeRelation(name, root);
+        }
+    }
+
+    private void buildDiagramFromFile(String fileName, String directory) throws IOException, ParserConfigurationException, SAXException {
+        if(isVisited(fileName)){
+            return;
+        }
+        String tempName = fileName + FILE_SUFFIX;
+        if (fileExists(tempName, directory)) {
+            diagramBuilder.build(directory + "/" + tempName);
         }
     }
 
