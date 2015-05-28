@@ -46,7 +46,7 @@ public class SAXHandler extends DefaultHandler {
         if (element.is(PROXY)) {
             String proxyName = element.get(NAME);
             root = proxyName;
-            this.diagramBuilder.visited.put(proxyName, "visited");
+            setVisited(proxyName);
             append("Title " + proxyName + "\n");
         }
         if (element.is(ENDPOINT)) {
@@ -54,7 +54,7 @@ public class SAXHandler extends DefaultHandler {
             String callable = element.get(KEY);
             if (name != null) {
                 root = name;
-                this.diagramBuilder.visited.put(name, "visited");
+                setVisited(name);
                 append("Title " + name + "\n");
             }
             if (callable != null) {
@@ -77,7 +77,7 @@ public class SAXHandler extends DefaultHandler {
             String callableSequence = element.get(KEY);
             if (sequenceName != null) {
                 root = sequenceName;
-                this.diagramBuilder.visited.put(sequenceName, "visited");
+                setVisited(sequenceName);
                 append("Title " + sequenceName + "\n");
             }
             if (callableSequence != null) {
@@ -204,7 +204,18 @@ public class SAXHandler extends DefaultHandler {
     }
 
     private boolean isVisited(String name){
+        //TODO get rid of this stupid diagrambuilder reference
         return this.diagramBuilder.visited.containsKey(name);
+    }
+
+    private void setVisited(String item){
+        //TODO get rid of this stupid diagrambuilder reference
+        this.diagramBuilder.visited.put(item, "visited");
+    }
+
+    private StringBuilder append(String diagramItem){
+        //TODO get rid of this stupid diagrambuilder reference
+        return this.diagramBuilder.output.append(diagramItem);
     }
 
     private void addPositiveRelation(String from, String to){
@@ -213,10 +224,6 @@ public class SAXHandler extends DefaultHandler {
 
     private void addNegativeRelation(String from, String to){
         append(relation(from, to, NEGATIVE));
-    }
-
-    private StringBuilder append(String diagramItem){
-        return this.diagramBuilder.output.append(diagramItem);
     }
 
     private String relation(String from, String to, String type){
