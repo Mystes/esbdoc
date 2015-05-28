@@ -7,6 +7,7 @@ import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.OMXMLBuilderFactory;
 import org.apache.axiom.om.impl.llom.OMElementImpl;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.vfs2.FileObject;
@@ -41,11 +42,11 @@ public class CarAnalyzer {
     private List<String> forbiddenArtifactNames = new ArrayList<String>(Arrays.asList("services"));
     private SortedMap<String, String> servicePathMap = new TreeMap<String, String>();
 
-    private FileSystemManager fsm;
+    private FileSystemManager fileSystemManager;
     private String currentObject = null; // Used for information logging if sequence or proxy has  invalid fields
 
     public CarAnalyzer() throws FileSystemException, ParserConfigurationException, JaxenException {
-            fsm = VFS.getManager();
+            fileSystemManager = VFS.getManager();
     }
 
     private void processFileObjects(List<FileObject> carFileObjects, String outputDestination, List<FileObject> testFileObjects) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
@@ -67,30 +68,29 @@ public class CarAnalyzer {
     public static void main(String[] args) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
         log.info("Running...");
 
-        CarAnalyzer cct = new CarAnalyzer();
+        CarAnalyzer carAnalyzer = new CarAnalyzer();
 
         if (!checkInput(args)) {
             return;
         }
 
         String outputFilename = args[1];
-        List<FileObject> carFileObjects = cct.getCarFileObjects(args[0]);
+        List<FileObject> carFileObjects = carAnalyzer.getCarFileObjects(args[0]);
         List<FileObject> testFileObjects = null;
         if (args.length > 2) {
             File[] files = {new File(args[2])};
-            testFileObjects = cct.getTestFileObjects(files);
+            testFileObjects = carAnalyzer.getTestFileObjects(files);
         }
 
-        cct.processFileObjects(carFileObjects, outputFilename, testFileObjects);
+        carAnalyzer.processFileObjects(carFileObjects, outputFilename, testFileObjects);
 
         log.info("Done!");
     }
 
-    private void writeOutputFiles(String outputFilename) throws FileNotFoundException, IOException {
+    private void writeOutputFiles(String outputFilename) throws IOException {
         new File(outputFilename).getParentFile().mkdirs();
 
-        FileOutputStream fis = null;
-        fis = new FileOutputStream(new File(outputFilename + ".txt"));
+        FileOutputStream fis = new FileOutputStream(new File(outputFilename + ".txt"));
         writeText(fis);
         fis.close();
 
@@ -107,33 +107,20 @@ public class CarAnalyzer {
         return true;
     }
 
-    /**
-     * Retrieves an ordered list of Dependencies depicting the dependency tree
-     * of the given artifact in a depth-first fashion
-     *
-     * @param a
-     * @return
-     */
-    private List<Dependency> getDependencyList(Artifact a) {
-        List<Dependency> dependencyList = new ArrayList<Dependency>();
-        buildDependencyList(a, dependencyList, new HashSet<Artifact>());
-        return dependencyList;
-    }
-
-    private void writeText(OutputStream os) throws IOException {
-        OutputStreamWriter osw = new OutputStreamWriter(os, Charset.forName("UTF-8"));
+    private void writeText(OutputStream outputStream) throws IOException {
+        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, Charset.forName("UTF-8"));
         for (Map.Entry<Artifact, Set<Dependency>> entry : forwardDependencyMap.entrySet()) {
-            for (Dependency d : entry.getValue()) {
-                osw.write(d.toString());
-                osw.write('\n');
+            for (Dependency dependency : entry.getValue()) {
+                outputStreamWriter.write(dependency.toString());
+                outputStreamWriter.write('\n');
             }
         }
-        osw.close();
+        outputStreamWriter.close();
     }
 
-    private void writeJson(OutputStream os) throws IOException {
+    private void writeJson(OutputStream outputStream) throws IOException {
         JsonFactory factory = new JsonFactory();
-        JsonGenerator generator = factory.createGenerator(os);
+        JsonGenerator generator = factory.createGenerator(outputStream);
         generator.writeStartObject();
 
         generator.writeObjectFieldStart("resources");
@@ -213,32 +200,32 @@ public class CarAnalyzer {
         generator.close();
     }
 
-    private void writeArtifactDescriptionJson(Artifact.ArtifactDescription ad, JsonGenerator generator) throws IOException {
-        if (ad.purpose != null) {
-            generator.writeStringField("purpose", ad.purpose);
+    private void writeArtifactDescriptionJson(Artifact.ArtifactDescription artifactDescription, JsonGenerator generator) throws IOException {
+        if (artifactDescription.purpose != null) {
+            generator.writeStringField("purpose", artifactDescription.purpose);
         }
 
-        if (ad.receives != null) {
+        if (artifactDescription.receives != null) {
             generator.writeObjectFieldStart("receives");
-            writeArtifactInterfaceInfoJson(ad.receives, generator);
+            writeArtifactInterfaceInfoJson(artifactDescription.receives, generator);
             generator.writeEndObject();
         }
 
-        if (ad.returns != null) {
+        if (artifactDescription.returns != null) {
             generator.writeObjectFieldStart("returns");
-            writeArtifactInterfaceInfoJson(ad.returns, generator);
+            writeArtifactInterfaceInfoJson(artifactDescription.returns, generator);
             generator.writeEndObject();
         }
     }
 
-    private void writeArtifactInterfaceInfoJson(Artifact.ArtifactInterfaceInfo aii, JsonGenerator generator) throws IOException {
-        if (aii.description != null) {
-            generator.writeStringField("description", removeLineBreaks(aii.description));
+    private void writeArtifactInterfaceInfoJson(Artifact.ArtifactInterfaceInfo artifactInterfaceInfo, JsonGenerator generator) throws IOException {
+        if (artifactInterfaceInfo.description != null) {
+            generator.writeStringField("description", removeLineBreaks(artifactInterfaceInfo.description));
         }
 
-        if (aii.fields != null) {
+        if (artifactInterfaceInfo.fields != null) {
             generator.writeArrayFieldStart("fields");
-            for (Artifact.ArtifactIntefaceField f : aii.fields) {
+            for (Artifact.ArtifactIntefaceField f : artifactInterfaceInfo.fields) {
                 generator.writeStartObject();
                 if (f.description != null) {
                     generator.writeStringField("description", StringEscapeUtils.escapeJson(removeLineBreaks(f.description)));
@@ -253,17 +240,16 @@ public class CarAnalyzer {
             generator.writeEndArray();
         }
 
-        if (aii.example != null) {
-            generator.writeStringField("example", removeLineBreaks(aii.example));
+        if (artifactInterfaceInfo.example != null) {
+            generator.writeStringField("example", removeLineBreaks(artifactInterfaceInfo.example));
         }
     }
 
     private String removeLineBreaks(String text) {
-        if (text != null) {
-            return StringEscapeUtils.escapeJson(text.replace("\n", "").replace("\r", "").replace("\r\n", ""));
-        } else {
-            return text;
+        if(StringUtils.isBlank(text)){
+            return null;
         }
+        return StringEscapeUtils.escapeJson(text.replace("\n", "").replace("\r", "").replace("\r\n", ""));
     }
 
     private void buildDependencyList(Artifact a, List<Dependency> dependencyList, Set<Artifact> visitedNodes) {
@@ -274,10 +260,10 @@ public class CarAnalyzer {
             return;
         }
 
-        for (Dependency d : dependencies) {
-            Object dependencyObject = d.getDependency();
-            dependencyList.add(d);
-            if (dependencyObject instanceof Artifact && !visitedNodes.contains((Artifact) dependencyObject)) {
+        for (Dependency dependency : dependencies) {
+            Object dependencyObject = dependency.getDependency();
+            dependencyList.add(dependency);
+            if (dependencyObject instanceof Artifact && !visitedNodes.contains(dependencyObject)) {
                 buildDependencyList((Artifact) dependencyObject, dependencyList, visitedNodes);
             }
         }
@@ -321,12 +307,11 @@ public class CarAnalyzer {
     }
 
     public FileObject getCarFileObject(String carFile) throws FileSystemException {
-        File f = new File(carFile);
-        if (f.exists()) {
-            return fsm.resolveFile("zip:" + f.getAbsolutePath());
-        } else {
-            log.warn(MessageFormat.format("The specified car file [{0}] does not exist.", carFile));
+        File file = new File(carFile);
+        if (file.exists()) {
+            return fileSystemManager.resolveFile("zip:" + file.getAbsolutePath());
         }
+        log.warn(MessageFormat.format("The specified car file [{0}] does not exist.", carFile));
         return null;
     }
 
@@ -349,30 +334,12 @@ public class CarAnalyzer {
     }
 
     public FileObject getTestFileObject(String testFile) throws FileSystemException {
-        File f = new File(testFile);
-        if (f.exists()) {
-            return fsm.resolveFile(f.getAbsolutePath());
-        } else {
-            log.warn(MessageFormat.format("The specified test file [{0}] does not exist.", testFile));
+        File file = new File(testFile);
+        if (file.exists()) {
+            return fileSystemManager.resolveFile(file.getAbsolutePath());
         }
+        log.warn(MessageFormat.format("The specified test file [{0}] does not exist.", testFile));
         return null;
-    }
-
-    /**
-     * Checks if file contains soapui project element as root to confirm it is a
-     * SoapUI file
-     *
-     * @param file
-     * @return
-     * @throws IOException
-     * @throws SaxonApiException
-     */
-    private boolean isSoapUIFile(FileObject file) throws IOException, SaxonApiException {
-        if (file != null) {
-            XdmNode soapUINode = getNodeFromFileObject(file);
-            return soapUINode.getNodeName().equals(SOAPUI_PROJECT_Q);
-        }
-        return false;
     }
 
     /**
@@ -390,9 +357,9 @@ public class CarAnalyzer {
             log.info(MessageFormat.format("Processing artifacts.xml file: [{0}]", artifactsFileObject.getURL().toString()));
             XdmValue value = SaxonXPath.apply(DEPENDENCY_XPATH_STRING).to(artifactsFileObject).andReturnAnXdmValue();
             for (XdmItem item : value) {
-                Artifact a = getArtifact((XdmNode) item, carFileObject);
-                if (a != null) {
-                    artifactMap.put(a.getName(), a);
+                Artifact artifact = getArtifact((XdmNode) item, carFileObject);
+                if (artifact != null) {
+                    artifactMap.put(artifact.getName(), artifact);
                 }
             }
         }
@@ -544,12 +511,10 @@ public class CarAnalyzer {
      * @param type
      */
     private void processProperties(XdmNode propertiesParent, SortedMap<String, String> currentPropertiesMap, TestItemType type) {
-        // if TestSuite has properties
         if (propertiesParent.axisIterator(Axis.CHILD, SOAPUI_PROPERTIES_Q).hasNext()) {
             XdmNode propertiesNode = (XdmNode) propertiesParent.axisIterator(Axis.CHILD, SOAPUI_PROPERTIES_Q).next();
 
             XdmSequenceIterator propertyNodes = propertiesNode.axisIterator(Axis.CHILD, SOAPUI_PROPERTY_Q);
-            SortedMap<String, String> propertiesMap = new TreeMap<String, String>();
 
             while (propertyNodes.hasNext()) {
                 XdmNode property = (XdmNode) propertyNodes.next();
@@ -558,7 +523,6 @@ public class CarAnalyzer {
                 XdmNode value = getChild(property, SOAPUI_VALUE_Q);
 
                 if (value != null) {
-                    // it's a test case property
                     String key;
                     if (TestItemType.TEST_CASE == type) {
                         key = "${#TestCase#" + name.getStringValue() + "}";
@@ -585,9 +549,9 @@ public class CarAnalyzer {
     }
 
     private XdmNode getChild(XdmNode parent, QName childName) {
-        XdmSequenceIterator iter = parent.axisIterator(Axis.CHILD, childName);
-        if (iter.hasNext()) {
-            return (XdmNode) iter.next();
+        XdmSequenceIterator xdmSequenceIterator = parent.axisIterator(Axis.CHILD, childName);
+        if (xdmSequenceIterator.hasNext()) {
+            return (XdmNode) xdmSequenceIterator.next();
         } else {
             return null;
         }
@@ -646,18 +610,10 @@ public class CarAnalyzer {
         InputStream isSeq = null; // This stream is used for sequenceDiagram generation
         try {
             is = xmlFo.getContent().getInputStream();
-            // Don't search sequences under soapUI-tests
-            // "-soapui-project.xml" is uded as filename match pattern
             if (xmlFo.getName().getBaseName().indexOf("-soapui-project.xml") == -1) {
-                // Sequence diagram parser can't hande testa
                 isSeq = xmlFo.getContent().getInputStream();
                 String seg = SequenceDiagramBuilder.instance().buildPipe(isSeq);
                 isSeq.close();
-                /*
-                if (seg != null && !seg.isEmpty()) {
-                    System.out.println("VALUE:" + seg);
-                }
-                */
             }
             XdmNode xmlNode = SaxonUtil.readToNode(is);
             XdmSequenceIterator i = xmlNode.axisIterator(Axis.CHILD);
@@ -721,7 +677,7 @@ public class CarAnalyzer {
 
         getServicePath(artifactType, artifactName, carFile.toString() + dependencyDirectory + artifactFilePath);
 
-        Artifact.ArtifactDescription description = getArtifactDescription(artifactName, carFile.toString() + dependencyDirectory + artifactFilePath);
+        Artifact.ArtifactDescription description = getArtifactDescription(carFile.toString() + dependencyDirectory + artifactFilePath);
 
         if (artifactType == null && !IGNORED_ARTIFACT_TYPES.contains(artifactTypeString)) {
             log.warn("Unrecognized artifact type: " + artifactTypeString);
@@ -741,7 +697,7 @@ public class CarAnalyzer {
     }
 
     private void getServicePath(Artifact.ArtifactType artifactType, String artifactName, String artifactFilePath) throws FileSystemException, JaxenException {
-        FileObject artifactFileObject = fsm.resolveFile(artifactFilePath);
+        FileObject artifactFileObject = fileSystemManager.resolveFile(artifactFilePath);
 
         OMElement root = OMXMLBuilderFactory.createOMBuilder(artifactFileObject.getContent().getInputStream()).getDocumentElement();
 
@@ -758,8 +714,8 @@ public class CarAnalyzer {
         }
     }
 
-    private Artifact.ArtifactDescription getArtifactDescription(String artifactName, String artifactFilePath) throws IOException, JaxenException {
-        FileObject artifactFileObject = fsm.resolveFile(artifactFilePath);
+    private Artifact.ArtifactDescription getArtifactDescription(String artifactFilePath) throws IOException, JaxenException {
+        FileObject artifactFileObject = fileSystemManager.resolveFile(artifactFilePath);
 
         OMElement root = OMXMLBuilderFactory.createOMBuilder(artifactFileObject.getContent().getInputStream()).getDocumentElement();
 
@@ -814,13 +770,13 @@ public class CarAnalyzer {
     }
 
     private Artifact.ArtifactInterfaceInfo getArtifactInterfaceInfo(OMElement infoElement) {
-        Artifact.ArtifactInterfaceInfo aii = new Artifact.ArtifactInterfaceInfo();
+        Artifact.ArtifactInterfaceInfo artifactInterfaceInfo = new Artifact.ArtifactInterfaceInfo();
         String description = infoElement.getText();
         if (description != null) {
             description = description.trim();
 
             if (!description.isEmpty()) {
-                aii.description = description;
+                artifactInterfaceInfo.description = description;
             }
         }
 
@@ -837,7 +793,7 @@ public class CarAnalyzer {
                 String example = content.trim();
 
                 if (!example.isEmpty()) {
-                    aii.example = example;
+                    artifactInterfaceInfo.example = example;
                 }
                 //} else if ()
             }
@@ -852,12 +808,12 @@ public class CarAnalyzer {
             boolean isOptional = "true".equals(field.getAttributeValue(OPTIONAL_Q));
 
             if (fieldPath != null) {
-                aii.addField(new Artifact.ArtifactIntefaceField(fieldDescription, fieldPath, isOptional));
+                artifactInterfaceInfo.addField(new Artifact.ArtifactIntefaceField(fieldDescription, fieldPath, isOptional));
             }
         }
 
-        if (aii.description != null || aii.fields != null) {
-            return aii;
+        if (artifactInterfaceInfo.description != null || artifactInterfaceInfo.fields != null) {
+            return artifactInterfaceInfo;
         }
 
         return null;
@@ -872,7 +828,7 @@ public class CarAnalyzer {
      * @throws SaxonApiException
      */
     private String getRealNameForArtifact(String artifactFilePath) throws IOException, SaxonApiException {
-        FileObject artifactFileObject = fsm.resolveFile(artifactFilePath);
+        FileObject artifactFileObject = fileSystemManager.resolveFile(artifactFilePath);
         XdmNode artifactXml = getNodeFromFileObject(artifactFileObject);
         return artifactXml.getAttributeValue(NAME_Q);
     }
@@ -885,8 +841,8 @@ public class CarAnalyzer {
      * @throws IOException
      */
     private SortedMap<Artifact, Set<Dependency>> getForwardDependencyMap() throws SaxonApiException, IOException {
-        for (Artifact a : artifactMap.values()) {
-            FileObject artifactFileObject = fsm.resolveFile(a.getCarPath() + a.getPath());
+        for (Artifact artifact : artifactMap.values()) {
+            FileObject artifactFileObject = fileSystemManager.resolveFile(artifact.getCarPath() + artifact.getPath());
             if (!artifactFileObject.exists()) {
                 log.warn("File does not exist: " + artifactFileObject.toString());
             } else {
@@ -895,23 +851,23 @@ public class CarAnalyzer {
 
                 Set<Dependency> dependencies = new HashSet<Dependency>();
 
-                for (DependencyType dt : DependencyType.values()) {
+                for (DependencyType dependencyType : DependencyType.values()) {
                     // TASK_TO has special handling
-                    if (dt == DependencyType.TASK_TO) {
+                    if (dependencyType == DependencyType.TASK_TO) {
                         continue;
                     }
 
-                    log.debug("Adding dependencies of type " + dt);
-                    dependencies.addAll(getDependencySet(a, artifactXml, dt));
+                    log.debug("Adding dependencies of type " + dependencyType);
+                    dependencies.addAll(getDependencySet(artifact, artifactXml, dependencyType));
                 }
 
-                log.debug("Artifact type is: " + a.getType());
+                log.debug("Artifact type is: " + artifact.getType());
                 log.debug("Dependencies are empty: " + dependencies.isEmpty());
 
-                if (a.getType() == Artifact.ArtifactType.TASK && !dependencies.isEmpty()) {
-                    // A task should only have a single dependency, a proxy or a sequence
+                if (artifact.getType() == Artifact.ArtifactType.TASK && !dependencies.isEmpty()) {
+                    // A task should only have artifact single dependency, artifact proxy or artifact sequence
                     if (dependencies.size() > 1) {
-                        System.out.println("The task: " + a.getName() + " has multiple dependencies. This is probably an error.");
+                        System.out.println("The task: " + artifact.getName() + " has multiple dependencies. This is probably an error.");
                     }
 
                     DependencyType dt = DependencyType.TASK_TO;
@@ -919,7 +875,7 @@ public class CarAnalyzer {
 
                     if (dependencyString != null && !dependencyString.isEmpty()) {
                         if (dependencyString.size() > 1) {
-                            System.out.println("The task: " + a.getName() + " has multiple to properties. This is probably an error.");
+                            System.out.println("The task: " + artifact.getName() + " has multiple to properties. This is probably an error.");
                         }
 
                         Artifact taskTo = getArtifactFromString(dependencyString.iterator().next());
@@ -941,22 +897,22 @@ public class CarAnalyzer {
                 }
 
                 if (!dependencies.isEmpty()) {
-                    forwardDependencyMap.put(a, dependencies);
+                    forwardDependencyMap.put(artifact, dependencies);
                 }
             }
 
             // add description defined dependencies
-            if (a.description != null && a.description.dependencies != null) {
-                List<String> dependencies = a.description.dependencies;
+            if (artifact.description != null && artifact.description.dependencies != null) {
+                List<String> dependencies = artifact.description.dependencies;
                 if (!dependencies.isEmpty()) {
                     for (String dependencyName : dependencies) {
                         Artifact dependency = getArtifactFromString(dependencyName);
-                        Set<Dependency> artifactDependencies = forwardDependencyMap.get(a);
+                        Set<Dependency> artifactDependencies = forwardDependencyMap.get(artifact);
                         if (artifactDependencies == null) {
                             artifactDependencies = new HashSet<Dependency>();
-                            forwardDependencyMap.put(a, artifactDependencies);
+                            forwardDependencyMap.put(artifact, artifactDependencies);
                         }
-                        artifactDependencies.add(new Dependency(a, dependency, DependencyType.DOCUMENTED));
+                        artifactDependencies.add(new Dependency(artifact, dependency, DependencyType.DOCUMENTED));
                     }
                 }
             }
@@ -967,39 +923,39 @@ public class CarAnalyzer {
 
     private void buildReverseDependencyMap(Map<Artifact, Set<Dependency>> forwardDependencyMap) {
         for (Map.Entry<Artifact, Set<Dependency>> entry : forwardDependencyMap.entrySet()) {
-            for (Dependency d : entry.getValue()) {
-                if (d.getDependency() instanceof Artifact) {
-                    Artifact dependencyArtifact = (Artifact) d.getDependency();
+            for (Dependency dependency : entry.getValue()) {
+                if (dependency.getDependency() instanceof Artifact) {
+                    Artifact dependencyArtifact = (Artifact) dependency.getDependency();
                     Set<Dependency> reverseDependencySet = reverseDependencyMap.get(dependencyArtifact);
                     if (reverseDependencySet == null) {
                         reverseDependencySet = new HashSet<Dependency>();
                         reverseDependencyMap.put(dependencyArtifact, reverseDependencySet);
                     }
-                    reverseDependencySet.add(d);
+                    reverseDependencySet.add(dependency);
                 }
             }
         }
     }
 
     /**
-     * Gets a set of Dependencies for the given artifact.
+     * Gets artifact set of Dependencies for the given artifact.
      *
-     * @param a
+     * @param artifact
      * @param context
      * @param dependencyType
      * @return
      * @throws SaxonApiException
      */
-    private Set<Dependency> getDependencySet(Artifact a, XdmNode context, DependencyType dependencyType) throws SaxonApiException {
+    private Set<Dependency> getDependencySet(Artifact artifact, XdmNode context, DependencyType dependencyType) throws SaxonApiException {
         Set<Dependency> dependencies = new HashSet<Dependency>();
         for (String dependencyString : evaluateXPathToStringSet(context, dependencyType.getXPath())) {
-            currentObject = a.getName(); // Save current artifact for  warning logs.
+            currentObject = artifact.getName(); // Save current artifact for  warning logs.
             Object dependencyObject = getArtifactFromString(dependencyString);
             if (dependencyObject == null) {
                 dependencyObject = dependencyString;
             }
 
-            dependencies.add(new Dependency(a, dependencyObject, dependencyType));
+            dependencies.add(new Dependency(artifact, dependencyObject, dependencyType));
         }
         return dependencies;
     }
@@ -1008,18 +964,18 @@ public class CarAnalyzer {
      * Returns an artifact resolved from a URL or null if no Artifact could be
      * resolved.
      *
-     * @param str
+     * @param string
      * @return
      */
-    private Artifact getArtifactFromString(String str) {
-        // The typical case: str is an artifact name
-        Artifact dependency = artifactMap.get(str);
+    private Artifact getArtifactFromString(String string) {
+        // The typical case: string is an artifact name
+        Artifact dependency = artifactMap.get(string);
 
-        if (dependency == null && str != null) {
-            // If str is not an artifact name, it's probably a URI of some sort
-            str = urifyString(str);
+        if (dependency == null && string != null) {
+            // If string is not an artifact name, it's probably a URI of some sort
+            string = urifyString(string);
             try {
-                URI uri = new URI(str);
+                URI uri = new URI(string);
                 String scheme = uri.getScheme();
                 if ("mailto".equals(scheme) || "vfs".equals(scheme)) {
                     return null;
@@ -1033,7 +989,7 @@ public class CarAnalyzer {
                     log.warn(currentObject + "Unrecognized URI scheme for URI: " + uri.toString());
                 }
             } catch (URISyntaxException e) {
-                log.warn(currentObject + "Unparseable URI: " + str);
+                log.warn(currentObject + "Unparseable URI: " + string);
             }
         }
 
@@ -1046,11 +1002,11 @@ public class CarAnalyzer {
      *
      * @return
      */
-    private String urifyString(String str) {
+    private String urifyString(String string) {
         // First replace any two subsequent backslashes with a single one
-        str = str.replace("\\\\", "\\");
+        string = string.replace("\\\\", "\\");
         // Then replace any backslashes with a slash
-        return str.replace('\\', '/');
+        return string.replace('\\', '/');
     }
 
     private Artifact getArtifactFromRegistyUri(URI uri) {
@@ -1086,17 +1042,17 @@ public class CarAnalyzer {
         // path might be in the service path map
         if (servicePathMap.containsKey(path)) {
             String artifactName = servicePathMap.get(path);
-            Artifact a = artifactMap.get(artifactName);
-            if (a != null) {
-                return a;
+            Artifact artifact = artifactMap.get(artifactName);
+            if (artifact != null) {
+                return artifact;
             }
         }
 
         String[] pathComponents = path.split("/");
         // Attempt to find an artifact from URL components
         for (String pathComponent : pathComponents) {
-            Artifact a = artifactMap.get(pathComponent);
-            if (a == null) {
+            Artifact artifact = artifactMap.get(pathComponent);
+            if (artifact == null) {
                 String[] componentParts = pathComponent.split("\\.");
                 String artifactNameCandidate = null;
                 for (String componentPart : componentParts) {
@@ -1106,14 +1062,14 @@ public class CarAnalyzer {
                         artifactNameCandidate += "." + componentPart;
                     }
 
-                    a = artifactMap.get(artifactNameCandidate);
+                    artifact = artifactMap.get(artifactNameCandidate);
 
-                    if (a != null) {
-                        return a;
+                    if (artifact != null) {
+                        return artifact;
                     }
                 }
             } else {
-                return a;
+                return artifact;
             }
         }
         return null;
