@@ -101,7 +101,7 @@ public class CarAnalyzer {
 
     private static boolean checkInput(String[] args) {
         if (args.length < 2 || args[0] == null || args[0].isEmpty() || args[1] == null || args[1].isEmpty()) {
-            System.out.println(USAGE_HELP);
+            System.out.println(CommandLineArguments.USAGE_HELP);
             return false;
         }
         return true;

@@ -104,9 +104,4 @@ public class Constants {
     public static final String TASK_TARGET_XPATH_STRING = "/s:task/s:property[@name = 'sequenceName']/@value | /s:task/s:property[@name = 'proxyName']/@value";
     public static final String TASK_TO_XPATH_STRING = "/s:task/s:property[@name = 'to']/@value";
 
-    public static final String USAGE_HELP = "Usage: java -jar CarAnalyzer.jar [carFiles] [outputFile] [soapUIFiles]\n"
-            + "  [carFiles]: comma-separated list of car file names\n"
-            + "  [outputFile]: full name of the output file WITHOUT extension.\n"
-            + "                Two files will be created, one with a .txt extension and another with a .json extension.\n"
-            + "  [soapUIFolders]: comma-separated list of SoapUI folder names. (Optional argument)";
 }
