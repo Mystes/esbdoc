@@ -47,7 +47,7 @@ public class SAXHandler extends DefaultHandler {
             String proxyName = element.get(NAME);
             root = proxyName;
             setVisited(proxyName);
-            append("Title " + proxyName + "\n");
+            appendTitle(proxyName);
         }
         if (element.is(ENDPOINT)) {
             String name = element.get(NAME);
@@ -55,7 +55,7 @@ public class SAXHandler extends DefaultHandler {
             if (name != null) {
                 root = name;
                 setVisited(name);
-                append("Title " + name + "\n");
+                appendTitle(name);
             }
             if (callable != null) {
                 callEndPointOnDemand(callable);
@@ -78,7 +78,7 @@ public class SAXHandler extends DefaultHandler {
             if (sequenceName != null) {
                 root = sequenceName;
                 setVisited(sequenceName);
-                append("Title " + sequenceName + "\n");
+                appendTitle(sequenceName);
             }
             if (callableSequence != null) {
                 callSequenceOnDemand(callableSequence);
@@ -216,6 +216,10 @@ public class SAXHandler extends DefaultHandler {
     private StringBuilder append(String diagramItem){
         //TODO get rid of this stupid diagrambuilder reference
         return this.diagramBuilder.output.append(diagramItem);
+    }
+
+    private void appendTitle(String title){
+        append("Title " + title + "\n");
     }
 
     private void addPositiveRelation(String from, String to){
