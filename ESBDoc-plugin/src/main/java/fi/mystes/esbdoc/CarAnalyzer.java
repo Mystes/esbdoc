@@ -67,18 +67,20 @@ public class CarAnalyzer {
 
     public static void main(String[] args) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
         log.info("Running...");
-
-        CarAnalyzer carAnalyzer = new CarAnalyzer();
-
-        if (!checkInput(args)) {
+        if (CommandLineArguments.from(args).areNotOk()) {
             return;
         }
 
-        String outputFilename = args[1];
-        List<FileObject> carFileObjects = carAnalyzer.getCarFileObjects(args[0]);
+        String outputFilename = CommandLineArguments.getCommonPartOfOutputFilename();
+        String commaSeparatedListOfCarFilenames = CommandLineArguments.getCommaSeparatedListOfCarFilenames();
+        String commaSeparatedListOfSoapUiFolderNames = CommandLineArguments.getCommaSeparatedListOfSoapUiFolderNames();
+
+        CarAnalyzer carAnalyzer = new CarAnalyzer();
+        List<FileObject> carFileObjects = carAnalyzer.getCarFileObjects(commaSeparatedListOfCarFilenames);
+
         List<FileObject> testFileObjects = null;
-        if (args.length > 2) {
-            File[] files = {new File(args[2])};
+        if (StringUtils.isNotEmpty(commaSeparatedListOfSoapUiFolderNames)) {
+            File[] files = {new File(commaSeparatedListOfSoapUiFolderNames)};
             testFileObjects = carAnalyzer.getTestFileObjects(files);
         }
 
@@ -97,14 +99,6 @@ public class CarAnalyzer {
         fis = new FileOutputStream(new File(outputFilename + ".json"));
         writeJson(fis);
         fis.close();
-    }
-
-    private static boolean checkInput(String[] args) {
-        if (args.length < 2 || args[0] == null || args[0].isEmpty() || args[1] == null || args[1].isEmpty()) {
-            System.out.println(CommandLineArguments.USAGE_HELP);
-            return false;
-        }
-        return true;
     }
 
     private void writeText(OutputStream outputStream) throws IOException {
