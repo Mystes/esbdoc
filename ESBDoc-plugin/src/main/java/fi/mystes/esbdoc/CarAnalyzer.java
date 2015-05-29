@@ -420,10 +420,10 @@ public class CarAnalyzer {
         String artifactFilePath = SaxonXPath.apply(ARTIFACT_FILENAME_XPATH_STRING).to(artifactFileXml).andReturnA(String.class);
         String artifactTypeString = artifactFileXml.getAttributeValue(TYPE_Q);
 
-        Artifact.ArtifactType artifactType = Artifact.ArtifactType.correspondingTo(artifactTypeString);
+        ArtifactType artifactType = ArtifactType.correspondingTo(artifactTypeString);
 
         String artifactName = null;
-        if (artifactType == Artifact.ArtifactType.RESOURCE) {
+        if (artifactType == ArtifactType.RESOURCE) {
             artifactName = dependencyName;
         } else {
             artifactName = getRealNameForArtifact(carFile.toString() + dependencyDirectory + artifactFilePath);
@@ -450,12 +450,12 @@ public class CarAnalyzer {
 
     }
 
-    private void getServicePath(Artifact.ArtifactType artifactType, String artifactName, String artifactFilePath) throws FileSystemException, JaxenException {
+    private void getServicePath(ArtifactType artifactType, String artifactName, String artifactFilePath) throws FileSystemException, JaxenException {
         FileObject artifactFileObject = fileSystemManager.resolveFile(artifactFilePath);
 
         OMElement root = OMXMLBuilderFactory.createOMBuilder(artifactFileObject.getContent().getInputStream()).getDocumentElement();
 
-        if (artifactType == Artifact.ArtifactType.API) {
+        if (artifactType == ArtifactType.API) {
             String context = root.getAttributeValue(CONTEXT_Q);
             //String urlMapping = root.getAttributeValue(URL_MAPPING_Q);
             Iterator resourceElements = root.getChildrenWithName(RESOURCE_Q);
@@ -618,7 +618,7 @@ public class CarAnalyzer {
                 log.debug("Artifact type is: " + artifact.getType());
                 log.debug("Dependencies are empty: " + dependencies.isEmpty());
 
-                if (artifact.getType() == Artifact.ArtifactType.TASK && !dependencies.isEmpty()) {
+                if (artifact.getType() == ArtifactType.TASK && !dependencies.isEmpty()) {
                     // A task should only have artifact single dependency, artifact proxy or artifact sequence
                     if (dependencies.size() > 1) {
                         System.out.println("The task: " + artifact.getName() + " has multiple dependencies. This is probably an error.");
