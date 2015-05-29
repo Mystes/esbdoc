@@ -64,67 +64,18 @@ public class CarAnalyzer {
         String commaSeparatedListOfCarFilenames = CommandLineArguments.getCommaSeparatedListOfCarFilenames();
         String commaSeparatedListOfSoapUiFolderNames = CommandLineArguments.getCommaSeparatedListOfSoapUiFolderNames();
 
-        File[] carFiles = convertToFileHandles(commaSeparatedListOfCarFilenames);
-        File[] testFolders = convertToFileHandles(commaSeparatedListOfSoapUiFolderNames);
+        File[] carFiles = Files.convertToFileHandles(commaSeparatedListOfCarFilenames);
+        File[] testFolders = Files.convertToFileHandles(commaSeparatedListOfSoapUiFolderNames);
 
         new CarAnalyzer().run(carFiles, commonPartOfOutputFilename, testFolders);
 
         log.info("Done!");
     }
 
-    private static File[] convertToFileHandles(String commaSeparatedListOfFilenames){
-        String[] filenames = StringUtils.split(commaSeparatedListOfFilenames, FILE_SEPARATOR);
-
-        List<File> fileList = new ArrayList<File>();
-        for(String filename : filenames){
-            fileList.add(new File(filename));
-        }
-
-        return fileList.toArray(new File[]{});
-    }
-
     public void run(File[] carFiles, String outputDestination, File[] testFolders) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
-        List<FileObject> carFileObjects = getCarFileObjects(carFiles);
-        List<FileObject> testFileObjects = getTestFileObjects(testFolders);
+        List<FileObject> carFileObjects = Files.getCarFileObjects(carFiles);
+        List<FileObject> testFileObjects = Files.getTestFileObjects(testFolders);
         processFileObjects(carFileObjects, outputDestination, testFileObjects);
-    }
-
-    private List<FileObject> getCarFileObjects(File[] carFiles) throws FileSystemException {
-        List<FileObject> carFileObjects = new ArrayList<FileObject>(carFiles.length);
-
-        for (File carFile : carFiles) {
-            carFileObjects.add(getCarFileObject(carFile.getAbsolutePath()));
-        }
-
-        return carFileObjects;
-    }
-
-    public FileObject getCarFileObject(String carFile) throws FileSystemException {
-        File file = new File(carFile);
-        if (file.exists()) {
-            return fileSystemManager.resolveFile("zip:" + file.getAbsolutePath());
-        }
-        log.warn(MessageFormat.format("The specified car file [{0}] does not exist.", carFile));
-        return null;
-    }
-
-    private List<FileObject> getTestFileObjects(File[] testFiles) throws FileSystemException {
-        List<FileObject> testFileObjects = new ArrayList<FileObject>(testFiles.length);
-
-        for (File testFile : testFiles) {
-            testFileObjects.add(getTestFileObject(testFile.getAbsolutePath()));
-        }
-
-        return testFileObjects;
-    }
-
-    public FileObject getTestFileObject(String testFile) throws FileSystemException {
-        File file = new File(testFile);
-        if (file.exists()) {
-            return fileSystemManager.resolveFile(file.getAbsolutePath());
-        }
-        log.warn(MessageFormat.format("The specified test file [{0}] does not exist.", testFile));
-        return null;
     }
 
     private void processFileObjects(List<FileObject> carFileObjects, String outputDestination, List<FileObject> testFileObjects) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
