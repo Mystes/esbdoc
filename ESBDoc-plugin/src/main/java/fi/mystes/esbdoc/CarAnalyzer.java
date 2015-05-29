@@ -49,6 +49,11 @@ public class CarAnalyzer {
             fileSystemManager = VFS.getManager();
     }
 
+    /**
+     * The purpose of 'main' is to allow running this analyzer independently, from the command line.
+     * Its logic should not be different from running the analyzer as a part of Maven Mojo execution, using 'run'.
+     * Therefore 'main' should delegate execution to 'run' as early as possible.
+     */
     public static void main(String[] args) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
         log.info("Running...");
         if (CommandLineArguments.from(args).areNotOk()) {
