@@ -115,7 +115,7 @@ public class JsonWriter {
         generator.close();
     }
 
-    private void writeArtifactDescriptionJson(Artifact.ArtifactDescription artifactDescription, JsonGenerator generator) throws IOException {
+    private void writeArtifactDescriptionJson(ArtifactDescription artifactDescription, JsonGenerator generator) throws IOException {
         if (artifactDescription.isPurposeDefined()) {
             generator.writeStringField("purpose", artifactDescription.purpose);
         }

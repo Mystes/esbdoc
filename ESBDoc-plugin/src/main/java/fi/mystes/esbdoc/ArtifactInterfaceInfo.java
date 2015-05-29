@@ -11,7 +11,7 @@ import java.util.List;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ArtifactInterfaceInfo {
-    private Artifact.ArtifactDescription parent;
+    private ArtifactDescription parent;
 
     public String description;
     public String example;
@@ -28,11 +28,11 @@ public class ArtifactInterfaceInfo {
         }
     }
 
-    public void setParent(Artifact.ArtifactDescription parent) {
+    public void setParent(ArtifactDescription parent) {
         this.parent = parent;
     }
 
-    private Artifact.ArtifactDescription getParent() {
+    private ArtifactDescription getParent() {
         return this.parent;
     }
 

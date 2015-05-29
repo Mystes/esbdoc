@@ -431,7 +431,7 @@ public class CarAnalyzer {
 
         getServicePath(artifactType, artifactName, carFile.toString() + dependencyDirectory + artifactFilePath);
 
-        Artifact.ArtifactDescription description = getArtifactDescription(carFile.toString() + dependencyDirectory + artifactFilePath);
+        ArtifactDescription description = getArtifactDescription(carFile.toString() + dependencyDirectory + artifactFilePath);
 
         if (artifactType == null && !IGNORED_ARTIFACT_TYPES.contains(artifactTypeString)) {
             log.warn("Unrecognized artifact type: " + artifactTypeString);
@@ -468,7 +468,7 @@ public class CarAnalyzer {
         }
     }
 
-    private Artifact.ArtifactDescription getArtifactDescription(String artifactFilePath) throws IOException, JaxenException {
+    private ArtifactDescription getArtifactDescription(String artifactFilePath) throws IOException, JaxenException {
         FileObject artifactFileObject = fileSystemManager.resolveFile(artifactFilePath);
 
         OMElement root = OMXMLBuilderFactory.createOMBuilder(artifactFileObject.getContent().getInputStream()).getDocumentElement();
@@ -514,7 +514,7 @@ public class CarAnalyzer {
                     }
 
                     if (purpose != null || receives != null || returns != null || programmerDefinedDependencies != null) {
-                        return Artifact.ArtifactDescription.with(purpose, receives, returns, programmerDefinedDependencies);
+                        return ArtifactDescription.with(purpose, receives, returns, programmerDefinedDependencies);
                     }
                 }
             }
