@@ -41,14 +41,12 @@ public class JsonWriter {
         generator.writeStartObject();
 
         generator.writeObjectFieldStart("resources");
-        for (Entry<String, Artifact> entry : artifactMap.entrySet()) {
-            Artifact a = entry.getValue();
-            String currentObject = a.getName();
-            generator.writeObjectFieldStart(a.getName());
-            if (a.description != null) {
-                writeArtifactDescriptionJson(a.description, generator);
+        for (Artifact artifact : artifactMap.getArtifacts()) {
+            generator.writeObjectFieldStart(artifact.getName());
+            if (artifact.description != null) {
+                writeArtifactDescriptionJson(artifact.description, generator);
             }
-            generator.writeStringField("type", a.getType().toString());
+            generator.writeStringField("type", artifact.getType().toString());
             generator.writeEndObject();
         }
         generator.writeEndObject();
