@@ -272,6 +272,14 @@ public class Artifact implements Comparable<Artifact> {
             }
             return null;
         }
+
+        public boolean isDescriptionDefined(){
+            return StringUtils.isNotBlank(this.description);
+        }
+
+        public boolean isPathDefined(){
+            return StringUtils.isNotBlank(this.path);
+        }
     }
 
     public enum ArtifactType {

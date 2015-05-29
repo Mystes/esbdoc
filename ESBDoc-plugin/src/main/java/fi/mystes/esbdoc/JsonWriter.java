@@ -140,16 +140,16 @@ public class JsonWriter {
 
         if (artifactInterfaceInfo.isFieldsDefined()) {
             generator.writeArrayFieldStart("fields");
-            for (Artifact.ArtifactIntefaceField f : artifactInterfaceInfo.fields) {
+            for (Artifact.ArtifactIntefaceField artifactIntefaceField : artifactInterfaceInfo.fields) {
                 generator.writeStartObject();
-                if (f.description != null) {
-                    generator.writeStringField("description", StringEscapeUtils.escapeJson(removeLineBreaks(f.description)));
+                if (artifactIntefaceField.isDescriptionDefined()) {
+                    generator.writeStringField("description", StringEscapeUtils.escapeJson(removeLineBreaks(artifactIntefaceField.description)));
                 } else {
                     generator.writeStringField("description", "");
-                    log.warn(f.getArtifactName() + ": Has empty description field.");
+                    log.warn(artifactIntefaceField.getArtifactName() + ": Has empty description field.");
                 }
-                generator.writeStringField("path", f.path);
-                generator.writeBooleanField("optional", f.optional);
+                generator.writeStringField("path", artifactIntefaceField.path);
+                generator.writeBooleanField("optional", artifactIntefaceField.optional);
                 generator.writeEndObject();
             }
             generator.writeEndArray();
