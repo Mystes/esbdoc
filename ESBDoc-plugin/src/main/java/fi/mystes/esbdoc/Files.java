@@ -54,11 +54,11 @@ public class Files {
 
     private static FileObject getFileObject(String filename, Type type) throws FileSystemException {
         File file = new File(filename);
-        if (!file.exists()) {
-            log.warn(MessageFormat.format("The specified file [{0}] does not exist.", filename));
-            return null;
+        if (file.exists()) {
+            return getFileObject(file, type);
         }
-        return getFileObject(file, type);
+        log.warn(MessageFormat.format("The specified file [{0}] does not exist.", filename));
+        return null;
     }
 
     private static FileObject getFileObject(File file, Type type) throws FileSystemException {
