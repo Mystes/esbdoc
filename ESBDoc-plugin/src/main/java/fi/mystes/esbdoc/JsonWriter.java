@@ -19,22 +19,26 @@ public class JsonWriter {
     private static Log log = LogFactory.getLog(JsonWriter.class);
 
     private String currentObject;
-    private Map<String, Artifact> artifactMap;
-    private Map<String, Set<TestProject>> testsMap;
+    private ArtifactMap artifactMap;
+    private TestMap testsMap;
     private ArtifactDependencyMap forwardDependencyMap;
     private ArtifactDependencyMap reverseDependencyMap;
 
 
-    public JsonWriter(ArtifactDependencyMap forwardDependencyMap, ArtifactDependencyMap reverseDependencyMap, Map<String, Set<TestProject>> testsMap, Map<String, Artifact> artifactMap){
+    public JsonWriter(ArtifactDependencyMap forwardDependencyMap, ArtifactDependencyMap reverseDependencyMap, TestMap testsMap, ArtifactMap artifactMap){
         this.artifactMap = artifactMap;
         this.testsMap = testsMap;
         this.forwardDependencyMap = forwardDependencyMap;
         this.reverseDependencyMap = reverseDependencyMap;
     }
 
-    public void writeJson(OutputStream outputStream) throws IOException {
+    private JsonGenerator createGeneratorFor(OutputStream outputStream) throws IOException{
         JsonFactory factory = new JsonFactory();
-        JsonGenerator generator = factory.createGenerator(outputStream);
+        return factory.createGenerator(outputStream);
+    }
+
+    public void writeJson(OutputStream outputStream) throws IOException {
+        JsonGenerator generator = createGeneratorFor(outputStream);
         generator.writeStartObject();
 
         generator.writeObjectFieldStart("resources");

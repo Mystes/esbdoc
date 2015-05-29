@@ -33,10 +33,10 @@ public class CarAnalyzer {
 
     private static Log log = LogFactory.getLog(CarAnalyzer.class);
 
-    private SortedMap<String, Artifact> artifactMap = new TreeMap<String, Artifact>();
+    private ArtifactMap artifactMap = new ArtifactMap();
     private ArtifactDependencyMap forwardDependencyMap = new ArtifactDependencyMap();
     private ArtifactDependencyMap reverseDependencyMap = new ArtifactDependencyMap();
-    private SortedMap<String, Set<TestProject>> testsMap = new TreeMap<String, Set<TestProject>>();
+    private TestMap testsMap = new TestMap();
     private List<String> forbiddenArtifactNames = new ArrayList<String>(Arrays.asList("services"));
     private SortedMap<String, String> servicePathMap = new TreeMap<String, String>();
 
