@@ -9,7 +9,7 @@ import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -18,7 +18,6 @@ import java.util.Set;
 public class JsonWriter {
     private static Log log = LogFactory.getLog(JsonWriter.class);
 
-    private String currentObject;
     private ArtifactMap artifactMap;
     private TestMap testsMap;
     private ArtifactDependencyMap forwardDependencyMap;
@@ -42,9 +41,9 @@ public class JsonWriter {
         generator.writeStartObject();
 
         generator.writeObjectFieldStart("resources");
-        for (Map.Entry<String, Artifact> entry : artifactMap.entrySet()) {
+        for (Entry<String, Artifact> entry : artifactMap.entrySet()) {
             Artifact a = entry.getValue();
-            currentObject = a.getName();
+            String currentObject = a.getName();
             generator.writeObjectFieldStart(a.getName());
             if (a.description != null) {
                 writeArtifactDescriptionJson(a.description, generator);
@@ -57,7 +56,7 @@ public class JsonWriter {
         generator.writeObjectFieldStart("dependencies");
 
         generator.writeObjectFieldStart("forward");
-        for (Map.Entry<Artifact, Set<Dependency>> entry : forwardDependencyMap.entrySet()) {
+        for (Entry<Artifact, Set<Dependency>> entry : forwardDependencyMap.entrySet()) {
             generator.writeArrayFieldStart(entry.getKey().getName());
 
             for (Dependency d : entry.getValue()) {
@@ -74,7 +73,7 @@ public class JsonWriter {
         generator.writeEndObject();
 
         generator.writeObjectFieldStart("reverse");
-        for (Map.Entry<Artifact, Set<Dependency>> entry : reverseDependencyMap.entrySet()) {
+        for (Entry<Artifact, Set<Dependency>> entry : reverseDependencyMap.entrySet()) {
             generator.writeArrayFieldStart(entry.getKey().getName());
             for (Dependency d : entry.getValue()) {
                 generator.writeStartObject();
@@ -88,7 +87,7 @@ public class JsonWriter {
         generator.writeEndObject();
 
         generator.writeObjectFieldStart("tests");
-        for (Map.Entry<String, Set<TestProject>> entry : testsMap.entrySet()) {
+        for (Entry<String, Set<TestProject>> entry : testsMap.entrySet()) {
             generator.writeArrayFieldStart(entry.getKey());
             for (TestProject p : entry.getValue()) {
                 generator.writeStartObject();
@@ -149,7 +148,7 @@ public class JsonWriter {
                     generator.writeStringField("description", StringEscapeUtils.escapeJson(removeLineBreaks(f.description)));
                 } else {
                     generator.writeStringField("description", "");
-                    log.warn(currentObject + ": Has empty description field.");
+                    log.warn(f.getArtifactName() + ": Has empty description field.");
                 }
                 generator.writeStringField("path", f.path);
                 generator.writeBooleanField("optional", f.optional);
