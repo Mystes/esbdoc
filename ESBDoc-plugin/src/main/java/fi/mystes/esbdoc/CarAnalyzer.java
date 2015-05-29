@@ -64,35 +64,29 @@ public class CarAnalyzer {
         String commaSeparatedListOfCarFilenames = CommandLineArguments.getCommaSeparatedListOfCarFilenames();
         String commaSeparatedListOfSoapUiFolderNames = CommandLineArguments.getCommaSeparatedListOfSoapUiFolderNames();
 
-        CarAnalyzer carAnalyzer = new CarAnalyzer();
-        List<FileObject> carFileObjects = carAnalyzer.getCarFileObjects(commaSeparatedListOfCarFilenames);
+        File[] carFiles = convertToFileHandles(commaSeparatedListOfCarFilenames);
+        File[] testFolders = convertToFileHandles(commaSeparatedListOfSoapUiFolderNames);
 
-        List<FileObject> testFileObjects = null;
-        if (CommandLineArguments.containSoapUiFolderNames()) {
-            File[] files = {new File(commaSeparatedListOfSoapUiFolderNames)};
-            testFileObjects = carAnalyzer.getTestFileObjects(files);
-        }
-
-        carAnalyzer.processFileObjects(carFileObjects, commonPartOfOutputFilename, testFileObjects);
+        new CarAnalyzer().run(carFiles, commonPartOfOutputFilename, testFolders);
 
         log.info("Done!");
     }
 
-    public void run(File[] carFiles, String outputDestination, File[] testFolders) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
-        List<FileObject> carFileObjects = this.getCarFileObjects(carFiles);
-        List<FileObject> testFileObjects = this.getTestFileObjects(testFolders);
-        processFileObjects(carFileObjects, outputDestination, testFileObjects);
-    }
+    private static File[] convertToFileHandles(String commaSeparatedListOfFilenames){
+        String[] filenames = StringUtils.split(commaSeparatedListOfFilenames, FILE_SEPARATOR);
 
-    private List<FileObject> getCarFileObjects(String carNames) throws FileSystemException {
-        String[] carNameArray = carNames.split(FILE_SEPARATOR);
-        List<FileObject> carFileObjects = new ArrayList<FileObject>(carNameArray.length);
-
-        for (String carName : carNameArray) {
-            carFileObjects.add(getCarFileObject(carName));
+        List<File> fileList = new ArrayList<File>();
+        for(String filename : filenames){
+            fileList.add(new File(filename));
         }
 
-        return carFileObjects;
+        return fileList.toArray(new File[]{});
+    }
+
+    public void run(File[] carFiles, String outputDestination, File[] testFolders) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
+        List<FileObject> carFileObjects = getCarFileObjects(carFiles);
+        List<FileObject> testFileObjects = getTestFileObjects(testFolders);
+        processFileObjects(carFileObjects, outputDestination, testFileObjects);
     }
 
     private List<FileObject> getCarFileObjects(File[] carFiles) throws FileSystemException {
