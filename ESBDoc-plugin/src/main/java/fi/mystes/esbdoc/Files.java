@@ -96,12 +96,28 @@ public class Files {
         return new OutputStreamWriter(stream, Charset.forName("UTF-8"));
     }
 
+    public static void writeTextTo(String filename, List<String> values) throws IOException {
+        FileOutputStream textStream = Files.textOutputFor(filename);
+        writeTo(textStream, values);
+        textStream.close();
+    }
+
+    public static void writeJsonTo(String filename, List<String> values) throws IOException {
+        FileOutputStream jsonStream = Files.jsonOutputFor(filename);
+        writeTo(jsonStream, values);
+        jsonStream.close();
+    }
+
     public static void writeTo(OutputStream outputStream, List<String> values) throws IOException {
         OutputStreamWriter outputStreamWriter = Files.utf8WriterFor(outputStream);
+        writeTo(outputStreamWriter, values);
+        outputStreamWriter.close();
+    }
+
+    private static void writeTo(OutputStreamWriter outputStreamWriter, List<String> values) throws IOException {
         for (String value : values) {
             outputStreamWriter.write(value);
             outputStreamWriter.write('\n');
         }
-        outputStreamWriter.close();
     }
 }

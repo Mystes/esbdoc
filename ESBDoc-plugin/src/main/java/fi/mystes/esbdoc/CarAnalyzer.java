@@ -89,19 +89,11 @@ public class CarAnalyzer {
 
     private void writeOutputFiles(String outputFilename) throws IOException {
         Files.buildDirectoryPathFor(outputFilename);
-
-        FileOutputStream textStream = Files.textOutputFor(outputFilename);
-        writeText(textStream);
-        textStream.close();
+        Files.writeTextTo(outputFilename, forwardDependencyMap.toDependencyStrings());
 
         FileOutputStream jsonStream = Files.jsonOutputFor(outputFilename);
         writeJson(jsonStream);
         jsonStream.close();
-    }
-
-    private void writeText(OutputStream outputStream) throws IOException {
-        List<String> dependencyStrings = forwardDependencyMap.toDependencyStrings();
-        Files.writeTo(outputStream, dependencyStrings);
     }
 
     private void writeJson(OutputStream outputStream) throws IOException {
