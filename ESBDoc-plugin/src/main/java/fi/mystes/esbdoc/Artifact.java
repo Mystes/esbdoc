@@ -85,26 +85,33 @@ public class Artifact implements Comparable<Artifact> {
     }
 
     @Override
-    public int compareTo(Artifact artifact) {
-        int difference = this.type.compareTo(artifact.type);
-        if (difference == 0) {
-            difference = this.name.compareTo(artifact.name);
-            if (difference == 0) {
-                difference = this.version.compareTo(artifact.version);
-            }
+    public int compareTo(Artifact that) {
+        int difference = this.type.compareTo(that.type);
+        if(0 != difference){
+            return difference;
         }
-        return difference;
+
+        difference = this.name.compareTo(that.name);
+        if(0 != difference){
+            return difference;
+        }
+
+        return this.version.compareTo(that.version);
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o != null && o instanceof Artifact) {
-            Artifact other = (Artifact) o;
-
-            return name.equals(other.name) && type.equals(other.type);
+    public boolean equals(Object object) {
+        if(null == object){
+            return false;
+        }
+        if(!(object instanceof Artifact)){
+            return false;
         }
 
-        return false;
+        Artifact that = (Artifact) object;
+        boolean namesEqual = this.name.equals(that.name);
+        boolean typesEqual = this.type.equals(that.type);
+        return namesEqual && typesEqual;
     }
 
     @Override
