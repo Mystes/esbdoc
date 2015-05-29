@@ -562,7 +562,7 @@ public class CarAnalyzer {
             boolean isOptional = "true".equals(field.getAttributeValue(OPTIONAL_Q));
 
             if (fieldPath != null) {
-                artifactInterfaceInfo.addField(new Artifact.ArtifactIntefaceField(fieldDescription, fieldPath, isOptional));
+                artifactInterfaceInfo.addField(new ArtifactIntefaceField(fieldDescription, fieldPath, isOptional));
             }
         }
 

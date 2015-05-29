@@ -140,7 +140,7 @@ public class JsonWriter {
 
         if (artifactInterfaceInfo.isFieldsDefined()) {
             generator.writeArrayFieldStart("fields");
-            for (Artifact.ArtifactIntefaceField artifactIntefaceField : artifactInterfaceInfo.fields) {
+            for (ArtifactIntefaceField artifactIntefaceField : artifactInterfaceInfo.fields) {
                 generator.writeStartObject();
                 if (artifactIntefaceField.isDescriptionDefined()) {
                     generator.writeStringField("description", StringEscapeUtils.escapeJson(removeLineBreaks(artifactIntefaceField.description)));

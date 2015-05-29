@@ -240,46 +240,4 @@ public class Artifact implements Comparable<Artifact> {
         }
     }
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    public static class ArtifactIntefaceField {
-        private ArtifactInterfaceInfo parent;
-
-        public String description;
-        public String path;
-        public boolean optional = false;
-
-        public ArtifactIntefaceField(String description, String path, boolean optional) {
-            this.description = description;
-            this.path = path;
-            this.optional = optional;
-        }
-
-        public void setParent(ArtifactInterfaceInfo parent){
-            this.parent = parent;
-        }
-
-        private ArtifactInterfaceInfo getParent(){
-            return this.parent;
-        }
-
-        private boolean hasParent(){
-            return this.parent != null;
-        }
-
-        public String getArtifactName(){
-            if(this.hasParent()){
-                return this.getParent().getArtifactName();
-            }
-            return null;
-        }
-
-        public boolean isDescriptionDefined(){
-            return StringUtils.isNotBlank(this.description);
-        }
-
-        public boolean isPathDefined(){
-            return StringUtils.isNotBlank(this.path);
-        }
-    }
-
 }
