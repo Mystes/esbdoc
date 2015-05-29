@@ -446,7 +446,7 @@ public class CarAnalyzer {
             return null;
         }
 
-        return new Artifact(artifactName, dependencyVersion, artifactType, dependencyDirectory + artifactFilePath, carFile.toString(), description);
+        return Artifact.with(artifactName, dependencyVersion, artifactType, dependencyDirectory + artifactFilePath, carFile.toString(), description);
 
     }
 
@@ -514,7 +514,7 @@ public class CarAnalyzer {
                     }
 
                     if (purpose != null || receives != null || returns != null || programmerDefinedDependencies != null) {
-                        return new Artifact.ArtifactDescription(purpose, receives, returns, programmerDefinedDependencies);
+                        return Artifact.ArtifactDescription.with(purpose, receives, returns, programmerDefinedDependencies);
                     }
                 }
             }

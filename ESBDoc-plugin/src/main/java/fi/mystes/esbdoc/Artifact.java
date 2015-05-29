@@ -24,7 +24,7 @@ public class Artifact implements Comparable<Artifact> {
 
     private final String carPath;
 
-    public Artifact(String name, String version, ArtifactType type, String path, String carPath, ArtifactDescription description) {
+    private Artifact(String name, String version, ArtifactType type, String path, String carPath, ArtifactDescription description) {
         if (name == null || version == null || type == null || path == null || carPath == null) {
             throw new IllegalArgumentException("All Artifact constructor parameters except description must be non-null");
         }
@@ -35,6 +35,14 @@ public class Artifact implements Comparable<Artifact> {
         this.path = path;
         this.carPath = carPath;
         this.description = description;
+    }
+
+    public static Artifact with(String name, String version, ArtifactType type, String path, String carPath, ArtifactDescription description){
+        Artifact artifact = new Artifact(name, version, type, path, carPath, description);
+        if(null != description) {
+            description.setParent(artifact);
+        }
+        return artifact;
     }
 
     public String getName() {
@@ -135,11 +143,22 @@ public class Artifact implements Comparable<Artifact> {
         public ArtifactInterfaceInfo returns;
         public List<String> dependencies;
 
-        public ArtifactDescription(String purpose, ArtifactInterfaceInfo receives, ArtifactInterfaceInfo returns, List<String> dependencies) {
+        private ArtifactDescription(String purpose, ArtifactInterfaceInfo receives, ArtifactInterfaceInfo returns, List<String> dependencies) {
             this.purpose = purpose;
             this.receives = receives;
             this.returns = returns;
             this.dependencies = dependencies;
+        }
+
+        public static ArtifactDescription with(String purpose, ArtifactInterfaceInfo receives, ArtifactInterfaceInfo returns, List<String> dependencies){
+            ArtifactDescription artifactDescription = new ArtifactDescription(purpose, receives, returns, dependencies);
+            if(null != receives) {
+                receives.setParent(artifactDescription);
+            }
+            if(null != returns) {
+                returns.setParent(artifactDescription);
+            }
+            return artifactDescription;
         }
 
         private void setParent(Artifact parent){
@@ -194,8 +213,10 @@ public class Artifact implements Comparable<Artifact> {
             if (fields == null) {
                 fields = new ArrayList<ArtifactIntefaceField>();
             }
-            field.setParent(this);
-            fields.add(field);
+            if(null != field) {
+                field.setParent(this);
+                fields.add(field);
+            }
         }
 
         private void setParent(ArtifactDescription parent){
@@ -267,9 +288,6 @@ public class Artifact implements Comparable<Artifact> {
         }
     }
 
-    /**
-     * Represents the different artifact types.
-     */
     public enum ArtifactType {
 
         PROXY("synapse/proxy-service", "proxy"),
