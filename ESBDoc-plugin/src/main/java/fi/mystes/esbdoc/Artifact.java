@@ -147,7 +147,7 @@ public class Artifact implements Comparable<Artifact> {
             return artifactDescription;
         }
 
-        private void setParent(Artifact parent){
+        public void setParent(Artifact parent){
             this.parent = parent;
         }
 
@@ -178,7 +178,7 @@ public class Artifact implements Comparable<Artifact> {
             return !dependencies.isEmpty();
         }
 
-        private String getArtifactName(){
+        public String getArtifactName(){
             if(this.hasParent()){
                 return this.getParent().getName();
             }
@@ -205,7 +205,7 @@ public class Artifact implements Comparable<Artifact> {
             }
         }
 
-        private void setParent(ArtifactDescription parent){
+        public void setParent(ArtifactDescription parent){
             this.parent = parent;
         }
 
@@ -217,7 +217,7 @@ public class Artifact implements Comparable<Artifact> {
             return this.parent != null;
         }
 
-        private String getArtifactName(){
+        public String getArtifactName(){
             if(this.hasParent()){
                 return this.getParent().getArtifactName();
             }
@@ -254,7 +254,7 @@ public class Artifact implements Comparable<Artifact> {
             this.optional = optional;
         }
 
-        private void setParent(ArtifactInterfaceInfo parent){
+        public void setParent(ArtifactInterfaceInfo parent){
             this.parent = parent;
         }
 
