@@ -49,29 +49,13 @@ public class CarAnalyzer {
             fileSystemManager = VFS.getManager();
     }
 
-    private void processFileObjects(List<FileObject> carFileObjects, String outputDestination, List<FileObject> testFileObjects) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
-        getArtifactMap(carFileObjects);
-        getForwardDependencyMap();
-        buildTestFileMap(testFileObjects);
-        // Process sequence diagrams 
-        Map<String, SequenceItem> seqs = SequenceDiagramBuilder.instance().getSequenceItemMap();
-        writeOutputFiles(outputDestination);
-        SequenceDiagramBuilder.instance().writeOutputFile(outputDestination);
-    }
-
-    public void run(File[] carFiles, String outputDestination, File[] testFolders) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
-        List<FileObject> carFileObjects = this.getCarFileObjects(carFiles);
-        List<FileObject> testFileObjects = this.getTestFileObjects(testFolders);
-        processFileObjects(carFileObjects, outputDestination, testFileObjects);
-    }
-
     public static void main(String[] args) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
         log.info("Running...");
         if (CommandLineArguments.from(args).areNotOk()) {
             return;
         }
 
-        String outputFilename = CommandLineArguments.getCommonPartOfOutputFilename();
+        String commonPartOfOutputFilename = CommandLineArguments.getCommonPartOfOutputFilename();
         String commaSeparatedListOfCarFilenames = CommandLineArguments.getCommaSeparatedListOfCarFilenames();
         String commaSeparatedListOfSoapUiFolderNames = CommandLineArguments.getCommaSeparatedListOfSoapUiFolderNames();
 
@@ -84,9 +68,25 @@ public class CarAnalyzer {
             testFileObjects = carAnalyzer.getTestFileObjects(files);
         }
 
-        carAnalyzer.processFileObjects(carFileObjects, outputFilename, testFileObjects);
+        carAnalyzer.processFileObjects(carFileObjects, commonPartOfOutputFilename, testFileObjects);
 
         log.info("Done!");
+    }
+
+    public void run(File[] carFiles, String outputDestination, File[] testFolders) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
+        List<FileObject> carFileObjects = this.getCarFileObjects(carFiles);
+        List<FileObject> testFileObjects = this.getTestFileObjects(testFolders);
+        processFileObjects(carFileObjects, outputDestination, testFileObjects);
+    }
+
+    private void processFileObjects(List<FileObject> carFileObjects, String outputDestination, List<FileObject> testFileObjects) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
+        getArtifactMap(carFileObjects);
+        getForwardDependencyMap();
+        buildTestFileMap(testFileObjects);
+        // Process sequence diagrams
+        Map<String, SequenceItem> seqs = SequenceDiagramBuilder.instance().getSequenceItemMap();
+        writeOutputFiles(outputDestination);
+        SequenceDiagramBuilder.instance().writeOutputFile(outputDestination);
     }
 
     private void writeOutputFiles(String outputFilename) throws IOException {
