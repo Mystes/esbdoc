@@ -80,10 +80,11 @@ public class Files {
         return new File(filename).getParentFile().mkdirs();
     }
 
-    public static FileOutputStream textOutputFor(String filename) throws FileNotFoundException{
+    private static FileOutputStream textOutputFor(String filename) throws FileNotFoundException{
         return outputStreamFor(filename + ".txt");
     }
 
+    //TODO should be private
     public static FileOutputStream jsonOutputFor(String filename) throws FileNotFoundException{
         return outputStreamFor(filename + ".json");
     }
@@ -92,24 +93,24 @@ public class Files {
         return new FileOutputStream(new File(filename));
     }
 
-    public static OutputStreamWriter utf8WriterFor(OutputStream stream){
+    private static OutputStreamWriter utf8WriterFor(OutputStream stream){
         return new OutputStreamWriter(stream, Charset.forName("UTF-8"));
     }
 
     public static void writeTextTo(String filename, List<String> values) throws IOException {
-        FileOutputStream textStream = Files.textOutputFor(filename);
+        FileOutputStream textStream = textOutputFor(filename);
         writeTo(textStream, values);
         textStream.close();
     }
 
     public static void writeJsonTo(String filename, List<String> values) throws IOException {
-        FileOutputStream jsonStream = Files.jsonOutputFor(filename);
+        FileOutputStream jsonStream = jsonOutputFor(filename);
         writeTo(jsonStream, values);
         jsonStream.close();
     }
 
-    public static void writeTo(OutputStream outputStream, List<String> values) throws IOException {
-        OutputStreamWriter outputStreamWriter = Files.utf8WriterFor(outputStream);
+    private static void writeTo(OutputStream outputStream, List<String> values) throws IOException {
+        OutputStreamWriter outputStreamWriter = utf8WriterFor(outputStream);
         writeTo(outputStreamWriter, values);
         outputStreamWriter.close();
     }
