@@ -89,15 +89,15 @@ public class CarAnalyzer {
     }
 
     private void writeOutputFiles(String outputFilename) throws IOException {
-        new File(outputFilename).getParentFile().mkdirs();
+        Files.buildDirectoryPathFor(outputFilename);
 
-        FileOutputStream fis = new FileOutputStream(new File(outputFilename + ".txt"));
-        writeText(fis);
-        fis.close();
+        FileOutputStream textStream = Files.textOutputFor(outputFilename);
+        writeText(textStream);
+        textStream.close();
 
-        fis = new FileOutputStream(new File(outputFilename + ".json"));
-        writeJson(fis);
-        fis.close();
+        FileOutputStream jsonStream = Files.jsonOutputFor(outputFilename);
+        writeJson(jsonStream);
+        jsonStream.close();
     }
 
     private void writeText(OutputStream outputStream) throws IOException {

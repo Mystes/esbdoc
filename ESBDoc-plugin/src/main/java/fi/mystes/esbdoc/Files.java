@@ -8,6 +8,8 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.VFS;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,5 +75,21 @@ public class Files {
 
     private static FileObject resolveNormalFile(File file) throws FileSystemException {
         return VFS.getManager().resolveFile(file.getAbsolutePath());
+    }
+
+    public static boolean buildDirectoryPathFor(String filename){
+        return new File(filename).getParentFile().mkdirs();
+    }
+
+    public static FileOutputStream textOutputFor(String filename) throws FileNotFoundException{
+        return outputStreamFor(filename + ".txt");
+    }
+
+    public static FileOutputStream jsonOutputFor(String filename) throws FileNotFoundException{
+        return outputStreamFor(filename + ".json");
+    }
+
+    private static FileOutputStream outputStreamFor(String filename) throws FileNotFoundException{
+        return new FileOutputStream(new File(filename));
     }
 }
