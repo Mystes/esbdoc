@@ -28,6 +28,7 @@ import static fi.mystes.esbdoc.Constants.*;
 
 /**
  * Created by Jarkko on 1.10.2014.
+ * TODO Everything
  */
 public class CarAnalyzer {
 

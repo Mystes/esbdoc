@@ -15,19 +15,22 @@ package fi.mystes.esbdoc;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.apache.commons.vfs2.*;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemManager;
+import org.apache.commons.vfs2.Selectors;
+import org.apache.commons.vfs2.VFS;
+import org.apache.maven.model.FileSet;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.FileUtils;
-import org.apache.maven.model.FileSet;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Pattern;
 
+//TODO Take a look at this class later
 /**
  * Goal which touches a timestamp file.
  *
