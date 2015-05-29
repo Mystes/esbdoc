@@ -119,6 +119,7 @@ public class Artifact implements Comparable<Artifact> {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class ArtifactDescription {
+        private Artifact parent;
 
         public String purpose;
         public ArtifactInterfaceInfo receives;
@@ -131,10 +132,30 @@ public class Artifact implements Comparable<Artifact> {
             this.returns = returns;
             this.dependencies = dependencies;
         }
+
+        private void setParent(Artifact parent){
+            this.parent = parent;
+        }
+
+        private Artifact getParent(){
+            return this.parent;
+        }
+
+        private boolean hasParent(){
+            return this.parent != null;
+        }
+
+        private String getArtifactName(){
+            if(this.hasParent()){
+                return this.getParent().getName();
+            }
+            return null;
+        }
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class ArtifactInterfaceInfo {
+        private ArtifactDescription parent;
 
         public String description;
         public String example;
@@ -145,12 +166,33 @@ public class Artifact implements Comparable<Artifact> {
             if (fields == null) {
                 fields = new ArrayList<ArtifactIntefaceField>();
             }
+            field.setParent(this);
             fields.add(field);
+        }
+
+        private void setParent(ArtifactDescription parent){
+            this.parent = parent;
+        }
+
+        private ArtifactDescription getParent(){
+            return this.parent;
+        }
+
+        private boolean hasParent(){
+            return this.parent != null;
+        }
+
+        private String getArtifactName(){
+            if(this.hasParent()){
+                return this.getParent().getArtifactName();
+            }
+            return null;
         }
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class ArtifactIntefaceField {
+        private ArtifactInterfaceInfo parent;
 
         public String description;
         public String path;
@@ -160,6 +202,25 @@ public class Artifact implements Comparable<Artifact> {
             this.description = description;
             this.path = path;
             this.optional = optional;
+        }
+
+        private void setParent(ArtifactInterfaceInfo parent){
+            this.parent = parent;
+        }
+
+        private ArtifactInterfaceInfo getParent(){
+            return this.parent;
+        }
+
+        private boolean hasParent(){
+            return this.parent != null;
+        }
+
+        public String getArtifactName(){
+            if(this.hasParent()){
+                return this.getParent().getArtifactName();
+            }
+            return null;
         }
     }
 
