@@ -20,6 +20,10 @@ import static fi.mystes.esbdoc.Constants.FILE_SEPARATOR;
 public class Files {
     private static Log log = LogFactory.getLog(Files.class);
 
+    private enum Type {
+        CAR_FILE, SOAPUI_FILE;
+    }
+
     public static File[] convertToFileHandles(String commaSeparatedListOfFilenames){
         String[] filenames = StringUtils.split(commaSeparatedListOfFilenames, FILE_SEPARATOR);
 
@@ -31,41 +35,43 @@ public class Files {
         return fileList.toArray(new File[]{});
     }
 
-    public static List<FileObject> getCarFileObjects(File[] carFiles) throws FileSystemException {
-        List<FileObject> carFileObjects = new ArrayList<FileObject>(carFiles.length);
-
-        for (File carFile : carFiles) {
-            carFileObjects.add(getCarFileObject(carFile.getAbsolutePath()));
-        }
-
-        return carFileObjects;
+    public static List<FileObject> getCarFileObjects(File[] files) throws FileSystemException {
+        return getFileObjects(files, Type.CAR_FILE);
     }
 
-    private static FileObject getCarFileObject(String carFile) throws FileSystemException {
-        File file = new File(carFile);
-        if (file.exists()) {
-            return VFS.getManager().resolveFile("zip:" + file.getAbsolutePath());
-        }
-        log.warn(MessageFormat.format("The specified car file [{0}] does not exist.", carFile));
-        return null;
+    public static List<FileObject> getTestFileObjects(File[] files) throws FileSystemException {
+        return getFileObjects(files, Type.SOAPUI_FILE);
     }
 
-    public static List<FileObject> getTestFileObjects(File[] testFiles) throws FileSystemException {
-        List<FileObject> testFileObjects = new ArrayList<FileObject>(testFiles.length);
-
-        for (File testFile : testFiles) {
-            testFileObjects.add(getTestFileObject(testFile.getAbsolutePath()));
+    private static List<FileObject> getFileObjects(File[] files, Type type) throws FileSystemException {
+        List<FileObject> fileObjects = new ArrayList<FileObject>(files.length);
+        for (File file : files) {
+            fileObjects.add(getFileObject(file.getAbsolutePath(), type));
         }
-
-        return testFileObjects;
+        return fileObjects;
     }
 
-    private static FileObject getTestFileObject(String testFile) throws FileSystemException {
-        File file = new File(testFile);
-        if (file.exists()) {
-            return VFS.getManager().resolveFile(file.getAbsolutePath());
+    private static FileObject getFileObject(String filename, Type type) throws FileSystemException {
+        File file = new File(filename);
+        if (!file.exists()) {
+            log.warn(MessageFormat.format("The specified file [{0}] does not exist.", filename));
+            return null;
         }
-        log.warn(MessageFormat.format("The specified test file [{0}] does not exist.", testFile));
-        return null;
+        return getFileObject(file, type);
+    }
+
+    private static FileObject getFileObject(File file, Type type) throws FileSystemException {
+        switch (type){
+            case CAR_FILE: return resolveZipFile(file);
+            default: return resolveNormalFile(file);
+        }
+    }
+
+    private static FileObject resolveZipFile(File file) throws FileSystemException {
+        return VFS.getManager().resolveFile("zip:" + file.getAbsolutePath());
+    }
+
+    private static FileObject resolveNormalFile(File file) throws FileSystemException {
+        return VFS.getManager().resolveFile(file.getAbsolutePath());
     }
 }
