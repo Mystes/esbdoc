@@ -8,7 +8,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ArtifactIntefaceField {
-    private Artifact.ArtifactInterfaceInfo parent;
+    private ArtifactInterfaceInfo parent;
 
     public String description;
     public String path;
@@ -20,11 +20,11 @@ public class ArtifactIntefaceField {
         this.optional = optional;
     }
 
-    public void setParent(Artifact.ArtifactInterfaceInfo parent) {
+    public void setParent(ArtifactInterfaceInfo parent) {
         this.parent = parent;
     }
 
-    private Artifact.ArtifactInterfaceInfo getParent() {
+    private ArtifactInterfaceInfo getParent() {
         return this.parent;
     }
 

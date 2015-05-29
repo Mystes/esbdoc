@@ -481,7 +481,7 @@ public class CarAnalyzer {
                 OMElement descriptionElement = (OMElement) resultList.get(0);
                 if (descriptionElement != null) {
                     String purpose = null;
-                    Artifact.ArtifactInterfaceInfo receives = null, returns = null;
+                    ArtifactInterfaceInfo receives = null, returns = null;
 
                     OMElement purposeElement = descriptionElement.getFirstChildWithName(PURPOSE_Q);
                     if (purposeElement != null) {
@@ -523,8 +523,8 @@ public class CarAnalyzer {
         return null;
     }
 
-    private Artifact.ArtifactInterfaceInfo getArtifactInterfaceInfo(OMElement infoElement) {
-        Artifact.ArtifactInterfaceInfo artifactInterfaceInfo = new Artifact.ArtifactInterfaceInfo();
+    private ArtifactInterfaceInfo getArtifactInterfaceInfo(OMElement infoElement) {
+        ArtifactInterfaceInfo artifactInterfaceInfo = new ArtifactInterfaceInfo();
         String description = infoElement.getText();
         if (description != null) {
             description = description.trim();

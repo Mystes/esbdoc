@@ -133,7 +133,7 @@ public class JsonWriter {
         }
     }
 
-    private void writeArtifactInterfaceInfoJson(Artifact.ArtifactInterfaceInfo artifactInterfaceInfo, JsonGenerator generator) throws IOException {
+    private void writeArtifactInterfaceInfoJson(ArtifactInterfaceInfo artifactInterfaceInfo, JsonGenerator generator) throws IOException {
         if (artifactInterfaceInfo.isDescriptionDefined()) {
             generator.writeStringField("description", removeLineBreaks(artifactInterfaceInfo.description));
         }
