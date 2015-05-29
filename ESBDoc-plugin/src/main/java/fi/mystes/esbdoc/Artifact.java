@@ -5,11 +5,9 @@ package fi.mystes.esbdoc;
  */
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents a single Artifact. Supported artifact types are defined in the
@@ -49,6 +47,10 @@ public class Artifact implements Comparable<Artifact> {
 
     public ArtifactType getType() {
         return type;
+    }
+
+    public boolean isDescriptionDefined(){
+        return null != this.description;
     }
 
     /**
@@ -152,6 +154,25 @@ public class Artifact implements Comparable<Artifact> {
             return this.parent != null;
         }
 
+        public boolean isPurposeDefined(){
+            return StringUtils.isNotBlank(this.purpose);
+        }
+
+        public boolean isReceivesDefined(){
+            return null != this.receives;
+        }
+
+        public boolean isReturnsDefined(){
+            return null != this.returns;
+        }
+
+        public boolean isDependenciesDefined(){
+            if(null == dependencies){
+                return false;
+            }
+            return !dependencies.isEmpty();
+        }
+
         private String getArtifactName(){
             if(this.hasParent()){
                 return this.getParent().getName();
@@ -194,6 +215,21 @@ public class Artifact implements Comparable<Artifact> {
                 return this.getParent().getArtifactName();
             }
             return null;
+        }
+
+        public boolean isDescriptionDefined(){
+            return StringUtils.isNotBlank(this.description);
+        }
+
+        public boolean isExampleDefined(){
+            return StringUtils.isNotBlank(this.example);
+        }
+
+        public boolean isFieldsDefined(){
+            if(null == fields){
+                return false;
+            }
+            return !fields.isEmpty();
         }
     }
 
