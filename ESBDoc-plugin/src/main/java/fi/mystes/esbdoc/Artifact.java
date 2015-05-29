@@ -9,10 +9,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
-/**
- * Represents a single Artifact. Supported artifact types are defined in the
- * Artifact.ArtifactType enum.
- */
 public class Artifact implements Comparable<Artifact> {
 
     private final String name;
@@ -61,20 +57,10 @@ public class Artifact implements Comparable<Artifact> {
         return null != this.description;
     }
 
-    /**
-     * VFS path of this artifact within its car file
-     *
-     * @return
-     */
     public String getPath() {
         return path;
     }
 
-    /**
-     * VFS path of this artifact's car file
-     *
-     * @return
-     */
     public String getCarPath() {
         return carPath;
     }
