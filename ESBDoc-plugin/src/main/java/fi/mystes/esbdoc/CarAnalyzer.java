@@ -79,7 +79,7 @@ public class CarAnalyzer {
         List<FileObject> carFileObjects = carAnalyzer.getCarFileObjects(commaSeparatedListOfCarFilenames);
 
         List<FileObject> testFileObjects = null;
-        if (StringUtils.isNotEmpty(commaSeparatedListOfSoapUiFolderNames)) {
+        if (CommandLineArguments.containSoapUiFolderNames()) {
             File[] files = {new File(commaSeparatedListOfSoapUiFolderNames)};
             testFileObjects = carAnalyzer.getTestFileObjects(files);
         }

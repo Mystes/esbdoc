@@ -86,4 +86,8 @@ public class CommandLineArguments {
     public static String getCommaSeparatedListOfSoapUiFolderNames(){
         return instance.commaSeparatedListOfSoapUiFolderNames;
     }
+
+    public static boolean containSoapUiFolderNames(){
+        return StringUtils.isNotBlank(getCommaSeparatedListOfSoapUiFolderNames());
+    }
 }
