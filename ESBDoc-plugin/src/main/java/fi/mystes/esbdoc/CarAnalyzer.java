@@ -1,13 +1,9 @@
 package fi.mystes.esbdoc;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
 import net.sf.saxon.s9api.*;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.OMXMLBuilderFactory;
 import org.apache.axiom.om.impl.llom.OMElementImpl;
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.vfs2.FileObject;
@@ -19,7 +15,10 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.MessageFormat;
@@ -92,159 +91,8 @@ public class CarAnalyzer {
         Files.writeTextTo(outputFilename, forwardDependencyMap.toDependencyStrings());
 
         FileOutputStream jsonStream = Files.jsonOutputFor(outputFilename);
-        writeJson(jsonStream);
+        new JsonWriter(forwardDependencyMap, reverseDependencyMap, testsMap, artifactMap).writeJson(jsonStream);
         jsonStream.close();
-    }
-
-    private void writeJson(OutputStream outputStream) throws IOException {
-        JsonFactory factory = new JsonFactory();
-        JsonGenerator generator = factory.createGenerator(outputStream);
-        generator.writeStartObject();
-
-        generator.writeObjectFieldStart("resources");
-        for (Map.Entry<String, Artifact> entry : artifactMap.entrySet()) {
-            Artifact a = entry.getValue();
-            currentObject = a.getName();
-            generator.writeObjectFieldStart(a.getName());
-            if (a.description != null) {
-                writeArtifactDescriptionJson(a.description, generator);
-            }
-            generator.writeStringField("type", a.getType().toString());
-            generator.writeEndObject();
-        }
-        generator.writeEndObject();
-
-        generator.writeObjectFieldStart("dependencies");
-
-        generator.writeObjectFieldStart("forward");
-        for (Map.Entry<Artifact, Set<Dependency>> entry : forwardDependencyMap.entrySet()) {
-            generator.writeArrayFieldStart(entry.getKey().getName());
-
-            for (Dependency d : entry.getValue()) {
-                // Currently only Artifacts are included in the JSON output
-                if (d.getDependency() instanceof Artifact) {
-                    generator.writeStartObject();
-                    generator.writeStringField("target", ((Artifact) d.getDependency()).getName());
-                    generator.writeStringField("type", d.getType().toString());
-                    generator.writeEndObject();
-                }
-            }
-            generator.writeEndArray();
-        }
-        generator.writeEndObject();
-
-        generator.writeObjectFieldStart("reverse");
-        for (Map.Entry<Artifact, Set<Dependency>> entry : reverseDependencyMap.entrySet()) {
-            generator.writeArrayFieldStart(entry.getKey().getName());
-            for (Dependency d : entry.getValue()) {
-                generator.writeStartObject();
-                generator.writeStringField("source", d.dependent.getName());
-                generator.writeStringField("type", d.getType().toString());
-                generator.writeEndObject();
-            }
-            generator.writeEndArray();
-        }
-        generator.writeEndObject();
-        generator.writeEndObject();
-
-        generator.writeObjectFieldStart("tests");
-        for (Map.Entry<String, Set<TestProject>> entry : testsMap.entrySet()) {
-            generator.writeArrayFieldStart(entry.getKey());
-            for (TestProject p : entry.getValue()) {
-                generator.writeStartObject();
-                generator.writeStringField("project", p.getName());
-                generator.writeStringField("filename", p.getFilename());
-                generator.writeArrayFieldStart("suites");
-                for (TestSuite s : p.getTestSuites()) {
-                    generator.writeStartObject();
-                    generator.writeStringField("name", s.getName());
-                    generator.writeArrayFieldStart("cases");
-                    for (TestCase c : s.getTestCases()) {
-                        generator.writeStartObject();
-                        generator.writeStringField("name", c.getName());
-                        generator.writeEndObject();
-                    }
-                    generator.writeEndArray();
-                    generator.writeEndObject();
-                }
-                generator.writeEndArray();
-                generator.writeEndObject();
-            }
-            generator.writeEndArray();
-        }
-        generator.writeEndObject();
-
-        generator.writeEndObject();
-        generator.close();
-    }
-
-    private void writeArtifactDescriptionJson(Artifact.ArtifactDescription artifactDescription, JsonGenerator generator) throws IOException {
-        if (artifactDescription.purpose != null) {
-            generator.writeStringField("purpose", artifactDescription.purpose);
-        }
-
-        if (artifactDescription.receives != null) {
-            generator.writeObjectFieldStart("receives");
-            writeArtifactInterfaceInfoJson(artifactDescription.receives, generator);
-            generator.writeEndObject();
-        }
-
-        if (artifactDescription.returns != null) {
-            generator.writeObjectFieldStart("returns");
-            writeArtifactInterfaceInfoJson(artifactDescription.returns, generator);
-            generator.writeEndObject();
-        }
-    }
-
-    private void writeArtifactInterfaceInfoJson(Artifact.ArtifactInterfaceInfo artifactInterfaceInfo, JsonGenerator generator) throws IOException {
-        if (artifactInterfaceInfo.description != null) {
-            generator.writeStringField("description", removeLineBreaks(artifactInterfaceInfo.description));
-        }
-
-        if (artifactInterfaceInfo.fields != null) {
-            generator.writeArrayFieldStart("fields");
-            for (Artifact.ArtifactIntefaceField f : artifactInterfaceInfo.fields) {
-                generator.writeStartObject();
-                if (f.description != null) {
-                    generator.writeStringField("description", StringEscapeUtils.escapeJson(removeLineBreaks(f.description)));
-                } else {
-                    generator.writeStringField("description", "");
-                    log.warn(currentObject + ": Has empty description field.");
-                }
-                generator.writeStringField("path", f.path);
-                generator.writeBooleanField("optional", f.optional);
-                generator.writeEndObject();
-            }
-            generator.writeEndArray();
-        }
-
-        if (artifactInterfaceInfo.example != null) {
-            generator.writeStringField("example", removeLineBreaks(artifactInterfaceInfo.example));
-        }
-    }
-
-    private String removeLineBreaks(String text) {
-        if(StringUtils.isBlank(text)){
-            return null;
-        }
-        return StringEscapeUtils.escapeJson(text.replace("\n", "").replace("\r", "").replace("\r\n", ""));
-    }
-
-    private void buildDependencyList(Artifact a, List<Dependency> dependencyList, Set<Artifact> visitedNodes) {
-        visitedNodes.add(a);
-
-        Set<Dependency> dependencies = forwardDependencyMap.get(a);
-        if (dependencies == null) {
-            return;
-        }
-
-        for (Dependency dependency : dependencies) {
-            Object dependencyObject = dependency.getDependency();
-            dependencyList.add(dependency);
-            if (dependencyObject instanceof Artifact && !visitedNodes.contains(dependencyObject)) {
-                buildDependencyList((Artifact) dependencyObject, dependencyList, visitedNodes);
-            }
-        }
     }
 
 
