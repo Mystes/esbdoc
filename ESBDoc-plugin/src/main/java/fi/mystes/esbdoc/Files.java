@@ -95,4 +95,13 @@ public class Files {
     public static OutputStreamWriter utf8WriterFor(OutputStream stream){
         return new OutputStreamWriter(stream, Charset.forName("UTF-8"));
     }
+
+    public static void writeTo(OutputStream outputStream, List<String> values) throws IOException {
+        OutputStreamWriter outputStreamWriter = Files.utf8WriterFor(outputStream);
+        for (String value : values) {
+            outputStreamWriter.write(value);
+            outputStreamWriter.write('\n');
+        }
+        outputStreamWriter.close();
+    }
 }

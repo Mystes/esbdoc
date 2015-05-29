@@ -100,14 +100,8 @@ public class CarAnalyzer {
     }
 
     private void writeText(OutputStream outputStream) throws IOException {
-        OutputStreamWriter outputStreamWriter = Files.utf8WriterFor(outputStream);
-        for (Map.Entry<Artifact, Set<Dependency>> entry : forwardDependencyMap.entrySet()) {
-            for (Dependency dependency : entry.getValue()) {
-                outputStreamWriter.write(dependency.toString());
-                outputStreamWriter.write('\n');
-            }
-        }
-        outputStreamWriter.close();
+        List<String> dependencyStrings = forwardDependencyMap.toDependencyStrings();
+        Files.writeTo(outputStream, dependencyStrings);
     }
 
     private void writeJson(OutputStream outputStream) throws IOException {
