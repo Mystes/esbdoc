@@ -79,6 +79,55 @@ public class CarAnalyzer {
         processFileObjects(carFileObjects, outputDestination, testFileObjects);
     }
 
+    private List<FileObject> getCarFileObjects(String carNames) throws FileSystemException {
+        String[] carNameArray = carNames.split(FILE_SEPARATOR);
+        List<FileObject> carFileObjects = new ArrayList<FileObject>(carNameArray.length);
+
+        for (String carName : carNameArray) {
+            carFileObjects.add(getCarFileObject(carName));
+        }
+
+        return carFileObjects;
+    }
+
+    private List<FileObject> getCarFileObjects(File[] carFiles) throws FileSystemException {
+        List<FileObject> carFileObjects = new ArrayList<FileObject>(carFiles.length);
+
+        for (File carFile : carFiles) {
+            carFileObjects.add(getCarFileObject(carFile.getAbsolutePath()));
+        }
+
+        return carFileObjects;
+    }
+
+    public FileObject getCarFileObject(String carFile) throws FileSystemException {
+        File file = new File(carFile);
+        if (file.exists()) {
+            return fileSystemManager.resolveFile("zip:" + file.getAbsolutePath());
+        }
+        log.warn(MessageFormat.format("The specified car file [{0}] does not exist.", carFile));
+        return null;
+    }
+
+    private List<FileObject> getTestFileObjects(File[] testFiles) throws FileSystemException {
+        List<FileObject> testFileObjects = new ArrayList<FileObject>(testFiles.length);
+
+        for (File testFile : testFiles) {
+            testFileObjects.add(getTestFileObject(testFile.getAbsolutePath()));
+        }
+
+        return testFileObjects;
+    }
+
+    public FileObject getTestFileObject(String testFile) throws FileSystemException {
+        File file = new File(testFile);
+        if (file.exists()) {
+            return fileSystemManager.resolveFile(file.getAbsolutePath());
+        }
+        log.warn(MessageFormat.format("The specified test file [{0}] does not exist.", testFile));
+        return null;
+    }
+
     private void processFileObjects(List<FileObject> carFileObjects, String outputDestination, List<FileObject> testFileObjects) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
         getArtifactMap(carFileObjects);
         getForwardDependencyMap();
@@ -263,78 +312,6 @@ public class CarAnalyzer {
         }
     }
 
-    /**
-     * Returns a list of Apache VFS FileObjects pointing to the parameter car
-     * files
-     *
-     * @param carNames a semicolon separated list of car file paths
-     * @return
-     * @throws FileSystemException
-     */
-    private List<FileObject> getCarFileObjects(String carNames) throws FileSystemException {
-        String[] carNameArray = carNames.split(FILE_SEPARATOR);
-        List<FileObject> carFileObjects = new ArrayList<FileObject>(carNameArray.length);
-
-        for (String carName : carNameArray) {
-            carFileObjects.add(getCarFileObject(carName));
-        }
-
-        return carFileObjects;
-    }
-
-    /**
-     * Returns a list of Apache VFS FileObjects pointing to the parameter car
-     * files
-     *
-     * @param carFiles an array of car files
-     * @return
-     * @throws FileSystemException
-     */
-    private List<FileObject> getCarFileObjects(File[] carFiles) throws FileSystemException {
-        List<FileObject> carFileObjects = new ArrayList<FileObject>(carFiles.length);
-
-        for (File carFile : carFiles) {
-            carFileObjects.add(getCarFileObject(carFile.getAbsolutePath()));
-        }
-
-        return carFileObjects;
-    }
-
-    public FileObject getCarFileObject(String carFile) throws FileSystemException {
-        File file = new File(carFile);
-        if (file.exists()) {
-            return fileSystemManager.resolveFile("zip:" + file.getAbsolutePath());
-        }
-        log.warn(MessageFormat.format("The specified car file [{0}] does not exist.", carFile));
-        return null;
-    }
-
-    /**
-     * Returns a list of Apache VFS FileObjects pointing to the parameter SoapUI
-     * test files
-     *
-     * @param testFiles
-     * @return
-     * @throws FileSystemException
-     */
-    private List<FileObject> getTestFileObjects(File[] testFiles) throws FileSystemException {
-        List<FileObject> testFileObjects = new ArrayList<FileObject>(testFiles.length);
-
-        for (File testFile : testFiles) {
-            testFileObjects.add(getTestFileObject(testFile.getAbsolutePath()));
-        }
-
-        return testFileObjects;
-    }
-
-    public FileObject getTestFileObject(String testFile) throws FileSystemException {
-        File file = new File(testFile);
-        if (file.exists()) {
-            return fileSystemManager.resolveFile(file.getAbsolutePath());
-        }
-        log.warn(MessageFormat.format("The specified test file [{0}] does not exist.", testFile));
-        return null;
-    }
 
     /**
      * Returns a map mapping artifact names to the artifacts in the car files
