@@ -420,7 +420,7 @@ public class CarAnalyzer {
         String artifactFilePath = SaxonXPath.apply(ARTIFACT_FILENAME_XPATH_STRING).to(artifactFileXml).andReturnA(String.class);
         String artifactTypeString = artifactFileXml.getAttributeValue(TYPE_Q);
 
-        Artifact.ArtifactType artifactType = Artifact.ArtifactType.getArtifactTypeByTypeString(artifactTypeString);
+        Artifact.ArtifactType artifactType = Artifact.ArtifactType.correspondingTo(artifactTypeString);
 
         String artifactName = null;
         if (artifactType == Artifact.ArtifactType.RESOURCE) {

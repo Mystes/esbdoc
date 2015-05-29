@@ -282,13 +282,13 @@ public class Artifact implements Comparable<Artifact> {
         TASK("synapse/task", "task"),
         DATASERVICE("service/dataservice", "dataservice");
 
-        private static final Map<String, ArtifactType> ARTIFACT_TYPE_MAP;
+        private static final Map<String, ArtifactType> artifactTypeMap;
 
         static {
-            ARTIFACT_TYPE_MAP = new HashMap<String, ArtifactType>(6);
+            artifactTypeMap = new HashMap<String, ArtifactType>(6); //TODO why that 6 right there?
 
             for (ArtifactType at : ArtifactType.values()) {
-                ARTIFACT_TYPE_MAP.put(at.synapseType, at);
+                artifactTypeMap.put(at.synapseType, at);
             }
         }
 
@@ -300,8 +300,8 @@ public class Artifact implements Comparable<Artifact> {
             this.typeString = typeString;
         }
 
-        public static ArtifactType getArtifactTypeByTypeString(String typeString) {
-            return ARTIFACT_TYPE_MAP.get(typeString);
+        public static ArtifactType correspondingTo(String typeString) {
+            return artifactTypeMap.get(typeString);
         }
 
         @Override
