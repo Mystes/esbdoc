@@ -22,7 +22,6 @@ import javax.xml.xpath.XPathExpressionException;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
 import java.text.MessageFormat;
 import java.util.*;
 
@@ -101,7 +100,7 @@ public class CarAnalyzer {
     }
 
     private void writeText(OutputStream outputStream) throws IOException {
-        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, Charset.forName("UTF-8"));
+        OutputStreamWriter outputStreamWriter = Files.utf8WriterFor(outputStream);
         for (Map.Entry<Artifact, Set<Dependency>> entry : forwardDependencyMap.entrySet()) {
             for (Dependency dependency : entry.getValue()) {
                 outputStreamWriter.write(dependency.toString());

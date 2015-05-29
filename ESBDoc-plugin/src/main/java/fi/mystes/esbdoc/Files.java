@@ -7,9 +7,8 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.VFS;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import java.io.*;
+import java.nio.charset.Charset;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -91,5 +90,9 @@ public class Files {
 
     private static FileOutputStream outputStreamFor(String filename) throws FileNotFoundException{
         return new FileOutputStream(new File(filename));
+    }
+
+    public static OutputStreamWriter utf8WriterFor(OutputStream stream){
+        return new OutputStreamWriter(stream, Charset.forName("UTF-8"));
     }
 }
