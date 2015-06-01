@@ -18,6 +18,28 @@ import java.util.Set;
  */
 public class JsonWriter {
     private static Log log = LogFactory.getLog(JsonWriter.class);
+    
+    public static final String RESOURCES = "resources";
+    public static final String TYPE = "type";
+    public static final String DEPENDENCIES = "dependencies";
+    public static final String FORWARD = "forward";
+    public static final String TARGET = "target";
+    public static final String REVERSE = "reverse";
+    public static final String SOURCE = "source";
+    public static final String TESTS = "tests";
+    public static final String PROJECT = "project";
+    public static final String FILENAME = "filename";
+    public static final String SUITES = "suites";
+    public static final String NAME = "name";
+    public static final String CASES = "cases";
+    public static final String PURPOSE = "purpose";
+    public static final String RECEIVES = "receives";
+    public static final String RETURNS = "returns";
+    public static final String DESCRIPTION = "description";
+    public static final String FIELDS = "fields";
+    public static final String PATH = "path";
+    public static final String OPTIONAL = "optional";
+    public static final String EXAMPLE = "example";
 
     private ArtifactMap artifactMap;
     private TestMap testsMap;
@@ -41,20 +63,20 @@ public class JsonWriter {
         JsonGenerator generator = createGeneratorFor(outputStream);
         generator.writeStartObject();
 
-        generator.writeObjectFieldStart("resources");
+        generator.writeObjectFieldStart(RESOURCES);
         for (Artifact artifact : artifactMap.getArtifacts()) {
             generator.writeObjectFieldStart(artifact.getName());
             if (artifact.isDescriptionDefined()) {
                 writeArtifactDescriptionJson(artifact.description, generator);
             }
-            generator.writeStringField("type", artifact.getType().toString());
+            generator.writeStringField(TYPE, artifact.getType().toString());
             generator.writeEndObject();
         }
         generator.writeEndObject();
 
-        generator.writeObjectFieldStart("dependencies");
+        generator.writeObjectFieldStart(DEPENDENCIES);
 
-        generator.writeObjectFieldStart("forward");
+        generator.writeObjectFieldStart(FORWARD);
         for (Entry<Artifact, Set<Dependency>> entry : forwardDependencyMap.entrySet()) {
             generator.writeArrayFieldStart(entry.getKey().getName());
 
@@ -62,8 +84,8 @@ public class JsonWriter {
                 // Currently only Artifacts are included in the JSON output
                 if (d.getDependency() instanceof Artifact) {
                     generator.writeStartObject();
-                    generator.writeStringField("target", ((Artifact) d.getDependency()).getName());
-                    generator.writeStringField("type", d.getType().toString());
+                    generator.writeStringField(TARGET, ((Artifact) d.getDependency()).getName());
+                    generator.writeStringField(TYPE, d.getType().toString());
                     generator.writeEndObject();
                 }
             }
@@ -71,13 +93,13 @@ public class JsonWriter {
         }
         generator.writeEndObject();
 
-        generator.writeObjectFieldStart("reverse");
+        generator.writeObjectFieldStart(REVERSE);
         for (Entry<Artifact, Set<Dependency>> entry : reverseDependencyMap.entrySet()) {
             generator.writeArrayFieldStart(entry.getKey().getName());
             for (Dependency d : entry.getValue()) {
                 generator.writeStartObject();
-                generator.writeStringField("source", d.dependent.getName());
-                generator.writeStringField("type", d.getType().toString());
+                generator.writeStringField(SOURCE, d.dependent.getName());
+                generator.writeStringField(TYPE, d.getType().toString());
                 generator.writeEndObject();
             }
             generator.writeEndArray();
@@ -85,21 +107,21 @@ public class JsonWriter {
         generator.writeEndObject();
         generator.writeEndObject();
 
-        generator.writeObjectFieldStart("tests");
+        generator.writeObjectFieldStart(TESTS);
         for (Entry<String, Set<TestProject>> entry : testsMap.entrySet()) {
             generator.writeArrayFieldStart(entry.getKey());
             for (TestProject p : entry.getValue()) {
                 generator.writeStartObject();
-                generator.writeStringField("project", p.getName());
-                generator.writeStringField("filename", p.getFilename());
-                generator.writeArrayFieldStart("suites");
+                generator.writeStringField(PROJECT, p.getName());
+                generator.writeStringField(FILENAME, p.getFilename());
+                generator.writeArrayFieldStart(SUITES);
                 for (TestSuite s : p.getTestSuites()) {
                     generator.writeStartObject();
-                    generator.writeStringField("name", s.getName());
-                    generator.writeArrayFieldStart("cases");
+                    generator.writeStringField(NAME, s.getName());
+                    generator.writeArrayFieldStart(CASES);
                     for (TestCase c : s.getTestCases()) {
                         generator.writeStartObject();
-                        generator.writeStringField("name", c.getName());
+                        generator.writeStringField(NAME, c.getName());
                         generator.writeEndObject();
                     }
                     generator.writeEndArray();
@@ -118,17 +140,17 @@ public class JsonWriter {
 
     private void writeArtifactDescriptionJson(ArtifactDescription artifactDescription, JsonGenerator generator) throws IOException {
         if (artifactDescription.isPurposeDefined()) {
-            generator.writeStringField("purpose", artifactDescription.purpose);
+            generator.writeStringField(PURPOSE, artifactDescription.purpose);
         }
 
         if (artifactDescription.isReceivesDefined()) {
-            generator.writeObjectFieldStart("receives");
+            generator.writeObjectFieldStart(RECEIVES);
             writeArtifactInterfaceInfoJson(artifactDescription.receives, generator);
             generator.writeEndObject();
         }
 
         if (artifactDescription.isReturnsDefined()) {
-            generator.writeObjectFieldStart("returns");
+            generator.writeObjectFieldStart(RETURNS);
             writeArtifactInterfaceInfoJson(artifactDescription.returns, generator);
             generator.writeEndObject();
         }
@@ -136,28 +158,28 @@ public class JsonWriter {
 
     private void writeArtifactInterfaceInfoJson(ArtifactInterfaceInfo artifactInterfaceInfo, JsonGenerator generator) throws IOException {
         if (artifactInterfaceInfo.isDescriptionDefined()) {
-            generator.writeStringField("description", removeLineBreaks(artifactInterfaceInfo.description));
+            generator.writeStringField(DESCRIPTION, removeLineBreaks(artifactInterfaceInfo.description));
         }
 
         if (artifactInterfaceInfo.isFieldsDefined()) {
-            generator.writeArrayFieldStart("fields");
+            generator.writeArrayFieldStart(FIELDS);
             for (ArtifactIntefaceField artifactIntefaceField : artifactInterfaceInfo.fields) {
                 generator.writeStartObject();
                 if (artifactIntefaceField.isDescriptionDefined()) {
-                    generator.writeStringField("description", StringEscapeUtils.escapeJson(removeLineBreaks(artifactIntefaceField.description)));
+                    generator.writeStringField(DESCRIPTION, StringEscapeUtils.escapeJson(removeLineBreaks(artifactIntefaceField.description)));
                 } else {
-                    generator.writeStringField("description", "");
+                    generator.writeStringField(DESCRIPTION, "");
                     log.warn(artifactIntefaceField.getArtifactName() + ": Has empty description field.");
                 }
-                generator.writeStringField("path", artifactIntefaceField.path);
-                generator.writeBooleanField("optional", artifactIntefaceField.optional);
+                generator.writeStringField(PATH, artifactIntefaceField.path);
+                generator.writeBooleanField(OPTIONAL, artifactIntefaceField.optional);
                 generator.writeEndObject();
             }
             generator.writeEndArray();
         }
 
         if (artifactInterfaceInfo.isExampleDefined()) {
-            generator.writeStringField("example", removeLineBreaks(artifactInterfaceInfo.example));
+            generator.writeStringField(EXAMPLE, removeLineBreaks(artifactInterfaceInfo.example));
         }
     }
 
