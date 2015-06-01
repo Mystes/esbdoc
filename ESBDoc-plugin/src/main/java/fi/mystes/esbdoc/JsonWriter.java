@@ -18,7 +18,7 @@ import java.util.Set;
  */
 public class JsonWriter {
     private static Log log = LogFactory.getLog(JsonWriter.class);
-    
+
     public static final String RESOURCES = "resources";
     public static final String TYPE = "type";
     public static final String DEPENDENCIES = "dependencies";
@@ -80,12 +80,12 @@ public class JsonWriter {
         for (Entry<Artifact, Set<Dependency>> entry : forwardDependencyMap.entrySet()) {
             generator.writeArrayFieldStart(entry.getKey().getName());
 
-            for (Dependency d : entry.getValue()) {
+            for (Dependency dependency : entry.getValue()) {
                 // Currently only Artifacts are included in the JSON output
-                if (d.getDependency() instanceof Artifact) {
+                if (dependency.getDependency() instanceof Artifact) {
                     generator.writeStartObject();
-                    generator.writeStringField(TARGET, ((Artifact) d.getDependency()).getName());
-                    generator.writeStringField(TYPE, d.getType().toString());
+                    generator.writeStringField(TARGET, ((Artifact) dependency.getDependency()).getName());
+                    generator.writeStringField(TYPE, dependency.getType().toString());
                     generator.writeEndObject();
                 }
             }
@@ -96,10 +96,10 @@ public class JsonWriter {
         generator.writeObjectFieldStart(REVERSE);
         for (Entry<Artifact, Set<Dependency>> entry : reverseDependencyMap.entrySet()) {
             generator.writeArrayFieldStart(entry.getKey().getName());
-            for (Dependency d : entry.getValue()) {
+            for (Dependency dependency : entry.getValue()) {
                 generator.writeStartObject();
-                generator.writeStringField(SOURCE, d.dependent.getName());
-                generator.writeStringField(TYPE, d.getType().toString());
+                generator.writeStringField(SOURCE, dependency.dependent.getName());
+                generator.writeStringField(TYPE, dependency.getType().toString());
                 generator.writeEndObject();
             }
             generator.writeEndArray();
@@ -110,18 +110,18 @@ public class JsonWriter {
         generator.writeObjectFieldStart(TESTS);
         for (Entry<String, Set<TestProject>> entry : testsMap.entrySet()) {
             generator.writeArrayFieldStart(entry.getKey());
-            for (TestProject p : entry.getValue()) {
+            for (TestProject testProject : entry.getValue()) {
                 generator.writeStartObject();
-                generator.writeStringField(PROJECT, p.getName());
-                generator.writeStringField(FILENAME, p.getFilename());
+                generator.writeStringField(PROJECT, testProject.getName());
+                generator.writeStringField(FILENAME, testProject.getFilename());
                 generator.writeArrayFieldStart(SUITES);
-                for (TestSuite s : p.getTestSuites()) {
+                for (TestSuite testSuite : testProject.getTestSuites()) {
                     generator.writeStartObject();
-                    generator.writeStringField(NAME, s.getName());
+                    generator.writeStringField(NAME, testSuite.getName());
                     generator.writeArrayFieldStart(CASES);
-                    for (TestCase c : s.getTestCases()) {
+                    for (TestCase testCase : testSuite.getTestCases()) {
                         generator.writeStartObject();
-                        generator.writeStringField(NAME, c.getName());
+                        generator.writeStringField(NAME, testCase.getName());
                         generator.writeEndObject();
                     }
                     generator.writeEndArray();
