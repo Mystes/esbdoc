@@ -78,11 +78,13 @@ public class CarAnalyzer {
     }
 
     private void processFileObjects(List<FileObject> carFileObjects, String outputDestination, List<FileObject> testFileObjects) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
-        getArtifactMap(carFileObjects);
-        getForwardDependencyMap();
+        //TODO What are all these different maps actually used for? Why not use some easily understandabale structure instead?
+        this.artifactMap = getArtifactMap(carFileObjects);
+        this.forwardDependencyMap = getForwardDependencyMap();
         buildTestFileMap(testFileObjects);
-        // Process sequence diagrams
+        // Process sequence diagrams //wow really?
         Map<String, SequenceItem> seqs = SequenceDiagramBuilder.instance().getSequenceItemMap();
+        //TODO So I'm wondering about why we're writing outputfiles, eh, twice maybe? At least using two methods.
         writeOutputFiles(outputDestination);
         SequenceDiagramBuilder.instance().writeOutputFile(outputDestination);
     }
@@ -106,7 +108,8 @@ public class CarAnalyzer {
      * @throws IOException
      * @throws SaxonApiException
      */
-    private SortedMap<String, Artifact> getArtifactMap(List<FileObject> carFileObjects) throws IOException, SaxonApiException, SAXException, XPathExpressionException, JaxenException {
+    private ArtifactMap getArtifactMap(List<FileObject> carFileObjects) throws IOException, SaxonApiException, SAXException, XPathExpressionException, JaxenException {
+        ArtifactMap artifactMap = new ArtifactMap();
         for (FileObject carFileObject : carFileObjects) {
             FileObject artifactsFileObject = carFileObject.getChild("artifacts.xml");
             log.info(MessageFormat.format("Processing artifacts.xml file: [{0}]", artifactsFileObject.getURL().toString()));
@@ -595,7 +598,8 @@ public class CarAnalyzer {
      * @throws SaxonApiException
      * @throws IOException
      */
-    private SortedMap<Artifact, Set<Dependency>> getForwardDependencyMap() throws SaxonApiException, IOException {
+    private ArtifactDependencyMap getForwardDependencyMap() throws SaxonApiException, IOException {
+        ArtifactDependencyMap forwardDependencyMap = new ArtifactDependencyMap();
         for (Artifact artifact : artifactMap.values()) {
             FileObject artifactFileObject = fileSystemManager.resolveFile(artifact.getCarPath() + artifact.getPath());
             if (!artifactFileObject.exists()) {
@@ -672,6 +676,7 @@ public class CarAnalyzer {
                 }
             }
         }
+        //TODO are we getting forward or reverse dep map? why build reverse here then?
         buildReverseDependencyMap(forwardDependencyMap);
         return forwardDependencyMap;
     }
