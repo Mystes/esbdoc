@@ -82,15 +82,15 @@ public class CarAnalyzer {
         this.artifactMap = getArtifactMap(carFileObjects);
         this.forwardDependencyMap = getForwardDependencyMap(artifactMap);
         this.reverseDependencyMap = buildReverseDependencyMap(forwardDependencyMap);
-        buildTestFileMap(testFileObjects);
+        this.testsMap = buildTestFileMap(testFileObjects);
         // Process sequence diagrams //wow really?
         Map<String, SequenceItem> seqs = SequenceDiagramBuilder.instance().getSequenceItemMap();
         //TODO So I'm wondering about why we're writing outputfiles, eh, twice maybe? At least using two methods.
-        writeOutputFiles(outputDestination);
+        writeOutputFiles(forwardDependencyMap, reverseDependencyMap, testsMap, artifactMap, outputDestination);
         SequenceDiagramBuilder.instance().writeOutputFile(outputDestination);
     }
 
-    private void writeOutputFiles(String outputFilename) throws IOException {
+    private void writeOutputFiles(ArtifactDependencyMap forwardDependencyMap, ArtifactDependencyMap reverseDependencyMap, TestMap testsMap, ArtifactMap artifactMap, String outputFilename) throws IOException {
         Files.buildDirectoryPathFor(outputFilename);
         Files.writeTextTo(outputFilename, forwardDependencyMap.toDependencyStrings());
 
@@ -134,7 +134,8 @@ public class CarAnalyzer {
      * @throws IOException
      * @throws SaxonApiException
      */
-    private SortedMap<String, Set<TestProject>> buildTestFileMap(List<FileObject> testFileObjects) throws IOException, SaxonApiException, SAXException, XPathExpressionException, JaxenException {
+    private TestMap buildTestFileMap(List<FileObject> testFileObjects) throws IOException, SaxonApiException, SAXException, XPathExpressionException, JaxenException {
+        TestMap testsMap = new TestMap();
         if (testFileObjects != null) {
             for (FileObject testFileObject : testFileObjects) {
                 log.info(MessageFormat.format("Processing SoapUI file: [{0}]", testFileObject.getURL().toString()));
@@ -148,12 +149,12 @@ public class CarAnalyzer {
                 // iterate test suites for every artifact and add it to testsMap
                 for (String artifact : testSuiteMap.keySet()) {
                     TestProject project = new TestProject(rootElement.getAttributeValue(NAME_Q), testFileObject.getName().getBaseName(), testSuiteMap.get(artifact));
-                    addTestProjectForArtifact(artifact, project);
+                    addTestProjectForArtifact(testsMap, artifact, project);
 
                     // Add also test references to all forward dependencies
                     // List is created to keep track that we are adding references to certain artifact only once
                     List<String> artifactList = new ArrayList<String>();
-                    addTestsToForwardDependencies(artifact, project, artifactList);
+                    addTestsToForwardDependencies(testsMap, artifact, project, artifactList);
                 }
             }
         }
@@ -325,16 +326,16 @@ public class CarAnalyzer {
      * list. Artifact is only processed if it has not been processed before (=
      * not in the given list)
      */
-    private void addTestsToForwardDependencies(String artifactName, TestProject project, List<String> artifactList) {
+    private void addTestsToForwardDependencies(TestMap testsMap, String artifactName, TestProject project, List<String> artifactList) {
         Artifact artifact = getArtifactFromString(artifactName);
         if (forwardDependencyMap.containsKey(artifact)) {
             for (Dependency d : forwardDependencyMap.get(artifact)) {
                 if (d.getDependency() instanceof Artifact) {
                     Artifact a = (Artifact) d.getDependency();
                     if (!artifactList.contains(a.getName())) {
-                        addTestProjectForArtifact(a.getName(), project);
+                        addTestProjectForArtifact(testsMap, a.getName(), project);
                         artifactList.add(a.getName());
-                        addTestsToForwardDependencies(a.getName(), project, artifactList);
+                        addTestsToForwardDependencies(testsMap, a.getName(), project, artifactList);
                     }
                 }
             }
@@ -347,7 +348,7 @@ public class CarAnalyzer {
      * @param artifact
      * @param project
      */
-    private void addTestProjectForArtifact(String artifact, TestProject project) {
+    private void addTestProjectForArtifact(TestMap testsMap, String artifact, TestProject project) {
         if (!testsMap.containsKey(artifact)) {
             HashSet<TestProject> projects = new HashSet<TestProject>();
             testsMap.put(artifact, projects);
