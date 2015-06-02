@@ -81,6 +81,7 @@ public class CarAnalyzer {
         //TODO What are all these different maps actually used for? Why not use some easily understandabale structure instead?
         this.artifactMap = getArtifactMap(carFileObjects);
         this.forwardDependencyMap = getForwardDependencyMap();
+        this.reverseDependencyMap = buildReverseDependencyMap(forwardDependencyMap);
         buildTestFileMap(testFileObjects);
         // Process sequence diagrams //wow really?
         Map<String, SequenceItem> seqs = SequenceDiagramBuilder.instance().getSequenceItemMap();
@@ -676,12 +677,11 @@ public class CarAnalyzer {
                 }
             }
         }
-        //TODO are we getting forward or reverse dep map? why build reverse here then?
-        buildReverseDependencyMap(forwardDependencyMap);
         return forwardDependencyMap;
     }
 
-    private void buildReverseDependencyMap(Map<Artifact, Set<Dependency>> forwardDependencyMap) {
+    private ArtifactDependencyMap buildReverseDependencyMap(Map<Artifact, Set<Dependency>> forwardDependencyMap) {
+        ArtifactDependencyMap reverseDependencyMap = new ArtifactDependencyMap();
         for (Map.Entry<Artifact, Set<Dependency>> entry : forwardDependencyMap.entrySet()) {
             for (Dependency dependency : entry.getValue()) {
                 if (dependency.getDependency() instanceof Artifact) {
@@ -695,6 +695,7 @@ public class CarAnalyzer {
                 }
             }
         }
+        return reverseDependencyMap;
     }
 
     /**
