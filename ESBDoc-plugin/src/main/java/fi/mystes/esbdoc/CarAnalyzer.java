@@ -80,7 +80,7 @@ public class CarAnalyzer {
     private void processFileObjects(List<FileObject> carFileObjects, String outputDestination, List<FileObject> testFileObjects) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
         //TODO What are all these different maps actually used for? Why not use some easily understandabale structure instead?
         this.artifactMap = getArtifactMap(carFileObjects);
-        this.forwardDependencyMap = getForwardDependencyMap();
+        this.forwardDependencyMap = getForwardDependencyMap(artifactMap);
         this.reverseDependencyMap = buildReverseDependencyMap(forwardDependencyMap);
         buildTestFileMap(testFileObjects);
         // Process sequence diagrams //wow really?
@@ -599,7 +599,7 @@ public class CarAnalyzer {
      * @throws SaxonApiException
      * @throws IOException
      */
-    private ArtifactDependencyMap getForwardDependencyMap() throws SaxonApiException, IOException {
+    private ArtifactDependencyMap getForwardDependencyMap(ArtifactMap artifactMap) throws SaxonApiException, IOException {
         ArtifactDependencyMap forwardDependencyMap = new ArtifactDependencyMap();
         for (Artifact artifact : artifactMap.values()) {
             FileObject artifactFileObject = fileSystemManager.resolveFile(artifact.getCarPath() + artifact.getPath());
