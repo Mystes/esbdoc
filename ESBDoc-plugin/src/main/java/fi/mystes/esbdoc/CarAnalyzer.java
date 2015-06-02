@@ -75,11 +75,12 @@ public class CarAnalyzer {
 
     private void processFileObjects(List<FileObject> carFileObjects, String outputDestination, List<FileObject> testFileObjects) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
         //TODO What are all these different maps actually used for? Why not use some easily understandabale structure instead?
-        ArtifactMap artifactMap = getArtifactMap(carFileObjects);
-        ArtifactDependencyMap forwardDependencyMap = getForwardDependencyMap(artifactMap);
+        ArtifactMap artifactMap = buildArtifactMap(carFileObjects);
+        ArtifactDependencyMap forwardDependencyMap = buildForwardDependencyMap(artifactMap);
         ArtifactDependencyMap reverseDependencyMap = buildReverseDependencyMap(forwardDependencyMap);
         TestMap testsMap = buildTestFileMap(artifactMap, forwardDependencyMap, testFileObjects);
         // Process sequence diagrams //wow really?
+        //TODO Looks like return value of SequenceDiagramBuilder.instance().getSequenceItemMap() is never used. Does it do some secret stuff instead?
         Map<String, SequenceItem> seqs = SequenceDiagramBuilder.instance().getSequenceItemMap();
         //TODO So I'm wondering about why we're writing outputfiles, eh, twice maybe? At least using two methods.
         writeOutputFiles(forwardDependencyMap, reverseDependencyMap, testsMap, artifactMap, outputDestination);
@@ -105,7 +106,7 @@ public class CarAnalyzer {
      * @throws IOException
      * @throws SaxonApiException
      */
-    private ArtifactMap getArtifactMap(List<FileObject> carFileObjects) throws IOException, SaxonApiException, SAXException, XPathExpressionException, JaxenException {
+    private ArtifactMap buildArtifactMap(List<FileObject> carFileObjects) throws IOException, SaxonApiException, SAXException, XPathExpressionException, JaxenException {
         ArtifactMap artifactMap = new ArtifactMap();
         for (FileObject carFileObject : carFileObjects) {
             FileObject artifactsFileObject = carFileObject.getChild("artifacts.xml");
@@ -113,9 +114,7 @@ public class CarAnalyzer {
             XdmValue value = SaxonXPath.apply(DEPENDENCY_XPATH_STRING).to(artifactsFileObject).andReturnAnXdmValue();
             for (XdmItem item : value) {
                 Artifact artifact = getArtifact((XdmNode) item, carFileObject);
-                if (artifact != null) {
-                    artifactMap.put(artifact.getName(), artifact);
-                }
+                artifactMap.addValid(artifact);
             }
         }
         return artifactMap;
@@ -596,7 +595,7 @@ public class CarAnalyzer {
      * @throws SaxonApiException
      * @throws IOException
      */
-    private ArtifactDependencyMap getForwardDependencyMap(ArtifactMap artifactMap) throws SaxonApiException, IOException {
+    private ArtifactDependencyMap buildForwardDependencyMap(ArtifactMap artifactMap) throws SaxonApiException, IOException {
         ArtifactDependencyMap forwardDependencyMap = new ArtifactDependencyMap();
         for (Artifact artifact : artifactMap.values()) {
             FileObject artifactFileObject = fileSystemManager.resolveFile(artifact.getCarPath() + artifact.getPath());
