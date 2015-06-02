@@ -34,10 +34,6 @@ public class CarAnalyzer {
 
     private static Log log = LogFactory.getLog(CarAnalyzer.class);
 
-    private ArtifactMap artifactMap = new ArtifactMap();
-    private ArtifactDependencyMap forwardDependencyMap = new ArtifactDependencyMap();
-    private ArtifactDependencyMap reverseDependencyMap = new ArtifactDependencyMap();
-    private TestMap testsMap = new TestMap();
     private List<String> forbiddenArtifactNames = new ArrayList<String>(Arrays.asList("services"));
     private SortedMap<String, String> servicePathMap = new TreeMap<String, String>();
 
@@ -79,10 +75,10 @@ public class CarAnalyzer {
 
     private void processFileObjects(List<FileObject> carFileObjects, String outputDestination, List<FileObject> testFileObjects) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
         //TODO What are all these different maps actually used for? Why not use some easily understandabale structure instead?
-        this.artifactMap = getArtifactMap(carFileObjects);
-        this.forwardDependencyMap = getForwardDependencyMap(artifactMap);
-        this.reverseDependencyMap = buildReverseDependencyMap(forwardDependencyMap);
-        this.testsMap = buildTestFileMap(testFileObjects);
+        ArtifactMap artifactMap = getArtifactMap(carFileObjects);
+        ArtifactDependencyMap forwardDependencyMap = getForwardDependencyMap(artifactMap);
+        ArtifactDependencyMap reverseDependencyMap = buildReverseDependencyMap(forwardDependencyMap);
+        TestMap testsMap = buildTestFileMap(artifactMap, forwardDependencyMap, testFileObjects);
         // Process sequence diagrams //wow really?
         Map<String, SequenceItem> seqs = SequenceDiagramBuilder.instance().getSequenceItemMap();
         //TODO So I'm wondering about why we're writing outputfiles, eh, twice maybe? At least using two methods.
@@ -134,7 +130,7 @@ public class CarAnalyzer {
      * @throws IOException
      * @throws SaxonApiException
      */
-    private TestMap buildTestFileMap(List<FileObject> testFileObjects) throws IOException, SaxonApiException, SAXException, XPathExpressionException, JaxenException {
+    private TestMap buildTestFileMap(ArtifactMap artifactMap, ArtifactDependencyMap forwardDependencyMap, List<FileObject> testFileObjects) throws IOException, SaxonApiException, SAXException, XPathExpressionException, JaxenException {
         TestMap testsMap = new TestMap();
         if (testFileObjects != null) {
             for (FileObject testFileObject : testFileObjects) {
@@ -144,7 +140,7 @@ public class CarAnalyzer {
                 XdmNode rootElement = (XdmNode) value.itemAt(0);
 
                 //find artifacts from the file and map them to TestCases and TestSuites
-                SortedMap<String, Set<TestSuite>> testSuiteMap = buildTestSuiteMap(rootElement);
+                SortedMap<String, Set<TestSuite>> testSuiteMap = buildTestSuiteMap(artifactMap, rootElement);
 
                 // iterate test suites for every artifact and add it to testsMap
                 for (String artifact : testSuiteMap.keySet()) {
@@ -154,7 +150,7 @@ public class CarAnalyzer {
                     // Add also test references to all forward dependencies
                     // List is created to keep track that we are adding references to certain artifact only once
                     List<String> artifactList = new ArrayList<String>();
-                    addTestsToForwardDependencies(testsMap, artifact, project, artifactList);
+                    addTestsToForwardDependencies(artifactMap, forwardDependencyMap, testsMap, artifact, project, artifactList);
                 }
             }
         }
@@ -171,7 +167,7 @@ public class CarAnalyzer {
      * @throws IOException
      * @throws SaxonApiException
      */
-    private SortedMap<String, Set<TestSuite>> buildTestSuiteMap(XdmNode soapUIProjectRoot) throws IOException, SaxonApiException {
+    private SortedMap<String, Set<TestSuite>> buildTestSuiteMap(ArtifactMap artifactMap, XdmNode soapUIProjectRoot) throws IOException, SaxonApiException {
         SortedMap<String, String> testProjectPropertiesMap = new TreeMap<String, String>();
         processProperties(soapUIProjectRoot, testProjectPropertiesMap, TestItemType.PROJECT);
 
@@ -227,7 +223,7 @@ public class CarAnalyzer {
                                             }
                                         }
 
-                                        Artifact fact = getArtifactFromString(propertyHandledEndpoint);
+                                        Artifact fact = getArtifactFromString(artifactMap, propertyHandledEndpoint);
                                         if (fact != null) {
                                             TestCase c = new TestCase(testCaseNode.getAttributeValue(NAME_Q));
                                             if (!testCaseMap.containsKey(fact.getName())) {
@@ -326,8 +322,8 @@ public class CarAnalyzer {
      * list. Artifact is only processed if it has not been processed before (=
      * not in the given list)
      */
-    private void addTestsToForwardDependencies(TestMap testsMap, String artifactName, TestProject project, List<String> artifactList) {
-        Artifact artifact = getArtifactFromString(artifactName);
+    private void addTestsToForwardDependencies(ArtifactMap artifactMap, ArtifactDependencyMap forwardDependencyMap, TestMap testsMap, String artifactName, TestProject project, List<String> artifactList) {
+        Artifact artifact = getArtifactFromString(artifactMap, artifactName);
         if (forwardDependencyMap.containsKey(artifact)) {
             for (Dependency d : forwardDependencyMap.get(artifact)) {
                 if (d.getDependency() instanceof Artifact) {
@@ -335,7 +331,7 @@ public class CarAnalyzer {
                     if (!artifactList.contains(a.getName())) {
                         addTestProjectForArtifact(testsMap, a.getName(), project);
                         artifactList.add(a.getName());
-                        addTestsToForwardDependencies(testsMap, a.getName(), project, artifactList);
+                        addTestsToForwardDependencies(artifactMap, forwardDependencyMap, testsMap, a.getName(), project, artifactList);
                     }
                 }
             }
@@ -619,7 +615,7 @@ public class CarAnalyzer {
                     }
 
                     log.debug("Adding dependencies of type " + dependencyType);
-                    dependencies.addAll(getDependencySet(artifact, artifactXml, dependencyType));
+                    dependencies.addAll(getDependencySet(artifactMap, artifact, artifactXml, dependencyType));
                 }
 
                 log.debug("Artifact type is: " + artifact.getType());
@@ -639,7 +635,7 @@ public class CarAnalyzer {
                             System.out.println("The task: " + artifact.getName() + " has multiple to properties. This is probably an error.");
                         }
 
-                        Artifact taskTo = getArtifactFromString(dependencyString.iterator().next());
+                        Artifact taskTo = getArtifactFromString(artifactMap, dependencyString.iterator().next());
 
                         if (taskTo != null) {
                             try {
@@ -667,7 +663,7 @@ public class CarAnalyzer {
                 List<String> dependencies = artifact.description.dependencies;
                 if (!dependencies.isEmpty()) {
                     for (String dependencyName : dependencies) {
-                        Artifact dependency = getArtifactFromString(dependencyName);
+                        Artifact dependency = getArtifactFromString(artifactMap, dependencyName);
                         Set<Dependency> artifactDependencies = forwardDependencyMap.get(artifact);
                         if (artifactDependencies == null) {
                             artifactDependencies = new HashSet<Dependency>();
@@ -708,11 +704,11 @@ public class CarAnalyzer {
      * @return
      * @throws SaxonApiException
      */
-    private Set<Dependency> getDependencySet(Artifact artifact, XdmNode context, DependencyType dependencyType) throws SaxonApiException {
+    private Set<Dependency> getDependencySet(ArtifactMap artifactMap, Artifact artifact, XdmNode context, DependencyType dependencyType) throws SaxonApiException {
         Set<Dependency> dependencies = new HashSet<Dependency>();
         for (String dependencyString : evaluateXPathToStringSet(context, dependencyType.getXPath())) {
             currentObject = artifact.getName(); // Save current artifact for  warning logs.
-            Object dependencyObject = getArtifactFromString(dependencyString);
+            Object dependencyObject = getArtifactFromString(artifactMap, dependencyString);
             if (dependencyObject == null) {
                 dependencyObject = dependencyString;
             }
@@ -729,7 +725,7 @@ public class CarAnalyzer {
      * @param string
      * @return
      */
-    private Artifact getArtifactFromString(String string) {
+    private Artifact getArtifactFromString(ArtifactMap artifactMap, String string) {
         // The typical case: string is an artifact name
         Artifact dependency = artifactMap.get(string);
 
@@ -742,11 +738,11 @@ public class CarAnalyzer {
                 if ("mailto".equals(scheme) || "vfs".equals(scheme)) {
                     return null;
                 } else if ("http".equals(scheme) || "https".equals(scheme)) {
-                    return getArtifactFromHttpUri(uri);
+                    return getArtifactFromHttpUri(artifactMap, uri);
                 } else if ("jms".equals(scheme)) {
-                    return getArtifactFromJmsUri(uri);
+                    return getArtifactFromJmsUri(artifactMap, uri);
                 } else if ("gov".equals(scheme) || "conf".equals(scheme)) {
-                    return getArtifactFromRegistyUri(uri);
+                    return getArtifactFromRegistyUri(artifactMap, uri);
                 } else {
                     log.warn(currentObject + "Unrecognized URI scheme for URI: " + uri.toString());
                 }
@@ -771,8 +767,8 @@ public class CarAnalyzer {
         return string.replace('\\', '/');
     }
 
-    private Artifact getArtifactFromRegistyUri(URI uri) {
-        return getArtifactFromPath(uri.getSchemeSpecificPart());
+    private Artifact getArtifactFromRegistyUri(ArtifactMap artifactMap, URI uri) {
+        return getArtifactFromPath(artifactMap, uri.getSchemeSpecificPart());
     }
 
     /**
@@ -789,8 +785,8 @@ public class CarAnalyzer {
      * @param uri
      * @return
      */
-    private Artifact getArtifactFromHttpUri(URI uri) {
-        return getArtifactFromPath(uri.getPath());
+    private Artifact getArtifactFromHttpUri(ArtifactMap artifactMap, URI uri) {
+        return getArtifactFromPath(artifactMap, uri.getPath());
     }
 
     /**
@@ -800,7 +796,7 @@ public class CarAnalyzer {
      * @param path
      * @return
      */
-    private Artifact getArtifactFromPath(String path) {
+    private Artifact getArtifactFromPath(ArtifactMap artifactMap, String path) {
         // path might be in the service path map
         if (servicePathMap.containsKey(path)) {
             String artifactName = servicePathMap.get(path);
@@ -837,7 +833,7 @@ public class CarAnalyzer {
         return null;
     }
 
-    private Artifact getArtifactFromJmsUri(URI uri) {
+    private Artifact getArtifactFromJmsUri(ArtifactMap artifactMap, URI uri) {
         String artifactNameCandidate = uri.getPath().replace("/", "");
         return artifactMap.get(artifactNameCandidate);
     }
