@@ -44,4 +44,12 @@ public enum ArtifactType {
     public String toString() {
         return typeString;
     }
+
+    public boolean is(ArtifactType that){
+        return this == that;
+    }
+
+    public boolean isNot(ArtifactType that){
+        return !is(that);
+    }
 }

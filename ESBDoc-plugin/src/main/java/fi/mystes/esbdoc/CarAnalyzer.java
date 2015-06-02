@@ -459,20 +459,22 @@ public class CarAnalyzer {
     }
 
     private void getServicePath(ArtifactType artifactType, String artifactName, String artifactFilePath) throws FileSystemException, JaxenException {
+        //TODO this is NOT A GETTER!!
         FileObject artifactFileObject = fileSystemManager.resolveFile(artifactFilePath);
 
         OMElement root = OMXMLBuilderFactory.createOMBuilder(artifactFileObject.getContent().getInputStream()).getDocumentElement();
 
-        if (artifactType == ArtifactType.API) {
-            String context = root.getAttributeValue(CONTEXT_Q);
-            //String urlMapping = root.getAttributeValue(URL_MAPPING_Q);
-            Iterator resourceElements = root.getChildrenWithName(RESOURCE_Q);
-            while (resourceElements.hasNext()) {
-                OMElement resourceElement = (OMElement) resourceElements.next();
-                String urlMapping = resourceElement.getAttributeValue(URL_MAPPING_Q);
-                String path = context + urlMapping;
-                servicePathMap.put(path, artifactName);
-            }
+        if(artifactType.isNot(ArtifactType.API)){
+            return;
+        }
+
+        String context = root.getAttributeValue(CONTEXT_Q);
+        Iterator resourceElements = root.getChildrenWithName(RESOURCE_Q);
+        while (resourceElements.hasNext()) {
+            OMElement resourceElement = (OMElement) resourceElements.next();
+            String urlMapping = resourceElement.getAttributeValue(URL_MAPPING_Q);
+            String path = context + urlMapping;
+            servicePathMap.put(path, artifactName);
         }
     }
 
