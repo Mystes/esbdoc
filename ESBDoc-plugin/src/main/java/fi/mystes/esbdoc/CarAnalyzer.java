@@ -109,13 +109,20 @@ public class CarAnalyzer {
     private ArtifactMap buildArtifactMap(List<FileObject> carFileObjects) throws IOException, SaxonApiException, SAXException, XPathExpressionException, JaxenException {
         ArtifactMap artifactMap = new ArtifactMap();
         for (FileObject carFileObject : carFileObjects) {
-            FileObject artifactsFileObject = carFileObject.getChild("artifacts.xml");
-            log.info(MessageFormat.format("Processing artifacts.xml file: [{0}]", artifactsFileObject.getURL().toString()));
-            XdmValue value = SaxonXPath.apply(DEPENDENCY_XPATH_STRING).to(artifactsFileObject).andReturnAnXdmValue();
-            for (XdmItem item : value) {
-                Artifact artifact = getArtifact((XdmNode) item, carFileObject);
-                artifactMap.addValid(artifact);
-            }
+            ArtifactMap partialArtifactMap = buildArtifactMap(carFileObject);
+            artifactMap.putAll(partialArtifactMap);
+        }
+        return artifactMap;
+    }
+
+    private ArtifactMap buildArtifactMap(FileObject carFileObject) throws SaxonApiException, IOException, SAXException, XPathExpressionException, JaxenException {
+        FileObject artifactsFileObject = carFileObject.getChild("artifacts.xml");
+        log.info(MessageFormat.format("Processing artifacts.xml file: [{0}]", artifactsFileObject.getURL().toString()));
+        XdmValue value = SaxonXPath.apply(DEPENDENCY_XPATH_STRING).to(artifactsFileObject).andReturnAnXdmValue();
+        ArtifactMap artifactMap = new ArtifactMap();
+        for (XdmItem item : value) {
+            Artifact artifact = getArtifact((XdmNode) item, carFileObject);
+            artifactMap.addValid(artifact);
         }
         return artifactMap;
     }
