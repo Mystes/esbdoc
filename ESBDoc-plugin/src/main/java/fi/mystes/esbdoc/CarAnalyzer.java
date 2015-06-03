@@ -464,10 +464,8 @@ public class CarAnalyzer {
         if(artifactType.isNot(ArtifactType.API)){
             return;
         }
-        
-        FileObject artifactFileObject = fileSystemManager.resolveFile(artifactFilePath);
 
-        OMElement root = OMXMLBuilderFactory.createOMBuilder(artifactFileObject.getContent().getInputStream()).getDocumentElement();
+        OMElement root = getRootOfXmlFile(artifactFilePath);
 
         String context = root.getAttributeValue(CONTEXT_Q);
         Iterator resourceElements = root.getChildrenWithName(RESOURCE_Q);
@@ -479,10 +477,14 @@ public class CarAnalyzer {
         }
     }
 
-    private ArtifactDescription getArtifactDescription(String artifactFilePath) throws IOException, JaxenException {
+    private OMElement getRootOfXmlFile(String artifactFilePath) throws FileSystemException {
         FileObject artifactFileObject = fileSystemManager.resolveFile(artifactFilePath);
+        InputStream inputStream = artifactFileObject.getContent().getInputStream();
+        return OMXMLBuilderFactory.createOMBuilder(inputStream).getDocumentElement();
+    }
 
-        OMElement root = OMXMLBuilderFactory.createOMBuilder(artifactFileObject.getContent().getInputStream()).getDocumentElement();
+    private ArtifactDescription getArtifactDescription(String artifactFilePath) throws IOException, JaxenException {
+        OMElement root = getRootOfXmlFile(artifactFilePath);
 
         Object evaluationResult = SynapseXPath.evaluateOmElement(root);
         if (evaluationResult instanceof List) {
