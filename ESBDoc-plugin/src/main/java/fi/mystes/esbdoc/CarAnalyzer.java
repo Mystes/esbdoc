@@ -487,48 +487,55 @@ public class CarAnalyzer {
         OMElement root = getRootOfXmlFile(artifactFilePath);
 
         Object evaluationResult = SynapseXPath.evaluateOmElement(root);
-        if (evaluationResult instanceof List) {
-            List resultList = (List) evaluationResult;
 
-            if (!resultList.isEmpty()) {
-                OMElement descriptionElement = (OMElement) resultList.get(0);
-                if (descriptionElement != null) {
-                    String purpose = null;
-                    ArtifactInterfaceInfo receives = null, returns = null;
+        if(null == evaluationResult){
+            return null;
+        }
 
-                    OMElement purposeElement = descriptionElement.getFirstChildWithName(PURPOSE_Q);
-                    if (purposeElement != null) {
-                        purpose = purposeElement.getText();
-                    }
+        if(!(evaluationResult instanceof List)){
+            return null;
+        }
 
-                    OMElement receivesElement = descriptionElement.getFirstChildWithName(RECEIVES_Q);
-                    if (receivesElement != null) {
-                        receives = getArtifactInterfaceInfo(receivesElement);
-                    }
+        List resultList = (List) evaluationResult;
 
-                    OMElement returnsElement = descriptionElement.getFirstChildWithName(RETURNS_Q);
-                    if (returnsElement != null) {
-                        returns = getArtifactInterfaceInfo(returnsElement);
-                    }
+        if (!resultList.isEmpty()) {
+            OMElement descriptionElement = (OMElement) resultList.get(0);
+            if (descriptionElement != null) {
+                String purpose = null;
+                ArtifactInterfaceInfo receives = null, returns = null;
 
-                    OMElement dependeciesElement = descriptionElement.getFirstChildWithName(DEPENDENCIES_Q);
-                    List<String> programmerDefinedDependencies = null;
-                    if (dependeciesElement != null) {
-                        Iterator gator = dependeciesElement.getChildren();
-                        programmerDefinedDependencies = new ArrayList<String>();
-                        while (gator.hasNext()) {
-                            Object element = gator.next();
-                            if (element instanceof OMElementImpl) {
-                                OMElementImpl dependencyElement = (OMElementImpl)element;
-                                String dependencyName = dependencyElement.getText();
-                                programmerDefinedDependencies.add(dependencyName);
-                            }
+                OMElement purposeElement = descriptionElement.getFirstChildWithName(PURPOSE_Q);
+                if (purposeElement != null) {
+                    purpose = purposeElement.getText();
+                }
+
+                OMElement receivesElement = descriptionElement.getFirstChildWithName(RECEIVES_Q);
+                if (receivesElement != null) {
+                    receives = getArtifactInterfaceInfo(receivesElement);
+                }
+
+                OMElement returnsElement = descriptionElement.getFirstChildWithName(RETURNS_Q);
+                if (returnsElement != null) {
+                    returns = getArtifactInterfaceInfo(returnsElement);
+                }
+
+                OMElement dependeciesElement = descriptionElement.getFirstChildWithName(DEPENDENCIES_Q);
+                List<String> programmerDefinedDependencies = null;
+                if (dependeciesElement != null) {
+                    Iterator gator = dependeciesElement.getChildren();
+                    programmerDefinedDependencies = new ArrayList<String>();
+                    while (gator.hasNext()) {
+                        Object element = gator.next();
+                        if (element instanceof OMElementImpl) {
+                            OMElementImpl dependencyElement = (OMElementImpl)element;
+                            String dependencyName = dependencyElement.getText();
+                            programmerDefinedDependencies.add(dependencyName);
                         }
                     }
+                }
 
-                    if (purpose != null || receives != null || returns != null || programmerDefinedDependencies != null) {
-                        return ArtifactDescription.with(purpose, receives, returns, programmerDefinedDependencies);
-                    }
+                if (purpose != null || receives != null || returns != null || programmerDefinedDependencies != null) {
+                    return ArtifactDescription.with(purpose, receives, returns, programmerDefinedDependencies);
                 }
             }
         }
