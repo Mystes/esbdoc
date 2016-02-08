@@ -38,7 +38,7 @@ public class CarAnalyzer {
     private SortedMap<String, String> servicePathMap = new TreeMap<String, String>();
 
     private FileSystemManager fileSystemManager;
-    private String currentObject = null; // Used for information logging if sequence or proxy has  invalid fields
+    private String currentObject = null; // Used for information logging if sequence or proxy has invalid fields
 
     public CarAnalyzer() throws FileSystemException, ParserConfigurationException, JaxenException {
             fileSystemManager = VFS.getManager();
@@ -79,9 +79,6 @@ public class CarAnalyzer {
         ArtifactDependencyMap forwardDependencyMap = buildForwardDependencyMap(artifactMap);
         ArtifactDependencyMap reverseDependencyMap = buildReverseDependencyMap(forwardDependencyMap);
         TestMap testsMap = buildTestFileMap(artifactMap, forwardDependencyMap, testFileObjects);
-        // Process sequence diagrams //wow really?
-        //TODO Looks like return value of SequenceDiagramBuilder.instance().getSequenceItemMap() is never used. Does it do some secret stuff instead?
-        Map<String, SequenceItem> seqs = SequenceDiagramBuilder.instance().getSequenceItemMap();
         //TODO So I'm wondering about why we're writing outputfiles, eh, twice maybe? At least using two methods.
         writeOutputFiles(forwardDependencyMap, reverseDependencyMap, testsMap, artifactMap, outputDestination);
         SequenceDiagramBuilder.instance().writeOutputFile(outputDestination);
@@ -877,5 +874,4 @@ public class CarAnalyzer {
 
         return SaxonXPath.apply(xpath).to(context).andReturnASetOf(String.class);
     }
-
 }
