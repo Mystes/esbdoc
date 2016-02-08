@@ -39,7 +39,6 @@ public class CarAnalyzer {
     private SortedMap<String, String> servicePathMap = new TreeMap<String, String>();
 
     private FileSystemManager fileSystemManager;
-    private String currentObject = null; // Used for information logging if sequence or proxy has  invalid fields
 
     public CarAnalyzer() throws FileSystemException, ParserConfigurationException, JaxenException {
             fileSystemManager = VFS.getManager();
@@ -230,7 +229,7 @@ public class CarAnalyzer {
                                             }
                                         }
 
-                                        Artifact fact = getArtifactFromString(artifactMap, propertyHandledEndpoint);
+                                        Artifact fact = ArtifactUtil.getArtifactFromString(servicePathMap, artifactMap, propertyHandledEndpoint);
                                         if (fact != null) {
                                             TestCase c = new TestCase(testCaseNode.getAttributeValue(NAME_Q));
                                             if (!testCaseMap.containsKey(fact.getName())) {
@@ -330,7 +329,7 @@ public class CarAnalyzer {
      * not in the given list)
      */
     private void addTestsToForwardDependencies(ArtifactMap artifactMap, ArtifactDependencyMap forwardDependencyMap, TestMap testsMap, String artifactName, TestProject project, List<String> artifactList) {
-        Artifact artifact = getArtifactFromString(artifactMap, artifactName);
+        Artifact artifact = ArtifactUtil.getArtifactFromString(servicePathMap, artifactMap, artifactName);
         if (forwardDependencyMap.containsKey(artifact)) {
             for (Dependency d : forwardDependencyMap.get(artifact)) {
                 if (d.getDependency() instanceof Artifact) {
@@ -654,7 +653,7 @@ public class CarAnalyzer {
                             System.out.println("The task: " + artifact.getName() + " has multiple to properties. This is probably an error.");
                         }
 
-                        Artifact taskTo = getArtifactFromString(artifactMap, dependencyString.iterator().next());
+                        Artifact taskTo = ArtifactUtil.getArtifactFromString(servicePathMap, artifactMap, dependencyString.iterator().next());
 
                         if (taskTo != null) {
                             try {
@@ -682,7 +681,7 @@ public class CarAnalyzer {
                 List<String> dependencies = artifact.description.dependencies;
                 if (!dependencies.isEmpty()) {
                     for (String dependencyName : dependencies) {
-                        Artifact dependency = getArtifactFromString(artifactMap, dependencyName);
+                        Artifact dependency = ArtifactUtil.getArtifactFromString(servicePathMap, artifactMap, dependencyName);
                         Set<Dependency> artifactDependencies = forwardDependencyMap.get(artifact);
                         if (artifactDependencies == null) {
                             artifactDependencies = new HashSet<Dependency>();
@@ -726,8 +725,7 @@ public class CarAnalyzer {
     private Set<Dependency> getDependencySet(ArtifactMap artifactMap, Artifact artifact, XdmNode context, DependencyType dependencyType) throws SaxonApiException {
         Set<Dependency> dependencies = new HashSet<Dependency>();
         for (String dependencyString : evaluateXPathToStringSet(context, dependencyType.getXPath())) {
-            currentObject = artifact.getName(); // Save current artifact for  warning logs.
-            Object dependencyObject = getArtifactFromString(artifactMap, dependencyString);
+            Object dependencyObject = ArtifactUtil.getArtifactFromString(servicePathMap, artifactMap, dependencyString);
             if (dependencyObject == null) {
                 dependencyObject = dependencyString;
             }
@@ -735,132 +733,6 @@ public class CarAnalyzer {
             dependencies.add(new Dependency(artifact, dependencyObject, dependencyType));
         }
         return dependencies;
-    }
-
-    /**
-     * Returns an artifact resolved from a URL or null if no Artifact could be
-     * resolved.
-     *
-     * @param string
-     * @return
-     */
-    private Artifact getArtifactFromString(ArtifactMap artifactMap, String string) {
-        // The typical case: string is an artifact name
-        Artifact dependency = artifactMap.get(string);
-
-        if(null != dependency){
-            return dependency;
-        }
-
-        if(null == string){
-            return null;
-        }
-
-        URI uri = stringToUri(string);
-        switch(Protocol.scheme(uri)){
-            case MAILTO: case VFS: return null;
-            case HTTP:case HTTPS: return getArtifactFromHttpUri(artifactMap, uri);
-            case GOV:case CONF: return getArtifactFromRegistyUri(artifactMap, uri);
-            case JMS: return getArtifactFromJmsUri(artifactMap, uri);
-            default: return null;
-        }
-    }
-
-    /**
-     * Under Windows the Maven build sometimes creates rather ugly (and invalid)
-     * file URIs.
-     *
-     * @return
-     */
-    private String urifyString(String string) {
-        // First replace any two subsequent backslashes with a single one
-        string = string.replace("\\\\", "\\");
-        // Then replace any backslashes with a slash
-        return string.replace('\\', '/');
-    }
-
-    private URI stringToUri(String string){
-        if(StringUtils.isBlank(string)){
-            return null;
-        }
-        String urifiedString = urifyString(string);
-        try {
-            return new URI(urifiedString);
-        } catch (URISyntaxException e) {
-            log.warn(currentObject + "Unparseable URI: " + urifiedString);
-            return null;
-        }
-    }
-
-    private Artifact getArtifactFromRegistyUri(ArtifactMap artifactMap, URI uri) {
-        return getArtifactFromPath(artifactMap, uri.getSchemeSpecificPart());
-    }
-
-    /**
-     * Attemps to find a dependency by examining the URI path
-     *
-     * A URI of a proxy may take for instance the following forms:
-     * http://localhost:9768/services/EventService.SOAP11Endpoint/
-     * http://localhost:8280/services/MetadataLookup_queryProxy/GetAll
-     *
-     * JMS URIs look like:
-     * jms:/TosUserToVleChangeQueueProxy?transport.jms.ConnectionFactoryJNDIName=QueueConnectionFactory&amp;java.naming.factory.initial=org.apache.activemq.jndi.ActiveMQInitialContextFactory&amp;transport.jms.DestinationType=queue&amp;java.naming.provider.url=tcp://localhost:61616
-     * where the interesting bit is just the path part.
-     *
-     * @param uri
-     * @return
-     */
-    private Artifact getArtifactFromHttpUri(ArtifactMap artifactMap, URI uri) {
-        return getArtifactFromPath(artifactMap, uri.getPath());
-    }
-
-    /**
-     * Attemps to resolve an Artifact's name from a path String one path element
-     * at a time
-     *
-     * @param path
-     * @return
-     */
-    private Artifact getArtifactFromPath(ArtifactMap artifactMap, String path) {
-        // path might be in the service path map
-        if (servicePathMap.containsKey(path)) {
-            String artifactName = servicePathMap.get(path);
-            Artifact artifact = artifactMap.get(artifactName);
-            if (artifact != null) {
-                return artifact;
-            }
-        }
-
-        String[] pathComponents = path.split("/");
-        // Attempt to find an artifact from URL components
-        for (String pathComponent : pathComponents) {
-            Artifact artifact = artifactMap.get(pathComponent);
-            if (artifact == null) {
-                String[] componentParts = pathComponent.split("\\.");
-                String artifactNameCandidate = null;
-                for (String componentPart : componentParts) {
-                    if (artifactNameCandidate == null) {
-                        artifactNameCandidate = componentPart;
-                    } else {
-                        artifactNameCandidate += "." + componentPart;
-                    }
-
-                    artifact = artifactMap.get(artifactNameCandidate);
-
-                    if (artifact != null) {
-                        return artifact;
-                    }
-                }
-            } else {
-                return artifact;
-            }
-        }
-        return null;
-    }
-
-    private Artifact getArtifactFromJmsUri(ArtifactMap artifactMap, URI uri) {
-        String artifactNameCandidate = uri.getPath().replace("/", "");
-        return artifactMap.get(artifactNameCandidate);
     }
 
     /**
