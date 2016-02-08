@@ -34,7 +34,7 @@ public class CarAnalyzerTest {
     }
 
     @AfterClass
-    public void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() throws Exception {
 
     }
 
