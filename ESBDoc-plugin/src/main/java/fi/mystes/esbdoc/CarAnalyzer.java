@@ -4,6 +4,7 @@ import net.sf.saxon.s9api.*;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.OMXMLBuilderFactory;
 import org.apache.axiom.om.impl.llom.OMElementImpl;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.vfs2.FileObject;
@@ -747,29 +748,22 @@ public class CarAnalyzer {
         // The typical case: string is an artifact name
         Artifact dependency = artifactMap.get(string);
 
-        if (dependency == null && string != null) {
-            // If string is not an artifact name, it's probably a URI of some sort
-            string = urifyString(string);
-            try {
-                URI uri = new URI(string);
-                String scheme = uri.getScheme();
-                if ("mailto".equals(scheme) || "vfs".equals(scheme)) {
-                    return null;
-                } else if ("http".equals(scheme) || "https".equals(scheme)) {
-                    return getArtifactFromHttpUri(artifactMap, uri);
-                } else if ("jms".equals(scheme)) {
-                    return getArtifactFromJmsUri(artifactMap, uri);
-                } else if ("gov".equals(scheme) || "conf".equals(scheme)) {
-                    return getArtifactFromRegistyUri(artifactMap, uri);
-                } else {
-                    log.warn(currentObject + "Unrecognized URI scheme for URI: " + uri.toString());
-                }
-            } catch (URISyntaxException e) {
-                log.warn(currentObject + "Unparseable URI: " + string);
-            }
+        if(null != dependency){
+            return dependency;
         }
 
-        return dependency;
+        if(null == string){
+            return null;
+        }
+
+        URI uri = stringToUri(string);
+        switch(Protocol.scheme(uri)){
+            case MAILTO: case VFS: return null;
+            case HTTP:case HTTPS: return getArtifactFromHttpUri(artifactMap, uri);
+            case GOV:case CONF: return getArtifactFromRegistyUri(artifactMap, uri);
+            case JMS: return getArtifactFromJmsUri(artifactMap, uri);
+            default: return null;
+        }
     }
 
     /**
@@ -783,6 +777,19 @@ public class CarAnalyzer {
         string = string.replace("\\\\", "\\");
         // Then replace any backslashes with a slash
         return string.replace('\\', '/');
+    }
+
+    private URI stringToUri(String string){
+        if(StringUtils.isBlank(string)){
+            return null;
+        }
+        String urifiedString = urifyString(string);
+        try {
+            return new URI(urifiedString);
+        } catch (URISyntaxException e) {
+            log.warn(currentObject + "Unparseable URI: " + urifiedString);
+            return null;
+        }
     }
 
     private Artifact getArtifactFromRegistyUri(ArtifactMap artifactMap, URI uri) {
