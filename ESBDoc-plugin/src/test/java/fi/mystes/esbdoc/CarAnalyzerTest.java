@@ -70,10 +70,14 @@ public class CarAnalyzerTest {
 
         JsonObject sequenceMap = new Gson().fromJson(sequenceMapString, JsonObject.class);
         JsonObject proxyMap = new Gson().fromJson(proxyMapString, JsonObject.class);
+        JsonObject resourceObject = proxyMap.get("resources").getAsJsonObject();
+        JsonObject proxyObject = resourceObject.get("Proxy").getAsJsonObject();
 
         assertTrue(proxyMap.has("resources"));
-        //assert proxymap has "Proxy", assert description
-        //assert no other dependencies
+        assertTrue(resourceObject.has("Proxy"));
+        assertTrue(proxyObject.has("purpose"));
+        assertEquals("Test ESBDoc with a single proxy", proxyObject.get("purpose").getAsString());
+        assertTrue(resourceObject.entrySet().size() == 1);
 
         //assert sequence map empty
 

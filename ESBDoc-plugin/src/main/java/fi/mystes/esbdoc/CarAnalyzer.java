@@ -74,7 +74,7 @@ public class CarAnalyzer {
     }
 
     private void processFileObjects(List<FileObject> carFileObjects, String outputDestination, List<FileObject> testFileObjects) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
-        //TODO What are all these different maps actually used for? Why not use some easily understandabale structure instead?
+        //TODO What are all these different maps actually used for? Why not use some easily understandable structure instead?
         ArtifactMap artifactMap = buildArtifactMap(carFileObjects);
         ArtifactDependencyMap forwardDependencyMap = buildForwardDependencyMap(artifactMap);
         ArtifactDependencyMap reverseDependencyMap = buildReverseDependencyMap(forwardDependencyMap);
