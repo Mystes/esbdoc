@@ -1,11 +1,17 @@
 package fi.mystes.esbdoc;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.*;
+import static org.junit.Assert.*;
 
 import java.io.*;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -39,21 +45,54 @@ public class CarAnalyzerTest {
 
     @Test
     public void testWithSingleProxy() throws Exception {
+        String testName = "testWithSingleProxy";
 
-        createCarFile("testWithSingleProxy");
+        List<File> carFileList = new ArrayList<File>();
+        carFileList.add(createCarFile(testName));
 
-        //File[] carFiles = org.apache.commons.compress.compressors.gzip.GzipUtils.
-        String esbdocRawPath = DEFAULT_ESBDOC_RAW_PATH;
+        File[] carFiles = carFileList.toArray(new File[carFileList.size()]);
+        String esbdocRawPath = outputDestinationFor(testName);
         File[] soapUiFileSet = new File[0];
-        //car.run(carFiles, esbdocRawPath, soapUiFileSet);
+
+        car.run(carFiles, esbdocRawPath, soapUiFileSet);
+
+        String esbocSequencePath = esbdocRawPath + "-seq.json";
+        String esbDocProxyPath = esbdocRawPath + ".json";
+
+        File sequenceFile = new File(esbocSequencePath);
+        File proxyFile = new File(esbDocProxyPath);
+
+        assertTrue(sequenceFile.exists());
+        assertTrue(proxyFile.exists());
+
+        String sequenceMapString = FileUtils.readFileToString(sequenceFile);
+        String proxyMapString = FileUtils.readFileToString(proxyFile);
+
+        JsonObject sequenceMap = new Gson().fromJson(sequenceMapString, JsonObject.class);
+        JsonObject proxyMap = new Gson().fromJson(proxyMapString, JsonObject.class);
+
+        assertTrue(proxyMap.has("resources"));
+        //assert proxymap has "Proxy", assert description
+        //assert no other dependencies
+
+        //assert sequence map empty
+
     }
 
-    private void createCarFile(String testName) throws Exception {
+    private String outputDestinationFor(String testName){
+        URL resourceUrl = CarAnalyzer.class.getResource("/");
+        return resourceUrl.getPath() + "/" + testName + "/" + DEFAULT_ESBDOC_RAW_PATH;
+    }
+
+    private File createCarFile(String testName) throws Exception {
         URL resourceUrl = CarAnalyzer.class.getResource("/" + testName);
 
         String sourceFolder = resourceUrl.getPath();
         String targetArchive = sourceFolder + "/" + testName + ".car";
+
         zipFolder(sourceFolder, targetArchive);
+
+        return new File(targetArchive);
     }
 
     private static void zipFolder(String sourceFolderPath, String targetArchive) throws Exception {
@@ -83,8 +122,8 @@ public class CarAnalyzerTest {
         File folder = new File(physicalPath);
 
         for (String fileName : folder.list()) {
-            logicalPath = StringUtils.equals(logicalPath, "") ? folder.getName() : logicalPath + "/" + folder.getName();
-            addToZip(logicalPath, physicalPath + "/" + fileName, zip);
+            String currentLogicalPath = StringUtils.equals(logicalPath, "") ? folder.getName() : logicalPath + "/" + folder.getName();
+            addToZip(currentLogicalPath, physicalPath + "/" + fileName, zip);
         }
     }
 
