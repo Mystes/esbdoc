@@ -1,12 +1,16 @@
 package fi.mystes.esbdoc;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hamcrest.core.Is;
 import org.junit.*;
 import static org.junit.Assert.*;
+import static org.hamcrest.core.Is.*;
 
 import java.io.*;
 import java.net.URL;
@@ -68,15 +72,33 @@ public class CarAnalyzerTest {
         String sequenceMapString = FileUtils.readFileToString(sequenceFile);
         String proxyMapString = FileUtils.readFileToString(proxyFile);
 
-        JsonObject sequenceMap = new Gson().fromJson(sequenceMapString, JsonObject.class);
-        JsonObject proxyMap = new Gson().fromJson(proxyMapString, JsonObject.class);
+        JsonObject esbDocSequences = new Gson().fromJson(sequenceMapString, JsonObject.class);
+        JsonObject esbDocProxies = new Gson().fromJson(proxyMapString, JsonObject.class);
 
-        assertTrue(proxyMap.has("resources"));
+        assertSequenceModelSize(esbDocSequences, 1);
+        assertSequenceModelContains(esbDocSequences, "Proxy");
+
+        assertTrue(esbDocProxies.has("resources"));
         //assert proxymap has "Proxy", assert description
         //assert no other dependencies
 
-        //assert sequence map empty
+    }
 
+    private void assertSequenceModelSize(JsonObject esbDocSequences, int size){
+        assertTrue(esbDocSequences.has("models"));
+        JsonObject models = esbDocSequences.getAsJsonObject("models");
+        assertTrue(models.has("sequence-models"));
+        JsonArray sequenceModels = models.getAsJsonArray("sequence-models");
+        assertThat(sequenceModels.size(), is(1));
+    }
+
+    private void assertSequenceModelContains(JsonObject esbDocSequences, String name){
+        assertTrue(esbDocSequences.has("models"));
+        JsonObject models = esbDocSequences.getAsJsonObject("models");
+        assertTrue(models.has("sequence-models"));
+        JsonArray sequenceModels = models.getAsJsonArray("sequence-models");
+        JsonObject sequenceModel = sequenceModels.get(0).getAsJsonObject();
+        assertThat(sequenceModel.get("name").getAsString(), is(name));
     }
 
     private String outputDestinationFor(String testName){
