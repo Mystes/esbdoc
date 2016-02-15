@@ -7,15 +7,15 @@ import com.google.gson.JsonObject;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hamcrest.core.Is;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
 import org.junit.*;
 import static org.junit.Assert.*;
 import static org.hamcrest.core.Is.*;
 
 import java.io.*;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -60,45 +60,149 @@ public class CarAnalyzerTest {
 
         car.run(carFiles, esbdocRawPath, soapUiFileSet);
 
-        String esbocSequencePath = esbdocRawPath + "-seq.json";
-        String esbDocProxyPath = esbdocRawPath + ".json";
+        String esbDocSequencePath = sequencePathFor(esbdocRawPath);
+        String esbDocMainModelPath = mainModelPathFor(esbdocRawPath);
 
-        File sequenceFile = new File(esbocSequencePath);
-        File proxyFile = new File(esbDocProxyPath);
+        SequenceModelAssertion sequenceModelAssertion = new SequenceModelAssertion(esbDocSequencePath);
+        sequenceModelAssertion.assertSize(1);
+        sequenceModelAssertion.assertContains("Proxy");
 
-        assertTrue(sequenceFile.exists());
-        assertTrue(proxyFile.exists());
+        MainModelAssertion mainModelAssertion = new MainModelAssertion(esbDocMainModelPath);
+        ProxyAssertion proxyAssertion = mainModelAssertion.proxyAssertionFor("Proxy");
+        proxyAssertion.assertPurpose("Test ESBDoc with a single proxy");
 
-        String sequenceMapString = FileUtils.readFileToString(sequenceFile);
-        String proxyMapString = FileUtils.readFileToString(proxyFile);
+        mainModelAssertion.assertNoTests();
+        mainModelAssertion.assertNoForwardDependencies();
+        mainModelAssertion.assertNoBackwardDependencies();
+    }
 
-        JsonObject esbDocSequences = new Gson().fromJson(sequenceMapString, JsonObject.class);
-        JsonObject esbDocProxies = new Gson().fromJson(proxyMapString, JsonObject.class);
+    private String sequencePathFor(String esbdocRawPath){
+        return esbdocRawPath + "-seq.json";
+    }
 
-        assertSequenceModelSize(esbDocSequences, 1);
-        assertSequenceModelContains(esbDocSequences, "Proxy");
+    private String mainModelPathFor(String esbdocRawPath){
+        return esbdocRawPath + ".json";
+    }
 
-        assertTrue(esbDocProxies.has("resources"));
-        //assert proxymap has "Proxy", assert description
-        //assert no other dependencies
+    private class SequenceModelAssertion{
+        private String jsonString;
+        private JsonObject json;
+        private JsonArray sequenceModels;
+
+        private SequenceModelAssertion(){};
+
+        public SequenceModelAssertion(String esbDocSequencePath) throws IOException {
+            File sequenceFile = new File(esbDocSequencePath);
+            assertTrue("File does not exist: " + esbDocSequencePath, sequenceFile.exists());
+
+            this.jsonString = FileUtils.readFileToString(sequenceFile);
+            this.json = new Gson().fromJson(this.jsonString, JsonObject.class);
+            assertTrue("File does not contain expected element: models", json.has("models"));
+
+            JsonObject models = json.getAsJsonObject("models");
+            assertTrue("models-element does not contain expected element: sequence-models", models.has("sequence-models"));
+
+            this.sequenceModels = models.getAsJsonArray("sequence-models");
+            assertNotNull("sequence-models element is null and that's not OK.", this.sequenceModels);
+        }
+
+        public void assertSize(int expected){
+            assertThat(this.sequenceModels.size(), is(expected));
+        }
+
+        public void assertContains(String expected){
+            boolean matchFound = false;
+            Iterator<JsonElement> iterator = this.sequenceModels.iterator();
+            while(iterator.hasNext()){
+                JsonObject currentElement = iterator.next().getAsJsonObject();
+                String actual = currentElement.get("name").getAsString();
+                if(StringUtils.equals(expected, actual)){
+                    matchFound = true;
+                }
+            }
+
+            assertTrue(matchFound);
+        }
 
     }
 
-    private void assertSequenceModelSize(JsonObject esbDocSequences, int size){
-        assertTrue(esbDocSequences.has("models"));
-        JsonObject models = esbDocSequences.getAsJsonObject("models");
-        assertTrue(models.has("sequence-models"));
-        JsonArray sequenceModels = models.getAsJsonArray("sequence-models");
-        assertThat(sequenceModels.size(), is(1));
+    private class MainModelAssertion {
+        private String jsonString;
+        private JsonObject json;
+        private Set<Map.Entry<String, JsonElement>> resources;
+        private Set<Map.Entry<String, JsonElement>> dependencies;
+        private Set<Map.Entry<String, JsonElement>> tests;
+
+        private MainModelAssertion(){};
+
+        public MainModelAssertion(String esbDocProxyPath) throws IOException {
+            File proxyFile = new File(esbDocProxyPath);
+            assertTrue("File does not exist: " + esbDocProxyPath, proxyFile.exists());
+
+            this.jsonString = FileUtils.readFileToString(proxyFile);
+            this.json = new Gson().fromJson(this.jsonString, JsonObject.class);
+
+            assertTrue("File does not contain expected element: resources", json.has("resources"));
+            assertTrue("File does not contain expected element: dependencies", json.has("dependencies"));
+            assertTrue("File does not contain expected element: tests", json.has("tests"));
+
+            this.resources = json.get("resources").getAsJsonObject().entrySet();
+            this.dependencies = json.get("dependencies").getAsJsonObject().entrySet();
+            this.tests = json.get("tests").getAsJsonObject().entrySet();
+
+            assertNotNull("resource set is null and that's not OK.", this.resources);
+            assertNotNull("dependency set is null and that's not OK.", this.dependencies);
+            assertNotNull("test set is null and that's not OK.", this.tests);
+        }
+
+        public void assertNoTests(){
+            assertThat(this.tests.size(), is(0));
+        }
+
+        public void assertNoForwardDependencies() {
+        }
+
+        public void assertNoBackwardDependencies() {
+        }
+
+        public ProxyAssertion proxyAssertionFor(String proxyName) {
+            return new ProxyAssertion(this.resources, proxyName);
+        }
+    }
+    private enum DependencyType {
+        FORWARD, BACKWARD
     }
 
-    private void assertSequenceModelContains(JsonObject esbDocSequences, String name){
-        assertTrue(esbDocSequences.has("models"));
-        JsonObject models = esbDocSequences.getAsJsonObject("models");
-        assertTrue(models.has("sequence-models"));
-        JsonArray sequenceModels = models.getAsJsonArray("sequence-models");
-        JsonObject sequenceModel = sequenceModels.get(0).getAsJsonObject();
-        assertThat(sequenceModel.get("name").getAsString(), is(name));
+    private class DependencyTypeAssertion<DependencyType> {
+
+        private Set<Map.Entry<String, JsonElement>> dependencies;
+
+        public DependencyTypeAssertion(Set<Map.Entry<String, JsonElement>> dependencies){
+            
+        }
+    }
+
+    private class ProxyAssertion {
+        private JsonObject proxy;
+
+        public ProxyAssertion(Set<Map.Entry<String, JsonElement>> resources, String name){
+
+            boolean proxyFound = false;
+            for(Map.Entry<String, JsonElement> resource : resources){
+                if(StringUtils.equals(name, resource.getKey())){
+                    JsonObject proxyCandidate = resource.getValue().getAsJsonObject();
+                    assertThat(proxyCandidate.get("type").getAsString(), is("proxy"));
+                    proxyFound = true;
+                    this.proxy = proxyCandidate;
+                }
+            }
+            assertTrue(proxyFound);
+        }
+
+        public void assertPurpose(String expected){
+            String actual = this.proxy.get("purpose").getAsString();
+            assertThat(actual, is(expected));
+        }
     }
 
     private String outputDestinationFor(String testName){
