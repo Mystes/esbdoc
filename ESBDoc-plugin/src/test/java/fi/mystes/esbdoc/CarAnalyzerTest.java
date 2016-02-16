@@ -43,12 +43,27 @@ public class CarAnalyzerTest {
         assertSequenceModelProxies(esbDocRawPath, "Proxy");
 
         String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
-        MainModelAssertion mainModelAssertion = new MainModelAssertion(esbDocMainModelPath);
-        mainModelAssertion.assertNoTests();
-        mainModelAssertion.assertNoDependencies();
+        MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
+        mainModel.assertNoTests();
+        mainModel.assertNoDependencies();
 
-        ProxyAssertion proxyAssertion = mainModelAssertion.proxyAssertionFor("Proxy");
-        proxyAssertion.assertPurpose("Test ESBDoc with a single proxy");
+        mainModel.proxyAssertionFor("Proxy").assertPurpose("Test ESBDoc with a single proxy");
+    }
+
+    @Test
+    public void testWithTwoIndependentProxies() throws Exception {
+        String esbDocRawPath = outputDestination();
+        car.run(carFiles(), esbDocRawPath, new File[0]);
+
+        assertSequenceModelProxies(esbDocRawPath, "Proxy1", "Proxy2");
+
+        String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
+        MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
+        mainModel.assertNoTests();
+        mainModel.assertNoDependencies();
+
+        mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with two proxies: Proxy 1");
+        mainModel.proxyAssertionFor("Proxy2").assertPurpose("Test ESBDoc with two proxies: Proxy 2");
     }
 
     public static String getMethodNameOf(String path){
