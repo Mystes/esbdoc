@@ -7,8 +7,6 @@ import com.google.gson.JsonObject;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
 import org.junit.*;
 import static org.junit.Assert.*;
 import static org.hamcrest.core.Is.*;
@@ -68,12 +66,12 @@ public class CarAnalyzerTest {
         sequenceModelAssertion.assertContains("Proxy");
 
         MainModelAssertion mainModelAssertion = new MainModelAssertion(esbDocMainModelPath);
-        ProxyAssertion proxyAssertion = mainModelAssertion.proxyAssertionFor("Proxy");
-        proxyAssertion.assertPurpose("Test ESBDoc with a single proxy");
 
         mainModelAssertion.assertNoTests();
-        mainModelAssertion.assertNoForwardDependencies();
-        mainModelAssertion.assertNoBackwardDependencies();
+        mainModelAssertion.assertNoDependencies();
+
+        ProxyAssertion proxyAssertion = mainModelAssertion.proxyAssertionFor("Proxy");
+        proxyAssertion.assertPurpose("Test ESBDoc with a single proxy");
     }
 
     private String sequencePathFor(String esbdocRawPath){
@@ -160,30 +158,71 @@ public class CarAnalyzerTest {
         }
 
         public void assertNoForwardDependencies() {
+            new DependencyTypeAssertion(Direction.FORWARD, this.dependencies).assertEmpty();
         }
 
-        public void assertNoBackwardDependencies() {
+        public void assertNoReverseDependencies() {
+            new DependencyTypeAssertion(Direction.REVERSE, this.dependencies).assertEmpty();
+        }
+
+        public void assertNoDependencies() {
+            new DependencyTypeAssertion(this.dependencies).assertEmpty();
         }
 
         public ProxyAssertion proxyAssertionFor(String proxyName) {
             return new ProxyAssertion(this.resources, proxyName);
         }
     }
-    private enum DependencyType {
-        FORWARD, BACKWARD
+    private enum Direction {
+        FORWARD("forward"), REVERSE("reverse"), BOTH("both");
+
+        private String direction;
+        Direction(String direction){
+            this.direction = direction;
+        }
+
+        @Override
+        public String toString() {
+            return this.direction;
+        }
     }
 
-    private class DependencyTypeAssertion<DependencyType> {
+    private class DependencyTypeAssertion {
 
+        private Direction direction;
         private Set<Map.Entry<String, JsonElement>> dependencies;
 
-        public DependencyTypeAssertion(Set<Map.Entry<String, JsonElement>> dependencies){
-            
+        private DependencyTypeAssertion(){};
+
+        public DependencyTypeAssertion(Set<Map.Entry<String, JsonElement>> allDependencies){
+            this.direction = Direction.BOTH;
+            this.dependencies = getDirectedDependencies(Direction.FORWARD, allDependencies);
+            this.dependencies.addAll(getDirectedDependencies(Direction.REVERSE, allDependencies));
+        }
+
+        public DependencyTypeAssertion(Direction direction, Set<Map.Entry<String, JsonElement>> allDependencies){
+            this.direction = direction;
+            this.dependencies = getDirectedDependencies(direction, allDependencies);
+        }
+
+        private Set<Map.Entry<String, JsonElement>> getDirectedDependencies(Direction direction, Set<Map.Entry<String, JsonElement>> allDependencies){
+            for(Map.Entry<String, JsonElement> directedDependencies : allDependencies){
+                if(StringUtils.equals(direction.toString(), directedDependencies.getKey())){
+                    return directedDependencies.getValue().getAsJsonObject().entrySet();
+                }
+            }
+            throw new RuntimeException("Could not get directed dependencies. This should have been impossible.");
+        }
+
+        public void assertEmpty() {
+            assertTrue(this.dependencies.isEmpty());
         }
     }
 
     private class ProxyAssertion {
         private JsonObject proxy;
+
+        private ProxyAssertion(){};
 
         public ProxyAssertion(Set<Map.Entry<String, JsonElement>> resources, String name){
 
