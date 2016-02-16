@@ -1,5 +1,6 @@
 package fi.mystes.esbdoc;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.*;
 
 import java.io.*;
@@ -36,31 +37,45 @@ public class CarAnalyzerTest {
 
     @Test
     public void testWithSingleProxy() throws Exception {
-        String testName = "testWithSingleProxy";
+        String esbDocRawPath = outputDestination();
+        car.run(carFiles(), esbDocRawPath, new File[0]);
 
-        List<File> carFileList = new ArrayList<File>();
-        carFileList.add(createCarFile(testName));
+        assertSequenceModelProxies(esbDocRawPath, "Proxy");
 
-        File[] carFiles = carFileList.toArray(new File[carFileList.size()]);
-        String esbdocRawPath = outputDestinationFor(testName);
-        File[] soapUiFileSet = new File[0];
-
-        car.run(carFiles, esbdocRawPath, soapUiFileSet);
-
-        String esbDocSequencePath = sequencePathFor(esbdocRawPath);
-        String esbDocMainModelPath = mainModelPathFor(esbdocRawPath);
-
-        SequenceModelAssertion sequenceModelAssertion = new SequenceModelAssertion(esbDocSequencePath);
-        sequenceModelAssertion.assertSize(1);
-        sequenceModelAssertion.assertContains("Proxy");
-
+        String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
         MainModelAssertion mainModelAssertion = new MainModelAssertion(esbDocMainModelPath);
-
         mainModelAssertion.assertNoTests();
         mainModelAssertion.assertNoDependencies();
 
         ProxyAssertion proxyAssertion = mainModelAssertion.proxyAssertionFor("Proxy");
         proxyAssertion.assertPurpose("Test ESBDoc with a single proxy");
+    }
+
+    public static String getMethodNameOf(String path){
+        if(StringUtils.equals(path, ".")){
+            return Thread.currentThread().getStackTrace()[2 + 0].getMethodName();
+        }
+        if(StringUtils.equals(path, "..")){
+            return Thread.currentThread().getStackTrace()[2 + 1].getMethodName();
+        }
+        int depth = StringUtils.split(path, "/").length;
+        return Thread.currentThread().getStackTrace()[2 + depth].getMethodName();
+    }
+
+    private void assertSequenceModelProxies(String esbDocRawPath, String... proxyNames) throws IOException{
+        String esbDocSequencePath = sequencePathFor(esbDocRawPath);
+        SequenceModelAssertion sequenceModelAssertion = new SequenceModelAssertion(esbDocSequencePath);
+
+        sequenceModelAssertion.assertSize(proxyNames.length);
+        for(String proxyName : proxyNames){
+            sequenceModelAssertion.assertContains(proxyName);
+        }
+    }
+
+    private File[] carFiles() throws Exception{
+        List<File> carFileList = new ArrayList<File>();
+        carFileList.add(createCarFile(getMethodNameOf("..")));
+        return carFileList.toArray(new File[carFileList.size()]);
     }
 
     private String sequencePathFor(String esbdocRawPath){
@@ -71,7 +86,8 @@ public class CarAnalyzerTest {
         return esbdocRawPath + ".json";
     }
 
-    private String outputDestinationFor(String testName){
+    private String outputDestination(){
+        String testName = getMethodNameOf("..");
         URL resourceUrl = CarAnalyzer.class.getResource("/");
         return resourceUrl.getPath() + "/" + testName + "/" + DEFAULT_ESBDOC_RAW_PATH;
     }
