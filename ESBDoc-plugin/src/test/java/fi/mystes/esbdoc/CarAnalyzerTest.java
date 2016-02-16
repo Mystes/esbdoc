@@ -15,6 +15,8 @@ public class CarAnalyzerTest {
     private static final String DEFAULT_ESBDOC_RAW_PATH = "esbdoc-raw";
     private CarAnalyzer car;
 
+    /***********************************************************************************************/
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
 
@@ -34,6 +36,8 @@ public class CarAnalyzerTest {
     public static void tearDownAfterClass() throws Exception {
 
     }
+
+    /***********************************************************************************************/
 
     @Test
     public void testWithSingleProxy() throws Exception {
@@ -66,16 +70,7 @@ public class CarAnalyzerTest {
         mainModel.proxyAssertionFor("Proxy2").assertPurpose("Test ESBDoc with two proxies: Proxy 2");
     }
 
-    public static String getMethodNameOf(String path){
-        if(StringUtils.equals(path, ".")){
-            return Thread.currentThread().getStackTrace()[2 + 0].getMethodName();
-        }
-        if(StringUtils.equals(path, "..")){
-            return Thread.currentThread().getStackTrace()[2 + 1].getMethodName();
-        }
-        int depth = StringUtils.split(path, "/").length;
-        return Thread.currentThread().getStackTrace()[2 + depth].getMethodName();
-    }
+    /***********************************************************************************************/
 
     private void assertSequenceModelProxies(String esbDocRawPath, String... proxyNames) throws IOException{
         String esbDocSequencePath = sequencePathFor(esbDocRawPath);
@@ -87,10 +82,29 @@ public class CarAnalyzerTest {
         }
     }
 
+    /***********************************************************************************************/
+
+    public static String getMethodNameOf(String path){
+        if(StringUtils.equals(path, ".")){
+            return Thread.currentThread().getStackTrace()[2 + 0].getMethodName();
+        }
+        if(StringUtils.equals(path, "..")){
+            return Thread.currentThread().getStackTrace()[2 + 1].getMethodName();
+        }
+        int depth = StringUtils.split(path, "/").length;
+        return Thread.currentThread().getStackTrace()[2 + depth].getMethodName();
+    }
+
     private File[] carFiles() throws Exception{
         List<File> carFileList = new ArrayList<File>();
         carFileList.add(createCarFile(getMethodNameOf("..")));
         return carFileList.toArray(new File[carFileList.size()]);
+    }
+
+    private String outputDestination(){
+        String testName = getMethodNameOf("..");
+        URL resourceUrl = CarAnalyzer.class.getResource("/");
+        return resourceUrl.getPath() + "/" + testName + "/" + DEFAULT_ESBDOC_RAW_PATH;
     }
 
     private String sequencePathFor(String esbdocRawPath){
@@ -99,12 +113,6 @@ public class CarAnalyzerTest {
 
     private String mainModelPathFor(String esbdocRawPath){
         return esbdocRawPath + ".json";
-    }
-
-    private String outputDestination(){
-        String testName = getMethodNameOf("..");
-        URL resourceUrl = CarAnalyzer.class.getResource("/");
-        return resourceUrl.getPath() + "/" + testName + "/" + DEFAULT_ESBDOC_RAW_PATH;
     }
 
     private File createCarFile(String testName) throws Exception {
