@@ -41,6 +41,10 @@ public class SequenceDiagramBuilder {
         return instance;
     }
 
+    public static void purge() {
+        instance = new SequenceDiagramBuilder();
+    }
+
     public static void main(String[] args) {
         //TODO What information does magic argument number seven carry and what about the other args?
         String result = new SequenceDiagramBuilder(PATH_TO_ESB).buildPipe(args[7]);
@@ -207,5 +211,4 @@ public class SequenceDiagramBuilder {
         }
         return item.getLeaves();
     }
-
 }

@@ -41,7 +41,8 @@ public class CarAnalyzer {
     private FileSystemManager fileSystemManager;
 
     public CarAnalyzer() throws FileSystemException, ParserConfigurationException, JaxenException {
-            fileSystemManager = VFS.getManager();
+        fileSystemManager = VFS.getManager();
+        SequenceDiagramBuilder.purge();
     }
 
     /**

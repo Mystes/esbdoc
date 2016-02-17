@@ -13,7 +13,6 @@ import java.util.*;
 public class CarAnalyzerTest {
 
     private static final String DEFAULT_ESBDOC_RAW_PATH = "esbdoc-raw";
-    private CarAnalyzer car;
 
     /***********************************************************************************************/
 
@@ -24,7 +23,7 @@ public class CarAnalyzerTest {
 
     @Before
     public void setUp() throws Exception {
-        car = new CarAnalyzer();
+
     }
 
     @After
@@ -42,7 +41,7 @@ public class CarAnalyzerTest {
     @Test
     public void testWithSingleProxy() throws Exception {
         String esbDocRawPath = outputDestination();
-        car.run(carFiles(), esbDocRawPath, new File[0]);
+        new CarAnalyzer().run(carFiles(), esbDocRawPath, new File[0]);
 
         assertSequenceModelProxies(esbDocRawPath, "Proxy");
 
@@ -57,7 +56,7 @@ public class CarAnalyzerTest {
     @Test
     public void testWithTwoIndependentProxies() throws Exception {
         String esbDocRawPath = outputDestination();
-        car.run(carFiles(), esbDocRawPath, new File[0]);
+        new CarAnalyzer().run(carFiles(), esbDocRawPath, new File[0]);
 
         assertSequenceModelProxies(esbDocRawPath, "Proxy1", "Proxy2");
 
@@ -104,7 +103,7 @@ public class CarAnalyzerTest {
     private String outputDestination(){
         String testName = getMethodNameOf("..");
         URL resourceUrl = CarAnalyzer.class.getResource("/");
-        return resourceUrl.getPath() + "/" + testName + "/" + DEFAULT_ESBDOC_RAW_PATH;
+        return resourceUrl.getPath() + testName + "/" + DEFAULT_ESBDOC_RAW_PATH;
     }
 
     private String sequencePathFor(String esbdocRawPath){
