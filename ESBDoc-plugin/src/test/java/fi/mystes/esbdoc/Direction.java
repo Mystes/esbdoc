@@ -16,4 +16,8 @@ enum Direction {
     public String toString() {
         return this.direction;
     }
+
+    public boolean is(Direction that){
+        return this.equals(that);
+    }
 }

@@ -52,18 +52,23 @@ public class MainModelAssertion {
     }
 
     public void assertNoForwardDependencies() {
-        new DependencyTypeAssertion(Direction.FORWARD, this.dependencies).assertEmpty();
+        new DependencyAssertion(Direction.FORWARD, this.dependencies).assertEmpty();
     }
 
     public void assertNoReverseDependencies() {
-        new DependencyTypeAssertion(Direction.REVERSE, this.dependencies).assertEmpty();
+        new DependencyAssertion(Direction.REVERSE, this.dependencies).assertEmpty();
     }
 
     public void assertNoDependencies() {
-        new DependencyTypeAssertion(this.dependencies).assertEmpty();
+        assertNoForwardDependencies();
+        assertNoReverseDependencies();
     }
 
     public ProxyAssertion proxyAssertionFor(String proxyName) {
         return new ProxyAssertion(this.resources, proxyName);
+    }
+
+    public DependencyAssertion dependencyAssertionFor(String artifactName) {
+        return new DependencyAssertion(artifactName, this.dependencies);
     }
 }

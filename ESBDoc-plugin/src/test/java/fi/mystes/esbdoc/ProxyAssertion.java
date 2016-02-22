@@ -25,16 +25,18 @@ public class ProxyAssertion {
         for(Map.Entry<String, JsonElement> resource : resources){
             if(StringUtils.equals(name, resource.getKey())){
                 JsonObject proxyCandidate = resource.getValue().getAsJsonObject();
-                assertThat(proxyCandidate.get("type").getAsString(), is("proxy"));
+                String actualType = proxyCandidate.get("type").getAsString();
+                String faultyAssertionExplanation = "Found a proxy candidate with name: " + name + " but its type was: " + actualType;
+                assertThat(faultyAssertionExplanation, actualType, is("proxy"));
                 proxyFound = true;
                 this.proxy = proxyCandidate;
             }
         }
-        assertTrue(proxyFound);
+        assertTrue("Cannot do proxy assertions: Could not locate proxy with name: " + name, proxyFound);
     }
 
     public void assertPurpose(String expected){
         String actual = this.proxy.get("purpose").getAsString();
-        assertThat(actual, is(expected));
+        assertThat("Proxy description mismatch.", actual, is(expected));
     }
 }

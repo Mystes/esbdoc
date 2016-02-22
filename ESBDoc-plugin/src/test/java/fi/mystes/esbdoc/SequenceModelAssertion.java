@@ -42,7 +42,7 @@ public class SequenceModelAssertion{
     }
 
     public void assertSize(int expected){
-        assertThat(this.sequenceModels.size(), is(expected));
+        assertThat("Mismatch in number of Sequence model items.", this.sequenceModels.size(), is(expected));
     }
 
     public void assertContains(String expected){
