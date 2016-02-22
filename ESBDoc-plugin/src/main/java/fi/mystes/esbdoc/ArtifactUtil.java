@@ -32,7 +32,7 @@ public class ArtifactUtil {
         }
 
         if(null == string){
-            return null;
+            return null; //TODO This should probably throw something.
         }
 
         URI uri = stringToUri(string);

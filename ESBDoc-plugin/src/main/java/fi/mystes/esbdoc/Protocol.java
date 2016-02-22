@@ -17,7 +17,7 @@ public class Protocol {
         HTTP, HTTPS, MAILTO, VFS, JMS, GOV, CONF
     }
 
-    public static Scheme scheme(URI uri){
+    public static Scheme scheme(URI uri) throws EsbDocException {
         if(null == uri){
             log.warn("Null URI submitted. Cannot extract URI Scheme.");
             return null;
@@ -25,8 +25,7 @@ public class Protocol {
 
         String schemeString = uri.getScheme();
         if(StringUtils.isBlank(schemeString)){
-            log.warn("Blank URI scheme for URI: " + uri.toString());
-            return null;
+            throw new EsbDocException("Blank URI scheme for URI: " + uri.toString());
         }
 
         if(!EnumUtils.isValidEnum(Scheme.class, schemeString)){
