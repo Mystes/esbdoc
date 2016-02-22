@@ -7,6 +7,8 @@ import java.io.*;
 import java.net.URL;
 import java.util.*;
 
+import static fi.mystes.esbdoc.DependencyAssertion.EndpointModel.*;
+
 /**
  * Created by jussi on 05/02/16.
  */
@@ -43,7 +45,7 @@ public class CarAnalyzerTest {
         String esbDocRawPath = outputDestination();
         new CarAnalyzer().run(carFiles(), esbDocRawPath, new File[0]);
 
-        assertSequenceModelProxies(esbDocRawPath, "Proxy");
+        assertSequenceModelContains(esbDocRawPath, "Proxy");
 
         String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
         MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
@@ -58,7 +60,7 @@ public class CarAnalyzerTest {
         String esbDocRawPath = outputDestination();
         new CarAnalyzer().run(carFiles(), esbDocRawPath, new File[0]);
 
-        assertSequenceModelProxies(esbDocRawPath, "Proxy1", "Proxy2");
+        assertSequenceModelContains(esbDocRawPath, "Proxy1", "Proxy2");
 
         String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
         MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
@@ -69,9 +71,30 @@ public class CarAnalyzerTest {
         mainModel.proxyAssertionFor("Proxy2").assertPurpose("Test ESBDoc with two proxies: Proxy 2");
     }
 
+    @Test
+    public void testWithOneProxyAndOneSequence() throws Exception {
+        String esbDocRawPath = outputDestination();
+        new CarAnalyzer().run(carFiles(), esbDocRawPath, new File[0]);
+
+        assertSequenceModelContains(esbDocRawPath, "ProxyWithOneSequence", "TheSequence");
+        //TODO assert the sequence itself
+
+        String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
+        MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
+        mainModel.assertNoTests();
+
+        mainModel.dependencyAssertionFor("ProxyWithOneSequence").forwardsTo(EXCLUSIVELY, "TheSequence");
+        mainModel.dependencyAssertionFor("ProxyWithOneSequence").reversesTo(NOWHERE);
+
+        mainModel.dependencyAssertionFor("TheSequence").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("TheSequence").reversesTo(NON_EXCLUSIVELY, "ProxyWithOneSequence");
+
+        mainModel.proxyAssertionFor("ProxyWithOneSequence").assertPurpose("Test ESBDoc with one proxy and one sequence: The proxy");
+    }
+
     /***********************************************************************************************/
 
-    private void assertSequenceModelProxies(String esbDocRawPath, String... proxyNames) throws IOException{
+    private void assertSequenceModelContains(String esbDocRawPath, String... proxyNames) throws IOException{
         String esbDocSequencePath = sequencePathFor(esbDocRawPath);
         SequenceModelAssertion sequenceModelAssertion = new SequenceModelAssertion(esbDocSequencePath);
 
