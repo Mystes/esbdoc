@@ -3,6 +3,7 @@ package fi.mystes.esbdoc;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
@@ -72,7 +73,7 @@ class DependencyAssertion {
 
     private void assertNonExclusiveDependencies(List<String> targets, String[] endpointNames) {
         String faultString = "Expected artifact '" + this.artifactName + "' to ";
-        faultString += this.direction + " to at least all of these places: " + endpointNames + " but it ";
+        faultString += this.direction + " to at least all of these places: " + ArrayUtils.toString(endpointNames) + " but it ";
         faultString += this.direction  + "s to these ones: " + targets;
 
         boolean allReferencesFound = CollectionUtils.containsAll(targets, Arrays.asList(endpointNames));
@@ -81,7 +82,7 @@ class DependencyAssertion {
 
     private void assertExclusiveDependencies(List<String> targets, String[] endpointNames) {
         String faultString = "Expected artifact '" + this.artifactName + "' to ";
-        faultString += this.direction  + " to ONLY these places: " + endpointNames + " but it ";
+        faultString += this.direction  + " to ONLY these places: " + ArrayUtils.toString(endpointNames) + " but it ";
         faultString += this.direction + "s to these ones: " + targets;
 
         boolean allReferencesFound = CollectionUtils.containsAll(targets, Arrays.asList(endpointNames));
