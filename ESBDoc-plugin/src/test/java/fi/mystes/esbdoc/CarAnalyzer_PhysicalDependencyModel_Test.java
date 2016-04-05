@@ -12,7 +12,7 @@ import static fi.mystes.esbdoc.DependencyAssertion.EndpointModel.*;
 /**
  * Created by jussi on 05/02/16.
  */
-public class CarAnalyzerTest {
+public class CarAnalyzer_PhysicalDependencyModel_Test {
 
     /***********************************************************************************************/
 
@@ -43,8 +43,6 @@ public class CarAnalyzerTest {
         String esbDocRawPath = outputDestination();
         new CarAnalyzer().run(carFiles(), esbDocRawPath, new File[0]);
 
-        assertSequenceModelContains(esbDocRawPath, "Proxy");
-
         String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
         MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
         mainModel.assertNoTests();
@@ -57,8 +55,6 @@ public class CarAnalyzerTest {
     public void testWithTwoIndependentProxies() throws Exception {
         String esbDocRawPath = outputDestination();
         new CarAnalyzer().run(carFiles(), esbDocRawPath, new File[0]);
-
-        assertSequenceModelContains(esbDocRawPath, "Proxy1", "Proxy2");
 
         String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
         MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
@@ -73,9 +69,6 @@ public class CarAnalyzerTest {
     public void testWithOneProxyAndOneSequence() throws Exception {
         String esbDocRawPath = outputDestination();
         new CarAnalyzer().run(carFiles(), esbDocRawPath, new File[0]);
-
-        assertSequenceModelContains(esbDocRawPath, "ProxyWithOneSequence", "TheSequence");
-        //TODO assert the sequence itself?
 
         String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
         MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
@@ -95,8 +88,6 @@ public class CarAnalyzerTest {
     public void testWithOneProxyAndTwoSequences() throws Exception {
         String esbDocRawPath = outputDestination();
         new CarAnalyzer().run(carFiles(), esbDocRawPath, new File[0]);
-
-        assertSequenceModelContains(esbDocRawPath, "ProxyWithTwoSequences", "SequenceOne", "SequenceTwo");
 
         String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
         MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
@@ -121,14 +112,11 @@ public class CarAnalyzerTest {
         String esbDocRawPath = outputDestination();
         new CarAnalyzer().run(carFiles(), esbDocRawPath, new File[0]);
 
-        //TODO perhaps this should contain the sequence reference twice since it is called twice? Or maybe not. Think about this later.
-        assertSequenceModelContains(esbDocRawPath, "ProxyReferencingOneSequenceTwice", "TheSequence");
-
         String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
         MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
         mainModel.assertNoTests();
 
-        // This should contain only one reference to the sequence since we are dealing with physical dependency from one place to another
+        // This containw only one reference to the sequence since we are dealing with physical dependency from one place to another
         mainModel.dependencyAssertionFor("ProxyReferencingOneSequenceTwice").forwardsTo(EXCLUSIVELY, "TheSequence");
         mainModel.dependencyAssertionFor("ProxyReferencingOneSequenceTwice").reversesTo(NOWHERE);
 
@@ -143,8 +131,6 @@ public class CarAnalyzerTest {
     public void testWithTwoIndependentProxiesReferencingTwoSequencesEach() throws Exception {
         String esbDocRawPath = outputDestination();
         new CarAnalyzer().run(carFiles(), esbDocRawPath, new File[0]);
-
-        assertSequenceModelContains(esbDocRawPath, "Proxy1", "Proxy2", "SequenceOne", "SequenceTwo");
 
         String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
         MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
@@ -170,18 +156,6 @@ public class CarAnalyzerTest {
 
     /***********************************************************************************************/
 
-    private void assertSequenceModelContains(String esbDocRawPath, String... items) throws IOException{
-        String esbDocSequencePath = sequencePathFor(esbDocRawPath);
-        SequenceModelAssertion sequenceModelAssertion = new SequenceModelAssertion(esbDocSequencePath);
-
-        sequenceModelAssertion.assertSize(items.length);
-        for(String item : items){
-            sequenceModelAssertion.assertContains(item);
-        }
-    }
-
-    /***********************************************************************************************/
-
     public static String getMethodNameOf(String path){
         if(StringUtils.equals(path, ".")){
             return Thread.currentThread().getStackTrace()[2 + 0].getMethodName();
@@ -195,7 +169,7 @@ public class CarAnalyzerTest {
 
     private File[] carFiles() throws Exception{
         List<File> carFileList = new ArrayList<File>();
-        carFileList.add(createCarFile(getMethodNameOf("..")));
+        carFileList.add(CarFileUtil.createCarFile(getMethodNameOf("..")));
         return carFileList.toArray(new File[carFileList.size()]);
     }
 
@@ -205,23 +179,8 @@ public class CarAnalyzerTest {
         return resourceUrl.getPath() + testName + "/";
     }
 
-    private String sequencePathFor(String basePath){
-        return basePath + Constants.MSC_JSON_FILE;
-    }
-
     private String mainModelPathFor(String basePath){
         return basePath + Constants.PHYSICAL_DEPENDENCY_JSON_FILE;
-    }
-
-    private File createCarFile(String testName) throws Exception {
-        URL resourceUrl = CarAnalyzer.class.getResource("/" + testName);
-
-        String sourceFolder = resourceUrl.getPath();
-        String targetArchive = sourceFolder + "/" + testName + ".car";
-
-        Zipper.zipFolder(sourceFolder, targetArchive);
-
-        return new File(targetArchive);
     }
 
 }
