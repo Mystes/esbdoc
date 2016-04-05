@@ -17,7 +17,6 @@ import java.util.*;
 public class SequenceDiagramBuilder {
     private static Log log = LogFactory.getLog(SequenceDiagramBuilder.class);
 
-    public static final String FILE_SUFFIX = "-seq.json";
     private static final String PATH_TO_ESB = "/home/kreshnikg/Applications/wso2esb-4.5.1"; //FIXME that's user-specific
     private static final String RELATIVE_PATH_TO_CONFIGURATION_FILES = "/repository/deployment/server/synapse-configs/default/";
 
@@ -165,7 +164,7 @@ public class SequenceDiagramBuilder {
     }
 
     private JsonGenerator createJsonGenerator(String outputFilename) throws IOException {
-        FileOutputStream fis = new FileOutputStream(new File(outputFilename + FILE_SUFFIX));
+        FileOutputStream fis = new FileOutputStream(new File(outputFilename));
         JsonFactory factory = new JsonFactory();
         return factory.createGenerator(fis);
     }

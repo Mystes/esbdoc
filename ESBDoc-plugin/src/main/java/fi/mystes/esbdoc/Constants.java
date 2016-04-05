@@ -10,6 +10,10 @@ import java.util.Set;
  * Created by mystes-am on 20.5.2015.
  */
 public class Constants {
+    public static final String PHYSICAL_DEPENDENCY_JSON_FILE = "esbdoc-physical-dependencies.json";
+    public static final String PHYSICAL_DEPENDENCY_TEXT_FILE = "esbdoc-physical-dependencies.txt";
+    public static final String MSC_JSON_FILE = "esbdoc-message-sequence-chart.json";
+
     public static final Namespace SYNAPSE_NAMESPACE = new Namespace("s", "http://ws.apache.org/ns/synapse");
     public static final Namespace SOAPUI_CONFIG_NAMESPACE = new Namespace("con", "http://eviware.com/soapui/config");
 

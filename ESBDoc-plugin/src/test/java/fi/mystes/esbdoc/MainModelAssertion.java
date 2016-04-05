@@ -68,6 +68,8 @@ public class MainModelAssertion {
         return new ProxyAssertion(this.resources, proxyName);
     }
 
+    public SequenceAssertion sequenceAssertionFor(String sequenceName) { return new SequenceAssertion(this.resources, sequenceName); }
+
     public DependencyAssertion dependencyAssertionFor(String artifactName) {
         return new DependencyAssertion(artifactName, this.dependencies);
     }

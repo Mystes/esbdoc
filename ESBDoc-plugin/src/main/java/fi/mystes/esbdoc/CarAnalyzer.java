@@ -80,16 +80,17 @@ public class CarAnalyzer {
         ArtifactDependencyMap forwardDependencyMap = buildForwardDependencyMap(artifactMap);
         ArtifactDependencyMap reverseDependencyMap = buildReverseDependencyMap(forwardDependencyMap);
         TestMap testsMap = buildTestFileMap(artifactMap, forwardDependencyMap, testFileObjects);
-        //TODO So I'm wondering about why we're writing outputfiles, eh, twice maybe? At least using two methods.
+        //One output file is for physical dependecies between artifacts,
+        //the other is an input file for MSC chart generators and unrelated to main ESBDoc for now.
         writeOutputFiles(forwardDependencyMap, reverseDependencyMap, testsMap, artifactMap, outputDestination);
-        SequenceDiagramBuilder.instance().writeOutputFile(outputDestination);
+        SequenceDiagramBuilder.instance().writeOutputFile(outputDestination + Constants.MSC_JSON_FILE);
     }
 
-    private void writeOutputFiles(ArtifactDependencyMap forwardDependencyMap, ArtifactDependencyMap reverseDependencyMap, TestMap testsMap, ArtifactMap artifactMap, String outputFilename) throws IOException {
-        Files.buildDirectoryPathFor(outputFilename);
-        Files.writeTextTo(outputFilename, forwardDependencyMap.toDependencyStrings());
+    private void writeOutputFiles(ArtifactDependencyMap forwardDependencyMap, ArtifactDependencyMap reverseDependencyMap, TestMap testsMap, ArtifactMap artifactMap, String basePath) throws IOException {
+        Files.buildDirectoryPathFor(basePath);
+        Files.writeTextTo(basePath + Constants.PHYSICAL_DEPENDENCY_TEXT_FILE, forwardDependencyMap.toDependencyStrings());
 
-        FileOutputStream jsonStream = Files.jsonOutputFor(outputFilename);
+        FileOutputStream jsonStream = Files.jsonOutputFor(basePath + Constants.PHYSICAL_DEPENDENCY_JSON_FILE);
         new JsonWriter(forwardDependencyMap, reverseDependencyMap, testsMap, artifactMap).writeJson(jsonStream);
         jsonStream.close();
     }

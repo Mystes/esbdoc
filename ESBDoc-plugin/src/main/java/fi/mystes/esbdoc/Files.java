@@ -81,12 +81,12 @@ public class Files {
     }
 
     private static FileOutputStream textOutputFor(String filename) throws FileNotFoundException{
-        return outputStreamFor(filename + ".txt");
+        return outputStreamFor(filename);
     }
 
     //TODO should be private
     public static FileOutputStream jsonOutputFor(String filename) throws FileNotFoundException{
-        return outputStreamFor(filename + ".json");
+        return outputStreamFor(filename);
     }
 
     private static FileOutputStream outputStreamFor(String filename) throws FileNotFoundException{
