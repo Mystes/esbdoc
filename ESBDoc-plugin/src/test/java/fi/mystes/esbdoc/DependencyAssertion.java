@@ -93,6 +93,9 @@ class DependencyAssertion {
 
     private List<String> getDependencyNames(Optional<Map.Entry<String, JsonElement>> directedDependenciesForArtifact) {
         List<String> targets = new ArrayList<String>();
+        if(!directedDependenciesForArtifact.isPresent()){
+            return targets;
+        }
         Iterator<JsonElement> endpoints = directedDependenciesForArtifact.get().getValue().getAsJsonArray().iterator();
         while(endpoints.hasNext()){
             JsonObject currentEndpoint = endpoints.next().getAsJsonObject();

@@ -121,7 +121,7 @@ public class CarAnalyzerTest {
         String esbDocRawPath = outputDestination();
         new CarAnalyzer().run(carFiles(), esbDocRawPath, new File[0]);
 
-        //TODO perhaps this should contain the sequence reference twice since it is called twice.
+        //TODO perhaps this should contain the sequence reference twice since it is called twice? Or maybe not. Think about this later.
         assertSequenceModelContains(esbDocRawPath, "ProxyReferencingOneSequenceTwice", "TheSequence");
 
         String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
@@ -137,6 +137,35 @@ public class CarAnalyzerTest {
 
         mainModel.proxyAssertionFor("ProxyReferencingOneSequenceTwice").assertPurpose("Test ESBDoc with one proxy referencing one sequence twice: The proxy");
         mainModel.sequenceAssertionFor("TheSequence").assertPurpose("Test ESBDoc with one proxy referencing one sequence twice: The sequence");
+    }
+
+    @Test
+    public void testWithTwoIndependentProxiesReferencingTwoSequencesEach() throws Exception {
+        String esbDocRawPath = outputDestination();
+        new CarAnalyzer().run(carFiles(), esbDocRawPath, new File[0]);
+
+        assertSequenceModelContains(esbDocRawPath, "Proxy1", "Proxy2", "SequenceOne", "SequenceTwo");
+
+        String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
+        MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
+        mainModel.assertNoTests();
+
+        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "SequenceOne", "SequenceTwo");
+        mainModel.dependencyAssertionFor("Proxy1").reversesTo(NOWHERE);
+
+        mainModel.dependencyAssertionFor("Proxy2").forwardsTo(EXCLUSIVELY, "SequenceOne", "SequenceTwo");
+        mainModel.dependencyAssertionFor("Proxy2").reversesTo(NOWHERE);
+
+        mainModel.dependencyAssertionFor("SequenceOne").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("SequenceOne").reversesTo(NON_EXCLUSIVELY, "Proxy1", "Proxy2");
+
+        mainModel.dependencyAssertionFor("SequenceTwo").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("SequenceTwo").reversesTo(NON_EXCLUSIVELY, "Proxy1", "Proxy2");
+
+        mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with two independent proxies, each referencing two sequences: Proxy 1");
+        mainModel.proxyAssertionFor("Proxy2").assertPurpose("Test ESBDoc with two independent proxies, each referencing two sequences: Proxy 2");
+        mainModel.sequenceAssertionFor("SequenceOne").assertPurpose("Test ESBDoc with two independent proxies, each referencing two sequences: The first sequence");
+        mainModel.sequenceAssertionFor("SequenceTwo").assertPurpose("Test ESBDoc with two independent proxies, each referencing two sequences: The second sequence");
     }
 
     /***********************************************************************************************/
