@@ -116,6 +116,29 @@ public class CarAnalyzerTest {
         mainModel.sequenceAssertionFor("SequenceTwo").assertPurpose("Test ESBDoc with one proxy and two sequences: The second sequence");
     }
 
+    @Test
+    public void testWithOneProxyReferencingOneSequenceTwice() throws Exception {
+        String esbDocRawPath = outputDestination();
+        new CarAnalyzer().run(carFiles(), esbDocRawPath, new File[0]);
+
+        //TODO perhaps this should contain the sequence reference twice since it is called twice.
+        assertSequenceModelContains(esbDocRawPath, "ProxyReferencingOneSequenceTwice", "TheSequence");
+
+        String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
+        MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
+        mainModel.assertNoTests();
+
+        // This should contain only one reference to the sequence since we are dealing with physical dependency from one place to another
+        mainModel.dependencyAssertionFor("ProxyReferencingOneSequenceTwice").forwardsTo(EXCLUSIVELY, "TheSequence");
+        mainModel.dependencyAssertionFor("ProxyReferencingOneSequenceTwice").reversesTo(NOWHERE);
+
+        mainModel.dependencyAssertionFor("TheSequence").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("TheSequence").reversesTo(NON_EXCLUSIVELY, "ProxyReferencingOneSequenceTwice");
+
+        mainModel.proxyAssertionFor("ProxyReferencingOneSequenceTwice").assertPurpose("Test ESBDoc with one proxy referencing one sequence twice: The proxy");
+        mainModel.sequenceAssertionFor("TheSequence").assertPurpose("Test ESBDoc with one proxy referencing one sequence twice: The sequence");
+    }
+
     /***********************************************************************************************/
 
     private void assertSequenceModelContains(String esbDocRawPath, String... items) throws IOException{
