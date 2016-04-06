@@ -10,6 +10,7 @@ machine:
     PATH: "$M2_HOME/bin:$PATH"
 
 general:
+  build_dir: ESBDoc-plugin
   branches:
     only:
       - master
@@ -24,13 +25,11 @@ dependencies:
     - ~/.m2/repository
 
   override:
-    - cd ESBDoc-plugin;
-      mvn clean install -Dapache.xmlSchema.version=1.4.7 -Dcommons.logging.version=1.2 -Dmaven.test.skip
+    - mvn clean install -Dapache.xmlSchema.version=1.4.7 -Dcommons.logging.version=1.2 -Dmaven.test.skip
 
 test:
   override:
-    - cd ESBDoc-plugin;
-      mvn test -Dapache.xmlSchema.version=1.4.7 -Dcommons.logging.version=1.2
+    - mvn test -Dapache.xmlSchema.version=1.4.7 -Dcommons.logging.version=1.2
 
   # After running tests collect junit reports and build artifacts
   post:
