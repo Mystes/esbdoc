@@ -4,10 +4,8 @@ machine:
     version: oraclejdk8
 
   environment:
-    JAVA_OPTS: "-Xmx2048m -XX:MaxPermSize=512m -Dfile.encoding=UTF-8"
-    MAVEN_OPTS: "-Xmx2048m -XX:MaxPermSize=512m -Dfile.encoding=UTF-8"
-    M2_HOME: "/usr/share/maven3"
-    PATH: "$M2_HOME/bin:$PATH"
+    JAVA_OPTS: "-Xmx2048m -Dfile.encoding=UTF-8"
+    MAVEN_OPTS: "-Xmx2048m -Dfile.encoding=UTF-8"
 
 general:
   build_dir: ESBDoc-plugin
