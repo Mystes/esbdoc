@@ -18,7 +18,7 @@ general:
 dependencies:
   pre:
     # set Mystes maven settings
-    - cp settings.xml ~/.m2/
+    - cp ci-stuff/maven/settings.xml ~/.m2/
 
   # Cache maven local repository so that we don't have to get dependencies every time
   cache_directories:
