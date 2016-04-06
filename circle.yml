@@ -1,0 +1,35 @@
+## Customize the test machine
+machine:
+  java:
+    version: oraclejdk8
+
+  environment:
+    JAVA_OPTS: "-Xmx2048m -Dfile.encoding=UTF-8"
+    MAVEN_OPTS: "-Xmx2048m -Dfile.encoding=UTF-8"
+
+general:
+  build_dir: ESBDoc-plugin
+  branches:
+    only:
+      - master
+
+dependencies:
+  pre:
+    # set Mystes maven settings
+    - cp ci-stuff/maven/settings.xml ~/.m2/
+
+  # Cache maven local repository so that we don't have to get dependencies every time
+  cache_directories:
+    - ~/.m2/repository
+
+  override:
+    - mvn clean install -Dapache.xmlSchema.version=1.4.7 -Dcommons.logging.version=1.2 -Dmaven.test.skip
+
+test:
+  override:
+    - mvn test -Dapache.xmlSchema.version=1.4.7 -Dcommons.logging.version=1.2
+
+  # After running tests collect junit reports and build artifacts
+  post:
+    - mkdir -p $CIRCLE_TEST_REPORTS/junit/
+    - find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;  #JUnit tests
