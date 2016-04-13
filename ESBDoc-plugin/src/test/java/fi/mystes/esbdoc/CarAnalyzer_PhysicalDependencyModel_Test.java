@@ -1,8 +1,11 @@
 package fi.mystes.esbdoc;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.vfs2.FileSystemException;
+import org.jaxen.JaxenException;
 import org.junit.*;
 
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
 import java.net.URL;
 import java.util.*;
@@ -40,12 +43,8 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
 
     @Test
     public void testWithSingleProxy() throws Exception {
-        String esbDocRawPath = outputDestination();
-        new CarAnalyzer().run(carFiles(), esbDocRawPath, new File[0]);
+        MainModelAssertion mainModel = mainModelWithNoTests();
 
-        String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
-        MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
-        mainModel.assertNoTests();
         mainModel.assertNoDependencies();
 
         mainModel.proxyAssertionFor("Proxy").assertPurpose("Test ESBDoc with a single proxy");
@@ -53,12 +52,8 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
 
     @Test
     public void testWithTwoIndependentProxies() throws Exception {
-        String esbDocRawPath = outputDestination();
-        new CarAnalyzer().run(carFiles(), esbDocRawPath, new File[0]);
+        MainModelAssertion mainModel = mainModelWithNoTests();
 
-        String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
-        MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
-        mainModel.assertNoTests();
         mainModel.assertNoDependencies();
 
         mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with two proxies: Proxy 1");
@@ -67,12 +62,7 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
 
     @Test
     public void testWithOneProxyAndOneSequence() throws Exception {
-        String esbDocRawPath = outputDestination();
-        new CarAnalyzer().run(carFiles(), esbDocRawPath, new File[0]);
-
-        String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
-        MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
-        mainModel.assertNoTests();
+        MainModelAssertion mainModel = mainModelWithNoTests();
 
         mainModel.dependencyAssertionFor("ProxyWithOneSequence").forwardsTo(EXCLUSIVELY, "TheSequence");
         mainModel.dependencyAssertionFor("ProxyWithOneSequence").reversesTo(NOWHERE);
@@ -86,12 +76,7 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
 
     @Test
     public void testWithOneProxyAndTwoSequences() throws Exception {
-        String esbDocRawPath = outputDestination();
-        new CarAnalyzer().run(carFiles(), esbDocRawPath, new File[0]);
-
-        String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
-        MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
-        mainModel.assertNoTests();
+        MainModelAssertion mainModel = mainModelWithNoTests();
 
         mainModel.dependencyAssertionFor("ProxyWithTwoSequences").forwardsTo(EXCLUSIVELY, "SequenceOne", "SequenceTwo");
         mainModel.dependencyAssertionFor("ProxyWithTwoSequences").reversesTo(NOWHERE);
@@ -109,12 +94,7 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
 
     @Test
     public void testWithOneProxyReferencingOneSequenceTwice() throws Exception {
-        String esbDocRawPath = outputDestination();
-        new CarAnalyzer().run(carFiles(), esbDocRawPath, new File[0]);
-
-        String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
-        MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
-        mainModel.assertNoTests();
+        MainModelAssertion mainModel = mainModelWithNoTests();
 
         // This containw only one reference to the sequence since we are dealing with physical dependency from one place to another
         mainModel.dependencyAssertionFor("ProxyReferencingOneSequenceTwice").forwardsTo(EXCLUSIVELY, "TheSequence");
@@ -129,12 +109,7 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
 
     @Test
     public void testWithTwoIndependentProxiesReferencingTwoSequencesEach() throws Exception {
-        String esbDocRawPath = outputDestination();
-        new CarAnalyzer().run(carFiles(), esbDocRawPath, new File[0]);
-
-        String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
-        MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
-        mainModel.assertNoTests();
+        MainModelAssertion mainModel = mainModelWithNoTests();
 
         mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "SequenceOne", "SequenceTwo");
         mainModel.dependencyAssertionFor("Proxy1").reversesTo(NOWHERE);
@@ -154,14 +129,72 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
         mainModel.sequenceAssertionFor("SequenceTwo").assertPurpose("Test ESBDoc with two independent proxies, each referencing two sequences: The second sequence");
     }
 
+    @Test
+    public void testWithOneProxyReferencingAnotherViaCallout() throws Exception {
+        MainModelAssertion mainModel = mainModelWithNoTests();
+
+        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "Proxy2");
+        mainModel.dependencyAssertionFor("Proxy1").reversesTo(NOWHERE);
+
+        mainModel.dependencyAssertionFor("Proxy2").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("Proxy2").reversesTo(EXCLUSIVELY, "Proxy1");
+
+        mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with one proxy referencing another proxy using callout: Proxy 1");
+        mainModel.proxyAssertionFor("Proxy2").assertPurpose("Test ESBDoc with one proxy referencing another proxy using callout: Proxy 2");
+    }
+
+    @Test
+    public void testWithOneProxyReferencingAnotherViaCallUsingAddressEndpoint() throws Exception {
+        MainModelAssertion mainModel = mainModelWithNoTests();
+
+        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "Proxy2");
+        mainModel.dependencyAssertionFor("Proxy1").reversesTo(NOWHERE);
+
+        mainModel.dependencyAssertionFor("Proxy2").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("Proxy2").reversesTo(EXCLUSIVELY, "Proxy1");
+
+        mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with one proxy referencing another proxy via call using address endpoint: Proxy 1");
+        mainModel.proxyAssertionFor("Proxy2").assertPurpose("Test ESBDoc with one proxy referencing another proxy via call using address endpoint: Proxy 2");
+    }
+    @Test
+    public void testWithOneProxyReferencingAnotherViaSendUsingAddressEndpoint() throws Exception {
+        MainModelAssertion mainModel = mainModelWithNoTests();
+
+        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "Proxy2");
+        mainModel.dependencyAssertionFor("Proxy1").reversesTo(NOWHERE);
+
+        mainModel.dependencyAssertionFor("Proxy2").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("Proxy2").reversesTo(EXCLUSIVELY, "Proxy1");
+
+        mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with one proxy referencing another proxy via send using address endpoint: Proxy 1");
+        mainModel.proxyAssertionFor("Proxy2").assertPurpose("Test ESBDoc with one proxy referencing another proxy via send using address endpoint: Proxy 2");
+    }
+
     /***********************************************************************************************/
 
-    public static String getMethodNameOf(String path){
+    private MainModelAssertion mainModelWithNoTests() throws Exception {
+        String esbDocRawPath =  outputDestination("...");
+
+        new CarAnalyzer().run(carFiles("..."), esbDocRawPath, new File[0]);
+
+        String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
+        MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
+        mainModel.assertNoTests();
+
+        return mainModel;
+    }
+
+    /***********************************************************************************************/
+
+    private static String getMethodNameOf(String path){
         if(StringUtils.equals(path, ".")){
             return Thread.currentThread().getStackTrace()[2 + 0].getMethodName();
         }
         if(StringUtils.equals(path, "..")){
             return Thread.currentThread().getStackTrace()[2 + 1].getMethodName();
+        }
+        if(StringUtils.equals(path, "...")){
+            return Thread.currentThread().getStackTrace()[2 + 2].getMethodName();
         }
         int depth = StringUtils.split(path, "/").length;
         return Thread.currentThread().getStackTrace()[2 + depth].getMethodName();
@@ -175,6 +208,18 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
 
     private String outputDestination(){
         String testName = getMethodNameOf("..");
+        URL resourceUrl = CarAnalyzer.class.getResource("/");
+        return resourceUrl.getPath() + testName + "/";
+    }
+
+    private File[] carFiles(String depthPath) throws Exception{
+        List<File> carFileList = new ArrayList<File>();
+        carFileList.add(CarFileUtil.createCarFile(getMethodNameOf(depthPath)));
+        return carFileList.toArray(new File[carFileList.size()]);
+    }
+
+    private String outputDestination(String depthPath){
+        String testName = getMethodNameOf(depthPath);
         URL resourceUrl = CarAnalyzer.class.getResource("/");
         return resourceUrl.getPath() + testName + "/";
     }
