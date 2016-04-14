@@ -156,6 +156,7 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
         mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with one proxy referencing another proxy via call using address endpoint: Proxy 1");
         mainModel.proxyAssertionFor("Proxy2").assertPurpose("Test ESBDoc with one proxy referencing another proxy via call using address endpoint: Proxy 2");
     }
+
     @Test
     public void testWithOneProxyReferencingAnotherViaSendUsingAddressEndpoint() throws Exception {
         MainModelAssertion mainModel = mainModelWithNoTests();
@@ -168,6 +169,39 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
 
         mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with one proxy referencing another proxy via send using address endpoint: Proxy 1");
         mainModel.proxyAssertionFor("Proxy2").assertPurpose("Test ESBDoc with one proxy referencing another proxy via send using address endpoint: Proxy 2");
+    }
+
+    @Test
+    public void testWithOneProxyReferencingAnotherViaInlinedAddressEndpoint() throws Exception {
+        MainModelAssertion mainModel = mainModelWithNoTests();
+
+        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "Proxy2");
+        mainModel.dependencyAssertionFor("Proxy1").reversesTo(NOWHERE);
+
+        mainModel.dependencyAssertionFor("Proxy2").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("Proxy2").reversesTo(EXCLUSIVELY, "Proxy1");
+
+        mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with one proxy referencing another proxy via inlined address endpoint: Proxy 1");
+        mainModel.proxyAssertionFor("Proxy2").assertPurpose("Test ESBDoc with one proxy referencing another proxy via inlined address endpoint: Proxy 2");
+    }
+
+    @Test
+    public void testWithOneProxyReferencingAnotherViaIndependentAddressEndpoint() throws Exception {
+        MainModelAssertion mainModel = mainModelWithNoTests();
+
+        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "AddressEndpointToProxy2");
+        mainModel.dependencyAssertionFor("Proxy1").reversesTo(NOWHERE);
+
+        mainModel.dependencyAssertionFor("AddressEndpointToProxy2").forwardsTo(EXCLUSIVELY, "Proxy2");
+        mainModel.dependencyAssertionFor("AddressEndpointToProxy2").reversesTo(EXCLUSIVELY, "Proxy1");
+
+        mainModel.dependencyAssertionFor("Proxy2").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("Proxy2").reversesTo(EXCLUSIVELY, "AddressEndpointToProxy2");
+
+        mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with one proxy referencing another proxy via independent address endpoint: Proxy 1");
+        mainModel.proxyAssertionFor("Proxy2").assertPurpose("Test ESBDoc with one proxy referencing another proxy via independent address endpoint: Proxy 2");
+
+        mainModel.endpointAssertionFor("AddressEndpointToProxy2").assertPurpose("Test ESBDoc with one proxy referencing another proxy via independent address endpoint: Address endpoint to Proxy 2");
     }
 
     /***********************************************************************************************/
