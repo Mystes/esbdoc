@@ -1,0 +1,1 @@
+{"resources":{"Proxy1":{"purpose":"Test ESBDoc with one proxy referencing another proxy using send: Proxy 1","type":"proxy"},"Proxy2":{"purpose":"Test ESBDoc with one proxy referencing another proxy using send: Proxy 2","type":"proxy"}},"dependencies":{"forward":{"Proxy1":[{"target":"Proxy2","type":"send"}]},"reverse":{"Proxy2":[{"source":"Proxy1","type":"send"}]}},"tests":{}}
