@@ -70,6 +70,8 @@ public class MainModelAssertion {
 
     public SequenceAssertion sequenceAssertionFor(String sequenceName) { return new SequenceAssertion(this.resources, sequenceName); }
 
+    public EndpointAssertion endpointAssertionFor(String endpointName) { return new EndpointAssertion(this.resources, endpointName); }
+
     public DependencyAssertion dependencyAssertionFor(String artifactName) {
         return new DependencyAssertion(artifactName, this.dependencies);
     }
