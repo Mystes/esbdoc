@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sequence xmlns="http://ws.apache.org/ns/synapse" name="Sequence1">
+
+    <call>
+        <endpoint>
+            <address uri="http://localhost:8280/services/Proxy2"/>
+        </endpoint>
+    </call>
+
+    <description>
+        <purpose>Test ESBDoc with one proxy referencing a sequence referencing another proxy via call using address endpoint: Sequence 1</purpose>
+    </description>
+</sequence>
