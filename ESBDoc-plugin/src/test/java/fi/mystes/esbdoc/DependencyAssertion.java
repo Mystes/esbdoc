@@ -68,7 +68,7 @@ class DependencyAssertion {
 
     class TypeAssertion {
         private String[] endpointNames;
-        private List<Dependency> endpoints = new ArrayList<>();
+        private List<Dependency> endpoints = new ArrayList<Dependency>();
 
         private TypeAssertion(String... endpointNames){
             this.endpointNames = endpointNames;
