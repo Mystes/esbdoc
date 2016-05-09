@@ -27,7 +27,7 @@ dependencies:
 
 test:
   override:
-    - mvn test -Dapache.xmlSchema.version=1.4.7 -Dcommons.logging.version=1.2
+    - mvn test -Dapache.xmlSchema.version=1.4.7 -Dcommons.logging.version=1.2 -source 8
 
   # After running tests collect junit reports and build artifacts
   post:
