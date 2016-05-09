@@ -11,6 +11,7 @@ import java.net.URL;
 import java.util.*;
 
 import static fi.mystes.esbdoc.DependencyAssertion.EndpointModel.*;
+import static fi.mystes.esbdoc.DependencyType.*;
 
 /**
  * Created by jussi on 05/02/16.
@@ -64,7 +65,7 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
     public void testWithOneProxyAndOneSequence() throws Exception {
         MainModelAssertion mainModel = mainModelWithNoTests();
 
-        mainModel.dependencyAssertionFor("ProxyWithOneSequence").forwardsTo(EXCLUSIVELY, "TheSequence");
+        mainModel.dependencyAssertionFor("ProxyWithOneSequence").forwardsTo(EXCLUSIVELY, "TheSequence").asType(SEQUENCE);
         mainModel.dependencyAssertionFor("ProxyWithOneSequence").reversesTo(NOWHERE);
 
         mainModel.dependencyAssertionFor("TheSequence").forwardsTo(NOWHERE);
@@ -78,7 +79,7 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
     public void testWithOneProxyAndTwoSequences() throws Exception {
         MainModelAssertion mainModel = mainModelWithNoTests();
 
-        mainModel.dependencyAssertionFor("ProxyWithTwoSequences").forwardsTo(EXCLUSIVELY, "SequenceOne", "SequenceTwo");
+        mainModel.dependencyAssertionFor("ProxyWithTwoSequences").forwardsTo(EXCLUSIVELY, "SequenceOne", "SequenceTwo").asType(SEQUENCE);
         mainModel.dependencyAssertionFor("ProxyWithTwoSequences").reversesTo(NOWHERE);
 
         mainModel.dependencyAssertionFor("SequenceOne").forwardsTo(NOWHERE);
@@ -97,7 +98,7 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
         MainModelAssertion mainModel = mainModelWithNoTests();
 
         // This containw only one reference to the sequence since we are dealing with physical dependency from one place to another
-        mainModel.dependencyAssertionFor("ProxyReferencingOneSequenceTwice").forwardsTo(EXCLUSIVELY, "TheSequence");
+        mainModel.dependencyAssertionFor("ProxyReferencingOneSequenceTwice").forwardsTo(EXCLUSIVELY, "TheSequence").asType(SEQUENCE);
         mainModel.dependencyAssertionFor("ProxyReferencingOneSequenceTwice").reversesTo(NOWHERE);
 
         mainModel.dependencyAssertionFor("TheSequence").forwardsTo(NOWHERE);
@@ -111,7 +112,7 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
     public void testWithTwoIndependentProxiesReferencingTwoSequencesEach() throws Exception {
         MainModelAssertion mainModel = mainModelWithNoTests();
 
-        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "SequenceOne", "SequenceTwo");
+        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "SequenceOne", "SequenceTwo").asType(SEQUENCE);
         mainModel.dependencyAssertionFor("Proxy1").reversesTo(NOWHERE);
 
         mainModel.dependencyAssertionFor("Proxy2").forwardsTo(EXCLUSIVELY, "SequenceOne", "SequenceTwo");
@@ -133,7 +134,7 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
     public void testWithOneProxyReferencingAnotherViaCallout() throws Exception {
         MainModelAssertion mainModel = mainModelWithNoTests();
 
-        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "Proxy2");
+        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "Proxy2").asType(CALLOUT);
         mainModel.dependencyAssertionFor("Proxy1").reversesTo(NOWHERE);
 
         mainModel.dependencyAssertionFor("Proxy2").forwardsTo(NOWHERE);
@@ -147,7 +148,7 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
     public void testWithOneProxyReferencingAnotherViaCallUsingAddressEndpoint() throws Exception {
         MainModelAssertion mainModel = mainModelWithNoTests();
 
-        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "Proxy2");
+        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "Proxy2").asType(CALL);
         mainModel.dependencyAssertionFor("Proxy1").reversesTo(NOWHERE);
 
         mainModel.dependencyAssertionFor("Proxy2").forwardsTo(NOWHERE);
@@ -161,7 +162,7 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
     public void testWithOneProxyReferencingAnotherViaSendUsingAddressEndpoint() throws Exception {
         MainModelAssertion mainModel = mainModelWithNoTests();
 
-        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "Proxy2");
+        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "Proxy2").asType(SEND);
         mainModel.dependencyAssertionFor("Proxy1").reversesTo(NOWHERE);
 
         mainModel.dependencyAssertionFor("Proxy2").forwardsTo(NOWHERE);
@@ -175,7 +176,7 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
     public void testWithOneProxyReferencingAnotherViaInlinedAddressEndpoint() throws Exception {
         MainModelAssertion mainModel = mainModelWithNoTests();
 
-        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "Proxy2");
+        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "Proxy2").asType(PROXY_ENDPOINT);
         mainModel.dependencyAssertionFor("Proxy1").reversesTo(NOWHERE);
 
         mainModel.dependencyAssertionFor("Proxy2").forwardsTo(NOWHERE);
@@ -189,7 +190,7 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
     public void testWithOneProxyReferencingAnotherViaIndependentAddressEndpoint() throws Exception {
         MainModelAssertion mainModel = mainModelWithNoTests();
 
-        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "AddressEndpointToProxy2");
+        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "AddressEndpointToProxy2").asType(PROXY_ENDPOINT);
         mainModel.dependencyAssertionFor("Proxy1").reversesTo(NOWHERE);
 
         mainModel.dependencyAssertionFor("AddressEndpointToProxy2").forwardsTo(EXCLUSIVELY, "Proxy2");
@@ -202,6 +203,20 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
         mainModel.proxyAssertionFor("Proxy2").assertPurpose("Test ESBDoc with one proxy referencing another proxy via independent address endpoint: Proxy 2");
 
         mainModel.endpointAssertionFor("AddressEndpointToProxy2").assertPurpose("Test ESBDoc with one proxy referencing another proxy via independent address endpoint: Address endpoint to Proxy 2");
+    }
+
+    @Test
+    public void testWithOneProxyReferencingAnotherViaIterateMediator() throws Exception {
+        MainModelAssertion mainModel = mainModelWithNoTests();
+
+        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "Proxy2").asType(ITERATE);
+        mainModel.dependencyAssertionFor("Proxy1").reversesTo(NOWHERE);
+
+        mainModel.dependencyAssertionFor("Proxy2").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("Proxy2").reversesTo(EXCLUSIVELY, "Proxy1").asType(ITERATE);
+
+        mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with one proxy referencing another proxy via iterate mediator: Proxy 1");
+        mainModel.proxyAssertionFor("Proxy2").assertPurpose("Test ESBDoc with one proxy referencing another proxy via iterate mediator: Proxy 2");
     }
 
     /***********************************************************************************************/
