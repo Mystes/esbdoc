@@ -80,7 +80,7 @@ public class CarAnalyzer {
         ArtifactDependencyMap forwardDependencyMap = buildForwardDependencyMap(artifactMap);
         ArtifactDependencyMap reverseDependencyMap = buildReverseDependencyMap(forwardDependencyMap);
         TestMap testsMap = buildTestFileMap(artifactMap, forwardDependencyMap, testFileObjects);
-        //One output file is for physical dependecies between artifacts,
+        //One output file is for physical dependencies between artifacts,
         //the other is an input file for MSC chart generators and unrelated to main ESBDoc for now.
         writeOutputFiles(forwardDependencyMap, reverseDependencyMap, testsMap, artifactMap, outputDestination);
         SequenceDiagramBuilder.instance().writeOutputFile(outputDestination + Constants.MSC_JSON_FILE);

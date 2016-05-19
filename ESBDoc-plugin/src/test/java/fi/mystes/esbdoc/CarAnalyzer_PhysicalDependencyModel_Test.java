@@ -366,6 +366,20 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
         mainModel.sequenceAssertionFor("Sequence2").assertPurpose("Test ESBDoc with circular dependency across two sequences: Sequence 2");
     }
 
+    //@Test
+    public void testWithProxyReferencingXslt() throws Exception {
+        MainModelAssertion mainModel = mainModelWithNoTests();
+
+        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "Xslt1"); //TODO asType
+        mainModel.dependencyAssertionFor("Proxy1").reversesTo(NOWHERE);
+
+        mainModel.dependencyAssertionFor("Xslt1").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("Xslt1").reversesTo(NON_EXCLUSIVELY, "Proxy1");
+
+        mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with one proxy referencing an XSLT: Proxy 1");
+        //TODO XSLT Assertion
+    }
+
     /***********************************************************************************************/
 
     private MainModelAssertion mainModelWithNoTests() throws Exception {

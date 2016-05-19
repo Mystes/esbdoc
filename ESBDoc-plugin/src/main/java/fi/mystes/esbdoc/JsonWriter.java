@@ -14,7 +14,7 @@ import java.util.Set;
 
 /**
  * Created by mystes-am on 29.5.2015.
- * TODO This is horrible
+ * TODO The construct of of methods in this class might need refactoring
  */
 public class JsonWriter {
     private static Log log = LogFactory.getLog(JsonWriter.class);
