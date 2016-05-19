@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<proxy xmlns="http://ws.apache.org/ns/synapse"
+       name="Proxy1"
+       transports="https,http"
+       statistics="disable"
+       trace="disable"
+       startOnLoad="true">
+    <target>
+        <inSequence>
+            <respond/>
+        </inSequence>
+    </target>
+    <publishWSDL key="gov:trunk/services/Wsdl1.wsdl">
+        <resource location="Xsd1.xsd" key="gov:trunk/services/Xsd1.xsd"/>
+    </publishWSDL>
+    <description>
+        <purpose>Test ESBDoc with one proxy referencing a WSDL referencing an XSD: Proxy 1</purpose>
+    </description>
+</proxy>
