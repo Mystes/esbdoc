@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sequence xmlns="http://ws.apache.org/ns/synapse" name="Sequence1">
+
+    <sequence key="Sequence2"/>
+
+    <description>
+        <purpose>Test ESBDoc with one proxy referencing a sequence referencing another sequence: Sequence 1</purpose>
+    </description>
+</sequence>

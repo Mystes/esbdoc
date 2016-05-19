@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<artifacts>
+    <artifact name="testWithSequenceReferencingItself" version="1.0.0" type="carbon/application">
+        <dependency artifact="Sequence1" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+    </artifact>
+</artifacts>
