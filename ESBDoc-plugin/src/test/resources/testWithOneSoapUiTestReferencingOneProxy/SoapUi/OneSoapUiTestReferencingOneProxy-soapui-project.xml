@@ -1,23 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<con:soapui-project id="0b873f14-bd66-4cea-b0a9-c86eabb47f2b" activeEnvironment="Default"
-  name="OneSoapUiTestReferencingOneProxy" resourceRoot="" soapui-version="5.2.1"
-  abortOnError="false" runType="SEQUENTIAL" xmlns:con="http://eviware.com/soapui/config">
+<con:soapui-project id="0b873f14-bd66-4cea-b0a9-c86eabb47f2b" activeEnvironment="Default" name="OneSoapUiTestReferencingOneProxy" resourceRoot="" soapui-version="5.2.1" abortOnError="false" runType="SEQUENTIAL" xmlns:con="http://eviware.com/soapui/config">
   <con:settings/>
-  <con:interface xsi:type="con:WsdlInterface" id="510a6135-8e9a-43e5-9482-fa02449994c9"
-    wsaVersion="NONE" name="Proxy1Soap12Binding" type="wsdl"
-    bindingName="{http://ws.apache.org/axis2}Proxy1Soap12Binding" soapVersion="1_2"
-    anonymous="optional" definition="http://localhost:8280/services/Proxy1?wsdl"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <con:interface xsi:type="con:WsdlInterface" id="510a6135-8e9a-43e5-9482-fa02449994c9" wsaVersion="NONE" name="Proxy1Soap12Binding" type="wsdl" bindingName="{http://ws.apache.org/axis2}Proxy1Soap12Binding" soapVersion="1_2" anonymous="optional" definition="http://localhost:8280/services/Proxy1?wsdl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <con:settings/>
-    <con:definitionCache/>
-    <con:endpoints>
+    
+    <con:definitionCache type="TEXT"/><con:endpoints>
       <con:endpoint>http://localhost:8280/services/Proxy1.Proxy1HttpSoap12Endpoint</con:endpoint>
       <con:endpoint>https://localhost:8243/services/Proxy1.Proxy1HttpsSoap12Endpoint</con:endpoint>
     </con:endpoints>
-    <con:operation id="38fd8c27-e0ac-40e3-a2f5-9210c2137d59" isOneWay="false"
-      action="urn:someProxy1Method" name="someProxy1Method" bindingOperationName="someProxy1Method"
-      type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false"
-      anonymous="optional">
+    <con:operation id="38fd8c27-e0ac-40e3-a2f5-9210c2137d59" isOneWay="false" action="urn:someProxy1Method" name="someProxy1Method" bindingOperationName="someProxy1Method" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional">
       <con:settings/>
       <con:call id="859b7bc9-97a3-4cc4-8555-b7fe38b4c797" name="Request 1">
         <con:settings/>
@@ -36,11 +27,7 @@
       </con:call>
     </con:operation>
   </con:interface>
-  <con:interface xsi:type="con:WsdlInterface" id="a38b917d-f3c7-49f7-b974-0a193df1b785"
-    wsaVersion="NONE" name="Proxy1Soap11Binding" type="wsdl"
-    bindingName="{http://ws.apache.org/axis2}Proxy1Soap11Binding" soapVersion="1_1"
-    anonymous="optional" definition="http://localhost:8280/services/Proxy1?wsdl"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <con:interface xsi:type="con:WsdlInterface" id="a38b917d-f3c7-49f7-b974-0a193df1b785" wsaVersion="NONE" name="Proxy1Soap11Binding" type="wsdl" bindingName="{http://ws.apache.org/axis2}Proxy1Soap11Binding" soapVersion="1_1" anonymous="optional" definition="http://localhost:8280/services/Proxy1?wsdl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <con:settings/>
     <con:definitionCache type="TEXT" rootPart="http://localhost:8280/services/Proxy1?wsdl">
       <con:part>
@@ -113,10 +100,7 @@
       <con:endpoint>http://localhost:8280/services/Proxy1.Proxy1HttpSoap11Endpoint</con:endpoint>
       <con:endpoint>https://localhost:8243/services/Proxy1.Proxy1HttpsSoap11Endpoint</con:endpoint>
     </con:endpoints>
-    <con:operation id="19ba5d0d-3716-44e4-b16e-efca80c0434c" isOneWay="false"
-      action="urn:someProxy1Method" name="someProxy1Method" bindingOperationName="someProxy1Method"
-      type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false"
-      anonymous="optional">
+    <con:operation id="19ba5d0d-3716-44e4-b16e-efca80c0434c" isOneWay="false" action="urn:someProxy1Method" name="someProxy1Method" bindingOperationName="someProxy1Method" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional">
       <con:settings/>
       <con:call id="f7854d34-81f0-480d-86fa-93ade804a661" name="Request 1">
         <con:settings/>
@@ -135,7 +119,7 @@
       </con:call>
     </con:operation>
   </con:interface>
-  <con:properties/>
+  <con:testSuite id="bcfc9e5b-408e-43df-b8eb-bf4a55182d42" name="Proxy1TestSuite"><con:settings/><con:runType>SEQUENTIAL</con:runType><con:testCase id="88ee7afa-39fb-4ecd-bfba-baad17d29215" failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="Proxy1TestCase" searchProperties="true"><con:settings/><con:testStep type="request" name="Proxy 1 SOAP Request" id="36b4fb41-c89f-4fbc-8083-841661e04111"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>Proxy1Soap12Binding</con:interface><con:operation>someProxy1Method</con:operation><con:request name="Proxy 1 SOAP Request" id="1c715983-fee0-4301-83f9-28e132b4cba7"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://localhost:8280/services/Proxy1.Proxy1HttpSoap12Endpoint</con:endpoint><con:request xsi:nil="true"/><con:assertion type="SOAP Response" id="33fa10dc-d51c-454a-8e3e-a5c487961465"/><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/><con:wsrmConfig version="1.2"/></con:request></con:config></con:testStep><con:properties/></con:testCase><con:properties/></con:testSuite><con:properties/>
   <con:wssContainer/>
   <con:oAuth2ProfileContainer/>
   <con:sensitiveInformation/>

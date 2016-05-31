@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<proxy xmlns="http://ws.apache.org/ns/synapse"
+       name="Proxy1"
+       transports="https,http"
+       statistics="disable"
+       trace="disable"
+       startOnLoad="true">
+    <target>
+        <inSequence>
+            <respond/>
+        </inSequence>
+    </target>
+    <description>
+        <purpose>Test ESBDoc with one SoapUI test referencing one proxy: Proxy 1</purpose>
+    </description>
+</proxy>
