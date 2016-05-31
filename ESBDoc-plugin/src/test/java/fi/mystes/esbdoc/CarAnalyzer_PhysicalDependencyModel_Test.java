@@ -1,5 +1,6 @@
 package fi.mystes.esbdoc;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.vfs2.FileSystemException;
 import org.jaxen.JaxenException;
@@ -397,6 +398,74 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
         mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with one proxy referencing a WSDL referencing an XSD: Proxy 1");
     }
 
+    @Test
+    public void testWithProxyReferencingSequenceUsingClone() throws Exception {
+        MainModelAssertion mainModel = mainModelWithNoTests();
+
+        mainModel.dependencyAssertionFor("ProxyWithOneSequence").forwardsTo(EXCLUSIVELY, "TheSequence").asType(CLONE);
+        mainModel.dependencyAssertionFor("ProxyWithOneSequence").reversesTo(NOWHERE);
+
+        mainModel.dependencyAssertionFor("TheSequence").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("TheSequence").reversesTo(NON_EXCLUSIVELY, "ProxyWithOneSequence").asType(CLONE);
+
+        mainModel.proxyAssertionFor("ProxyWithOneSequence").assertPurpose("Test ESBDoc with one proxy referencing one sequence using clone mediator: The proxy");
+        mainModel.sequenceAssertionFor("TheSequence").assertPurpose("Test ESBDoc with one proxy referencing one sequence using clone mediator: The sequence");
+    }
+
+    @Test
+    public void testWithOneProxyReferencingAnotherViaDocumentedDependency() throws Exception {
+        MainModelAssertion mainModel = mainModelWithNoTests();
+
+        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "Proxy2").asType(DOCUMENTED);
+        mainModel.dependencyAssertionFor("Proxy1").reversesTo(NOWHERE);
+
+        mainModel.dependencyAssertionFor("Proxy2").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("Proxy2").reversesTo(EXCLUSIVELY, "Proxy1").asType(DOCUMENTED);
+
+        mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with one proxy referencing another proxy using documented dependency: Proxy 1");
+        mainModel.proxyAssertionFor("Proxy2").assertPurpose("Test ESBDoc with one proxy referencing another proxy using documented dependency: Proxy 2");
+    }
+
+    @Test
+    public void testWithOneSoapUiTestReferencingZeroProxies() throws Exception {
+        String testName = getTestName();
+        File carFile = CarFileUtil.createCarFile(testName, "Deployment");
+        File testFolder = CarFileUtil.getTestFolder(testName, "SoapUi");
+
+        File[] carFileArray = ArrayUtils.toArray(carFile);
+        File[] testFolderArray = ArrayUtils.toArray(testFolder);
+        String esbDocRawPath = outputDestination();
+
+        new CarAnalyzer().run(carFileArray, esbDocRawPath, testFolderArray);
+
+        String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
+        MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
+
+        //TODO should the model contain a reference to the test albeit the test contains no references to the proxy?
+        mainModel.proxyAssertionFor("Proxy").assertPurpose("Test ESBDoc with one SoapUI test referencing zero proxies: Proxy 1");
+    }
+
+    @Test
+    public void testWithOneSoapUiTestReferencingOneProxy() throws Exception {
+        String testName = getTestName();
+        File carFile = CarFileUtil.createCarFile(testName, "Deployment");
+        File testFolder = CarFileUtil.getTestFolder(testName, "SoapUi");
+
+        File[] carFileArray = ArrayUtils.toArray(carFile);
+        File[] testFolderArray = ArrayUtils.toArray(testFolder);
+        String esbDocRawPath = outputDestination();
+
+        new CarAnalyzer().run(carFileArray, esbDocRawPath, testFolderArray);
+
+        String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
+        MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
+
+        mainModel.dependencyAssertionFor("Proxy1").testedBy("OneSoapUiTestReferencingOneProxy");
+
+        mainModel.soapUiAssertionFor("OneSoapUiTestReferencingOneProxy").assertFilename("OneSoapUiTestReferencingOneProxy-soapui-project.xml");
+        mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with one SoapUI test referencing one proxy: Proxy 1");
+    }
+
     /***********************************************************************************************/
 
     private MainModelAssertion mainModelWithNoTests() throws Exception {
@@ -425,6 +494,10 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
         }
         int depth = StringUtils.split(path, "/").length;
         return Thread.currentThread().getStackTrace()[2 + depth].getMethodName();
+    }
+
+    private static String getTestName(){
+        return getMethodNameOf("..");
     }
 
     private File[] carFiles() throws Exception{
