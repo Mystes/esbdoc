@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<proxy xmlns="http://ws.apache.org/ns/synapse"
+       name="Proxy1"
+       transports="https,http"
+       statistics="disable"
+       trace="disable"
+       startOnLoad="true">
+    <target>
+        <inSequence>
+            <drop/>
+        </inSequence>
+    </target>
+    <description>
+        <purpose>Test ESBDoc with one proxy referencing another proxy using documented dependency: Proxy 1</purpose>
+        <dependencies>
+            <dependency>Proxy2</dependency>
+        </dependencies>
+    </description>
+</proxy>
