@@ -1,5 +1,6 @@
 package fi.mystes.esbdoc;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -40,7 +41,11 @@ public class Files {
         return getFileObjects(files, Type.CAR_FILE);
     }
 
-    public static List<FileObject> getTestFileObjects(File[] files) throws FileSystemException {
+    public static List<FileObject> getTestFileObjects(File[] folders) throws FileSystemException {
+        File[] files = new File[0];
+        for(File folder : folders){
+            files = ArrayUtils.addAll(files, folder.listFiles());
+        }
         return getFileObjects(files, Type.SOAPUI_FILE);
     }
 
