@@ -1,5 +1,6 @@
 package fi.mystes.esbdoc;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -17,6 +18,7 @@ class DependencyAssertion {
 
     private Direction direction;
     private Collection<Map.Entry<String, JsonElement>> dependencies;
+    private Collection<Map.Entry<String, JsonElement>> tests;
 
     private String artifactName;
     private EndpointModel endpointModel;
@@ -28,9 +30,69 @@ class DependencyAssertion {
     private DependencyAssertion() {
     }
 
-    public DependencyAssertion(String artifactName, Set<Map.Entry<String, JsonElement>> allDependencies){
+    public DependencyAssertion(String artifactName, Set<Map.Entry<String, JsonElement>> allDependencies, Set<Map.Entry<String, JsonElement>> allTests){
         this.dependencies = allDependencies;
         this.artifactName = artifactName;
+        this.tests = allTests;
+    }
+
+    public void testedBy(String... expectedTestNames){
+        if(null == expectedTestNames){
+            return;
+        }
+
+        String[] actualTestNames = getTestNamesForThisArtifact();
+
+        assertEquals("Number of expected and actual tests does not match for artifact: " + artifactName , expectedTestNames.length, actualTestNames.length);
+        assertTestNames(expectedTestNames, actualTestNames);
+    }
+
+    private String[] getTestNamesForThisArtifact(){
+        JsonElement element = testMap().get(artifactName);
+        JsonArray testArray = element.getAsJsonArray();
+        List<String> actualTestNames = getTestNamesFromArray(testArray);
+        return actualTestNames.toArray(new String[actualTestNames.size()]);
+    }
+
+    private List<String> getTestNamesFromArray(JsonArray testArray){
+        List<String> actualTestNames = new ArrayList<String>();
+        Iterator<JsonElement> iterator = testArray.iterator();
+        while (iterator.hasNext()){
+            JsonObject test = iterator.next().getAsJsonObject();
+            String testName = test.get("project").getAsString();
+            actualTestNames.add(testName);
+        }
+        return actualTestNames;
+    }
+
+    private Map<String, JsonElement> testMap(){
+        Map<String, JsonElement> testMap = new HashMap<String, JsonElement>();
+        for(Map.Entry entry : tests){
+            testMap.put((String) entry.getKey(), (JsonElement) entry.getValue());
+        }
+        return testMap;
+    }
+
+    private void assertTestNames(String[] expectedTestNames, String[] actualTestNames){
+        for(String expectedName : expectedTestNames){
+            boolean matchFound = false;
+            for(String actualName : actualTestNames){
+                if(StringUtils.equals(expectedName, actualName)){
+                    matchFound = true;
+                }
+            }
+            assertTrue("Expected artifact '" + artifactName +  "' to be tested by '" + expectedName + "' but it is not.", matchFound);
+        }
+
+        for(String actualName : actualTestNames){
+            boolean matchFound = false;
+            for(String expectedName : expectedTestNames){
+                if(StringUtils.equals(expectedName, actualName)){
+                    matchFound = true;
+                }
+            }
+            assertTrue("Did not expect artifact '" + artifactName +  "' to be tested by '" + actualName + "' but it is.", matchFound);
+        }
     }
 
     public TypeAssertion forwardsTo(EndpointModel endpointModel, String... endpointNames) {

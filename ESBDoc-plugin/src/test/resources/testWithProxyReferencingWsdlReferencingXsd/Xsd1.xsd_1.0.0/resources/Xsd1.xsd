@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<definitions targetNamespace="mystesDemo:orderProxy" xmlns:xs="http://www.w3.org/2001/XMLSchema" name="OrderdemoProxyService" xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:wsp="http://www.w3.org/ns/ws-policy" xmlns:tns="mystesDemo:orderProxy" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:wsp1_2="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+    <types>
+        <xs:import schemaLocation="order.xsd"/>
+    </types>
+    <message name="sendOrder">
+        <part name="parameters" element="tns:order"/>
+    </message>
+    <message name="sendOrderResponse">
+        <part name="parameters" element="tns:orderResponse"/>
+    </message>
+    <portType name="OrderdemoProxy">
+        <operation name="sendOrder">
+            <input wsam:Action="mystesDemo:orderProxy/OrderdemoProxy/sendOrderRequest" message="tns:sendOrder"/>
+            <output wsam:Action="mystesDemo:orderProxy/OrderdemoProxy/sendOrderResponse" message="tns:sendOrderResponse"/>
+        </operation>
+    </portType>
+    <binding name="OrderdemoProxyPortBinding" type="tns:OrderdemoProxy">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <operation name="sendOrder">
+            <soap:operation soapAction="sendOrder"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+    </binding>
+
+    <service name="OrderdemoProxyService">
+        <port name="OrderdemoProxyPort" binding="tns:OrderdemoProxyPortBinding">
+            <soap:address location="http://localhost:8280/services/orderdemoProxy.orderdemoProxyHttpSoapEndpoint/sendOrder"/>
+        </port>
+    </service>
+</definitions>

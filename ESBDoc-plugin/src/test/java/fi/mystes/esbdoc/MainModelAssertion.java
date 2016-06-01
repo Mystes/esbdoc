@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -51,6 +52,10 @@ public class MainModelAssertion {
         assertThat(this.tests.size(), is(0));
     }
 
+    public void assertHasTests(){
+        assertThat(this.tests.size(), not(is(0)));
+    }
+
     public void assertNoForwardDependencies() {
         new DependencyAssertion(Direction.FORWARD, this.dependencies).assertEmpty();
     }
@@ -73,6 +78,10 @@ public class MainModelAssertion {
     public EndpointAssertion endpointAssertionFor(String endpointName) { return new EndpointAssertion(this.resources, endpointName); }
 
     public DependencyAssertion dependencyAssertionFor(String artifactName) {
-        return new DependencyAssertion(artifactName, this.dependencies);
+        return new DependencyAssertion(artifactName, this.dependencies, this.tests);
+    }
+
+    public SoapUiAssertion soapUiAssertionFor(String soapUiProjectName) {
+        return new SoapUiAssertion(this.tests, soapUiProjectName);
     }
 }

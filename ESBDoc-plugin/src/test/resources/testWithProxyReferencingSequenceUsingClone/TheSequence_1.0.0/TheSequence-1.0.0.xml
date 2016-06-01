@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sequence xmlns="http://ws.apache.org/ns/synapse" name="TheSequence">
+
+    <description>
+        <purpose>Test ESBDoc with one proxy referencing one sequence using clone mediator: The sequence</purpose>
+    </description>
+</sequence>
