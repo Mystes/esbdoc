@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -49,6 +50,10 @@ public class MainModelAssertion {
 
     public void assertNoTests(){
         assertThat(this.tests.size(), is(0));
+    }
+
+    public void assertHasTests(){
+        assertThat(this.tests.size(), not(is(0)));
     }
 
     public void assertNoForwardDependencies() {
