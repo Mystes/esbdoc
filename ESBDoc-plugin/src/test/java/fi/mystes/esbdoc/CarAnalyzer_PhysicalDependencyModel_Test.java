@@ -431,6 +431,8 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
         MainModelAssertion mainModel = mainModelWithBasicTestSetup();
         mainModel.assertNoTests();
         //TODO should the model contain a reference to the test albeit the test contains no references to the proxy?
+        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("Proxy1").reversesTo(NOWHERE);
         mainModel.proxyAssertionFor("Proxy").assertPurpose("Test ESBDoc with one SoapUI test referencing zero proxies: Proxy 1");
     }
 
@@ -440,6 +442,8 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
         mainModel.assertHasTests();
 
         mainModel.dependencyAssertionFor("Proxy1").testedBy("OneSoapUiTestReferencingOneProxy");
+        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("Proxy1").reversesTo(NOWHERE);
 
         mainModel.soapUiAssertionFor("OneSoapUiTestReferencingOneProxy").assertFilename("OneSoapUiTestReferencingOneProxy-soapui-project.xml");
         mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with one SoapUI test referencing one proxy: Proxy 1");
@@ -451,7 +455,12 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
         mainModel.assertHasTests();
 
         mainModel.dependencyAssertionFor("Proxy1").testedBy("OneSoapUiTestReferencingTwoProxies");
+        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("Proxy1").reversesTo(NOWHERE);
+
         mainModel.dependencyAssertionFor("Proxy2").testedBy("OneSoapUiTestReferencingTwoProxies");
+        mainModel.dependencyAssertionFor("Proxy2").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("Proxy2").reversesTo(NOWHERE);
 
         mainModel.soapUiAssertionFor("OneSoapUiTestReferencingTwoProxies").assertFilename("OneSoapUiTestReferencingTwoProxies-soapui-project.xml");
         mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with one SoapUI test referencing two proxies: Proxy 1");
@@ -465,6 +474,9 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
 
         mainModel.dependencyAssertionFor("Proxy1").testedBy("OneSoapUiTestReferencingOneProxy");
         mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "Proxy2").asType(SEND);
+        mainModel.dependencyAssertionFor("Proxy1").reversesTo(NOWHERE);
+
+        mainModel.dependencyAssertionFor("Proxy2").forwardsTo(NOWHERE);
         mainModel.dependencyAssertionFor("Proxy2").reversesTo(EXCLUSIVELY, "Proxy1").asType(SEND);
 
         mainModel.soapUiAssertionFor("OneSoapUiTestReferencingOneProxy").assertFilename("OneSoapUiTestReferencingOneProxy-soapui-project.xml");
