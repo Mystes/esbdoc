@@ -80,8 +80,18 @@ class DependencyAssertion {
                 if(StringUtils.equals(expectedName, actualName)){
                     matchFound = true;
                 }
-                assertTrue("Expected artifact '" + artifactName +  "' to be tested by '" + expectedName + "' but it is not.", matchFound);
             }
+            assertTrue("Expected artifact '" + artifactName +  "' to be tested by '" + expectedName + "' but it is not.", matchFound);
+        }
+
+        for(String actualName : actualTestNames){
+            boolean matchFound = false;
+            for(String expectedName : expectedTestNames){
+                if(StringUtils.equals(expectedName, actualName)){
+                    matchFound = true;
+                }
+            }
+            assertTrue("Did not expect artifact '" + artifactName +  "' to be tested by '" + actualName + "' but it is.", matchFound);
         }
     }
 

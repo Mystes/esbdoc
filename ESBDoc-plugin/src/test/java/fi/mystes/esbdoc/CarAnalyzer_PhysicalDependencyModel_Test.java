@@ -484,6 +484,20 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
         mainModel.proxyAssertionFor("Proxy2").assertPurpose("Test ESBDoc with one SoapUI test referencing one proxy referencing another proxy: Proxy 2");
     }
 
+    @Test
+    public void testWithTwoSoapUiTestsInTheSameFolderReferencingTheSameProxy() throws Exception {
+        MainModelAssertion mainModel = mainModelWithBasicTestSetup();
+        mainModel.assertHasTests();
+
+        mainModel.dependencyAssertionFor("Proxy1").testedBy("SoapUiTest1ReferencingOneProxy", "SoapUiTest2ReferencingOneProxy");
+        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("Proxy1").reversesTo(NOWHERE);
+
+        mainModel.soapUiAssertionFor("SoapUiTest1ReferencingOneProxy").assertFilename("SoapUiTest1-soapui-project.xml");
+        mainModel.soapUiAssertionFor("SoapUiTest2ReferencingOneProxy").assertFilename("SoapUiTest2-soapui-project.xml");
+        mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with two SoapUI tests in the same folder referencing the same proxy: Proxy 1");
+    }
+
     /***********************************************************************************************/
 
     private MainModelAssertion mainModelWithNoTests() throws Exception {
