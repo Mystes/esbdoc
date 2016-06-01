@@ -4,8 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.collections4.iterators.IteratorEnumeration;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -43,20 +41,39 @@ class DependencyAssertion {
             return;
         }
 
+        String[] actualTestNames = getTestNamesForThisArtifact();
+
+        assertEquals("Number of expected and actual tests does not match for artifact: " + artifactName , expectedTestNames.length, actualTestNames.length);
+        assertTestNames(expectedTestNames, actualTestNames);
+    }
+
+    private String[] getTestNamesForThisArtifact(){
+        JsonElement element = testMap().get(artifactName);
+        JsonArray testArray = element.getAsJsonArray();
+        List<String> actualTestNames = getTestNamesFromArray(testArray);
+        return actualTestNames.toArray(new String[actualTestNames.size()]);
+    }
+
+    private List<String> getTestNamesFromArray(JsonArray testArray){
         List<String> actualTestNames = new ArrayList<String>();
-        for(Map.Entry testEntry : tests){
-            JsonElement element = (JsonElement) testEntry.getValue();
-            JsonArray testArray = element.getAsJsonArray();
-
-            Iterator<JsonElement> iterator = testArray.iterator();
-            while (iterator.hasNext()){
-                JsonObject test = iterator.next().getAsJsonObject();
-                String testName = test.get("project").getAsString();
-                actualTestNames.add(testName);
-            }
+        Iterator<JsonElement> iterator = testArray.iterator();
+        while (iterator.hasNext()){
+            JsonObject test = iterator.next().getAsJsonObject();
+            String testName = test.get("project").getAsString();
+            actualTestNames.add(testName);
         }
+        return actualTestNames;
+    }
 
-        assertEquals("Number of expected and actual tests does not match for artifact: " + artifactName , expectedTestNames.length, actualTestNames.size());
+    private Map<String, JsonElement> testMap(){
+        Map<String, JsonElement> testMap = new HashMap<String, JsonElement>();
+        for(Map.Entry entry : tests){
+            testMap.put((String) entry.getKey(), (JsonElement) entry.getValue());
+        }
+        return testMap;
+    }
+
+    private void assertTestNames(String[] expectedTestNames, String[] actualTestNames){
         for(String expectedName : expectedTestNames){
             boolean matchFound = false;
             for(String actualName : actualTestNames){
