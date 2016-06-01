@@ -16,6 +16,8 @@ import static fi.mystes.esbdoc.DependencyType.*;
  */
 public class CarAnalyzer_PhysicalDependencyModel_Test {
 
+    private static final String DEFAULT_ESBDOC_RAW_PATH = "esbdoc-raw";
+
     /***********************************************************************************************/
 
     @BeforeClass
@@ -648,7 +650,7 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
     private String outputDestination(){
         String testName = getMethodNameOf("..");
         URL resourceUrl = CarAnalyzer.class.getResource("/");
-        return resourceUrl.getPath() + testName + "/";
+        return resourceUrl.getPath() + testName + "/" + DEFAULT_ESBDOC_RAW_PATH;
     }
 
     private File[] carFiles(String depthPath) throws Exception{
@@ -660,11 +662,11 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
     private String outputDestination(String depthPath){
         String testName = getMethodNameOf(depthPath);
         URL resourceUrl = CarAnalyzer.class.getResource("/");
-        return resourceUrl.getPath() + testName + "/";
+        return resourceUrl.getPath() + testName + "/" + DEFAULT_ESBDOC_RAW_PATH;
     }
 
     private String mainModelPathFor(String basePath){
-        return basePath + Constants.PHYSICAL_DEPENDENCY_JSON_FILE;
+        return basePath + ".json";
     }
 
 }
