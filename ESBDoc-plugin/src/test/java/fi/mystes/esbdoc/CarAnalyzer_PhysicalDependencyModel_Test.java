@@ -509,6 +509,20 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
         mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with two SoapUI tests in separate folders referencing the same proxy: Proxy 1");
     }
 
+    @Test
+    public void testWithProxyInOneCarReferencingProxyInAnotherCar() throws Exception {
+        MainModelAssertion mainModel = mainModelWithCustomSetup(DeploymentFolders.are("Deployment1", "Deployment2" ), TestFolders.none());
+
+        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "Proxy2").asType(SEND);
+        mainModel.dependencyAssertionFor("Proxy1").reversesTo(NOWHERE);
+
+        mainModel.dependencyAssertionFor("Proxy2").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("Proxy2").reversesTo(EXCLUSIVELY, "Proxy1");
+
+        mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with proxy in one CAR referencing proxy in another CAR: Proxy 1");
+        mainModel.proxyAssertionFor("Proxy2").assertPurpose("Test ESBDoc with proxy in one CAR referencing proxy in another CAR: Proxy 2");
+    }
+
     /***********************************************************************************************/
 
     private MainModelAssertion mainModelWithNoTests() throws Exception {
@@ -585,11 +599,18 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
     }
 
     private static class TestFolders {
+
         private String[] names;
 
         public static TestFolders are(String... names){
             TestFolders testFolders = new TestFolders();
             testFolders.names = names;
+            return testFolders;
+        }
+
+        public static TestFolders none(){
+            TestFolders testFolders = new TestFolders();
+            testFolders.names = new String[0];
             return testFolders;
         }
 
