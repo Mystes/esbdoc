@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <proxy xmlns="http://ws.apache.org/ns/synapse"
-       name="Proxy2"
+       name="Proxy1"
        transports="https,http"
        statistics="disable"
        trace="disable"
@@ -11,6 +11,6 @@
         </inSequence>
     </target>
     <description>
-        <purpose>Test ESBDoc with one SoapUI test referencing two proxies: Proxy 2</purpose>
+        <purpose>Test ESBDoc with one SoapUI test referencing two proxies: Proxy 1</purpose>
     </description>
 </proxy>

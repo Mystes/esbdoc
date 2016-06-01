@@ -428,42 +428,34 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
 
     @Test
     public void testWithOneSoapUiTestReferencingZeroProxies() throws Exception {
-        String testName = getTestName();
-        File carFile = CarFileUtil.createCarFile(testName, "Deployment");
-        File testFolder = CarFileUtil.getTestFolder(testName, "SoapUi");
-
-        File[] carFileArray = ArrayUtils.toArray(carFile);
-        File[] testFolderArray = ArrayUtils.toArray(testFolder);
-        String esbDocRawPath = outputDestination();
-
-        new CarAnalyzer().run(carFileArray, esbDocRawPath, testFolderArray);
-
-        String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
-        MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
-
+        MainModelAssertion mainModel = mainModelWithBasicTestSetup();
+        mainModel.assertNoTests();
         //TODO should the model contain a reference to the test albeit the test contains no references to the proxy?
         mainModel.proxyAssertionFor("Proxy").assertPurpose("Test ESBDoc with one SoapUI test referencing zero proxies: Proxy 1");
     }
 
     @Test
     public void testWithOneSoapUiTestReferencingOneProxy() throws Exception {
-        String testName = getTestName();
-        File carFile = CarFileUtil.createCarFile(testName, "Deployment");
-        File testFolder = CarFileUtil.getTestFolder(testName, "SoapUi");
-
-        File[] carFileArray = ArrayUtils.toArray(carFile);
-        File[] testFolderArray = ArrayUtils.toArray(testFolder);
-        String esbDocRawPath = outputDestination();
-
-        new CarAnalyzer().run(carFileArray, esbDocRawPath, testFolderArray);
-
-        String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
-        MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
+        MainModelAssertion mainModel = mainModelWithBasicTestSetup();
+        mainModel.assertHasTests();
 
         mainModel.dependencyAssertionFor("Proxy1").testedBy("OneSoapUiTestReferencingOneProxy");
 
         mainModel.soapUiAssertionFor("OneSoapUiTestReferencingOneProxy").assertFilename("OneSoapUiTestReferencingOneProxy-soapui-project.xml");
         mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with one SoapUI test referencing one proxy: Proxy 1");
+    }
+
+    @Test
+    public void testWithOneSoapUiTestReferencingTwoProxies() throws Exception {
+        MainModelAssertion mainModel = mainModelWithBasicTestSetup();
+        mainModel.assertHasTests();
+
+        mainModel.dependencyAssertionFor("Proxy1").testedBy("OneSoapUiTestReferencingTwoProxies");
+        mainModel.dependencyAssertionFor("Proxy2").testedBy("OneSoapUiTestReferencingTwoProxies");
+
+        mainModel.soapUiAssertionFor("OneSoapUiTestReferencingTwoProxies").assertFilename("OneSoapUiTestReferencingTwoProxies-soapui-project.xml");
+        mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with one SoapUI test referencing two proxies: Proxy 1");
+        mainModel.proxyAssertionFor("Proxy2").assertPurpose("Test ESBDoc with one SoapUI test referencing two proxies: Proxy 2");
     }
 
     /***********************************************************************************************/
@@ -476,6 +468,23 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
         String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
         MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
         mainModel.assertNoTests();
+
+        return mainModel;
+    }
+
+    private MainModelAssertion mainModelWithBasicTestSetup() throws Exception {
+        String testName = getMethodNameOf("..");
+        File carFile = CarFileUtil.createCarFile(testName, "Deployment");
+        File testFolder = CarFileUtil.getTestFolder(testName, "SoapUi");
+
+        File[] carFileArray = ArrayUtils.toArray(carFile);
+        File[] testFolderArray = ArrayUtils.toArray(testFolder);
+        String esbDocRawPath = outputDestination("...");
+
+        new CarAnalyzer().run(carFileArray, esbDocRawPath, testFolderArray);
+
+        String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
+        MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
 
         return mainModel;
     }
