@@ -2,11 +2,8 @@ package fi.mystes.esbdoc;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.vfs2.FileSystemException;
-import org.jaxen.JaxenException;
 import org.junit.*;
 
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
 import java.net.URL;
 import java.util.*;
@@ -498,6 +495,20 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
         mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with two SoapUI tests in the same folder referencing the same proxy: Proxy 1");
     }
 
+    @Test
+    public void testWithTwoSoapUiTestsInSeparateFoldersReferencingTheSameProxy() throws Exception {
+        MainModelAssertion mainModel = mainModelWithCustomSetup(DeploymentFolders.are("Deployment"), TestFolders.are("SoapUi1", "SoapUi2"));
+        mainModel.assertHasTests();
+
+        mainModel.dependencyAssertionFor("Proxy1").testedBy("SoapUiTest1ReferencingOneProxy", "SoapUiTest2ReferencingOneProxy");
+        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("Proxy1").reversesTo(NOWHERE);
+
+        mainModel.soapUiAssertionFor("SoapUiTest1ReferencingOneProxy").assertFilename("SoapUiTest1-soapui-project.xml");
+        mainModel.soapUiAssertionFor("SoapUiTest2ReferencingOneProxy").assertFilename("SoapUiTest2-soapui-project.xml");
+        mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with two SoapUI tests in separate folders referencing the same proxy: Proxy 1");
+    }
+
     /***********************************************************************************************/
 
     private MainModelAssertion mainModelWithNoTests() throws Exception {
@@ -527,6 +538,64 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
         MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
 
         return mainModel;
+    }
+
+    private MainModelAssertion mainModelWithCustomSetup(DeploymentFolders deploymentFolders, TestFolders testFolders) throws Exception {
+        String testName = getMethodNameOf("..");
+
+        List<File> carFileList = new ArrayList<File>();
+        List<File> testFolderList = new ArrayList<File>();
+
+        for(String folder : deploymentFolders.list()){
+            File carFile = CarFileUtil.createCarFile(testName, folder);
+            carFileList.add(carFile);
+        }
+
+        for(String folder : testFolders.list()){
+            File testFolder = CarFileUtil.getTestFolder(testName, folder);
+            testFolderList.add(testFolder);
+        }
+
+        String esbDocRawPath = outputDestination("...");
+
+        File[] carFileArray = carFileList.toArray(new File[carFileList.size()]);
+        File[] testFolderArray = testFolderList.toArray(new File[testFolderList.size()]);
+        new CarAnalyzer().run(carFileArray, esbDocRawPath, testFolderArray);
+
+        String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
+        MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
+
+        return mainModel;
+    }
+
+    /***********************************************************************************************/
+
+    private static class DeploymentFolders {
+        private String[] names;
+
+        public static DeploymentFolders are(String... names){
+            DeploymentFolders deploymentFolders = new DeploymentFolders();
+            deploymentFolders.names = names;
+            return deploymentFolders;
+        }
+
+        public String[] list(){
+            return this.names;
+        }
+    }
+
+    private static class TestFolders {
+        private String[] names;
+
+        public static TestFolders are(String... names){
+            TestFolders testFolders = new TestFolders();
+            testFolders.names = names;
+            return testFolders;
+        }
+
+        public String[] list(){
+            return this.names;
+        }
     }
 
     /***********************************************************************************************/
