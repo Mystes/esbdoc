@@ -5,6 +5,8 @@
  */
 package fi.mystes.esbdoc;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.ArrayList;
 
 /**
@@ -17,69 +19,57 @@ class SequenceItem {
     private ArrayList<String> leaves = new ArrayList();
 
     SequenceItem(String source) {
+        if(StringUtils.isEmpty(source)){
+            return;
+        }
+
         payload = source;
-        if (!source.isEmpty()) {
-            String[] lines = source.split("\n");
-            if (lines[0].contains("Title ")) {
-                name = lines[0].substring(6);
-            }
-            if (lines.length > 1) {
-//                System.out.println("Parsing:"+name);
-                int i = 0;
-                for (String l : lines) {
-//                    System.out.println((i++) + " " + l);
-                    if (l.contains("->")) {
-                        int ind = l.indexOf("->");
-                        // Remove also ':'-from the line
-                        String target = l.substring(ind + 4, l.length()-1);
-                        // Add targets to the list.
-                        leaves.add(target);
-                    }
-                }
+
+        //TODO what the hell?
+        String[] lines = StringUtils.split(source, "\n");
+        if (lines[0].contains("Title ")) {
+            name = lines[0].substring(6); //TODO why 6?
+        }
+
+        if(lines.length <= 1){ //TODO why like this?
+            return;
+        }
+
+        for (String line : lines) {
+            if (isTargetDefined(line)) {
+                addTargetAsNewLeaf(line);
             }
         }
     }
 
-    /**
-     * @return the name
-     */
+    private boolean isTargetDefined(String line){
+        return StringUtils.contains(line, "->");
+    }
+
+    private void addTargetAsNewLeaf(String line){
+        String target = findTarget(line);
+        leaves.add(target);
+    }
+
+    private String findTarget(String line){
+        int indexOfArrow = line.indexOf("->");
+        return removeColonFromLine(line, indexOfArrow);
+    }
+
+    private String removeColonFromLine(String line, int indexOfArrow) {
+        return line.substring(indexOfArrow + 4, line.length()-1);
+    }
+
     public String getName() {
         return name;
     }
 
-    /**
-     * @param name the name to set
-     */
     public void setName(String name) {
         this.name = name;
     }
 
-    /**
-     * @return the payload
-     */
-    public String getPayload() {
-        return payload;
-    }
-
-    /**
-     * @param payload the payload to set
-     */
-    public void setPayload(String payload) {
-        this.payload = payload;
-    }
-
-    /**
-     * @return the leaves
-     */
     public ArrayList<String> getLeaves() {
         return leaves;
-    }
-
-    /**
-     * @param leaves the leaves to set
-     */
-    public void setLeaves(ArrayList<String> leaves) {
-        this.leaves = leaves;
     }
     
 }

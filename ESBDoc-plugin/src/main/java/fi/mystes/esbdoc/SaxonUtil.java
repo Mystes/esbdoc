@@ -31,7 +31,7 @@ public class SaxonUtil {
         //TODO null handler?
         if (!isFileObjectASoapUiProject(xmlFileObject)) {
             log.debug("FileObject is not a SoapUI project and therefore it can be used to construct Sequence Diagrams.");
-            //buildSequenceDiagrams(xmlFileObject);
+            buildSequenceDiagrams(xmlFileObject);
         }
 
         log.debug("Starting to look for the root element of given file object...");
@@ -98,7 +98,7 @@ public class SaxonUtil {
         try {
             log.trace("buildSequenceDiagrams: Opening InputStream...");
             InputStream inputStreamForSequenceDiagrams = fileObject.getContent().getInputStream();
-            //String seg = SequenceDiagramBuilder.instance().buildPipe(inputStreamForSequenceDiagrams);
+            String seg = SequenceDiagramBuilder.instance().buildPipe(inputStreamForSequenceDiagrams);
             log.trace("buildSequenceDiagrams: Closing InputStream...");
             inputStreamForSequenceDiagrams.close();
         } catch (IOException ioe){

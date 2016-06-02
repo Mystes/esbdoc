@@ -19,9 +19,9 @@ public class Zipper {
 
     private static List<String> ignoredRootLevelFiles = new ArrayList<String>();
     static {
-        ignoredRootLevelFiles.add("esbdoc-raw.txt");
-        ignoredRootLevelFiles.add("esbdoc-raw.json");
-        ignoredRootLevelFiles.add("esbdoc-raw-seq.json");
+        ignoredRootLevelFiles.add(Constants.PHYSICAL_DEPENDENCY_TEXT_FILE);
+        ignoredRootLevelFiles.add(Constants.PHYSICAL_DEPENDENCY_JSON_FILE);
+        ignoredRootLevelFiles.add(Constants.MSC_JSON_FILE);
     }
 
     public static void zipFolder(String sourceFolderPath, String targetArchive) throws Exception {

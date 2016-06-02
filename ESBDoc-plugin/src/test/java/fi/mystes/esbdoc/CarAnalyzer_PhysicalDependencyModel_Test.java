@@ -16,8 +16,6 @@ import static fi.mystes.esbdoc.DependencyType.*;
  */
 public class CarAnalyzer_PhysicalDependencyModel_Test {
 
-    private static final String DEFAULT_ESBDOC_RAW_PATH = "esbdoc-raw";
-
     /***********************************************************************************************/
 
     @BeforeClass
@@ -425,7 +423,7 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
         mainModel.proxyAssertionFor("Proxy2").assertPurpose("Test ESBDoc with one proxy referencing another proxy using documented dependency: Proxy 2");
     }
 
-    //@Test
+    @Test
     public void testWithOneSoapUiTestReferencingZeroProxies() throws Exception {
         MainModelAssertion mainModel = mainModelWithBasicTestSetup();
         mainModel.assertNoTests();
@@ -435,7 +433,7 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
         mainModel.proxyAssertionFor("Proxy").assertPurpose("Test ESBDoc with one SoapUI test referencing zero proxies: Proxy 1");
     }
 
-    //@Test
+    @Test
     public void testWithOneSoapUiTestReferencingOneProxy() throws Exception {
         MainModelAssertion mainModel = mainModelWithBasicTestSetup();
         mainModel.assertHasTests();
@@ -448,7 +446,7 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
         mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with one SoapUI test referencing one proxy: Proxy 1");
     }
 
-    //@Test
+    @Test
     public void testWithOneSoapUiTestReferencingTwoProxies() throws Exception {
         MainModelAssertion mainModel = mainModelWithBasicTestSetup();
         mainModel.assertHasTests();
@@ -466,7 +464,7 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
         mainModel.proxyAssertionFor("Proxy2").assertPurpose("Test ESBDoc with one SoapUI test referencing two proxies: Proxy 2");
     }
 
-    //@Test
+    @Test
     public void testWithOneSoapUiTestReferencingOneProxyReferencingAnotherProxy() throws Exception {
         MainModelAssertion mainModel = mainModelWithBasicTestSetup();
         mainModel.assertHasTests();
@@ -483,7 +481,7 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
         mainModel.proxyAssertionFor("Proxy2").assertPurpose("Test ESBDoc with one SoapUI test referencing one proxy referencing another proxy: Proxy 2");
     }
 
-    //@Test
+    @Test
     public void testWithTwoSoapUiTestsInTheSameFolderReferencingTheSameProxy() throws Exception {
         MainModelAssertion mainModel = mainModelWithBasicTestSetup();
         mainModel.assertHasTests();
@@ -497,7 +495,7 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
         mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with two SoapUI tests in the same folder referencing the same proxy: Proxy 1");
     }
 
-    //@Test
+    @Test
     public void testWithTwoSoapUiTestsInSeparateFoldersReferencingTheSameProxy() throws Exception {
         MainModelAssertion mainModel = mainModelWithCustomSetup(DeploymentFolders.are("Deployment"), TestFolders.are("SoapUi1", "SoapUi2"));
         mainModel.assertHasTests();
@@ -650,7 +648,7 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
     private String outputDestination(){
         String testName = getMethodNameOf("..");
         URL resourceUrl = CarAnalyzer.class.getResource("/");
-        return resourceUrl.getPath() + testName + "/" + DEFAULT_ESBDOC_RAW_PATH;
+        return resourceUrl.getPath() + testName + "/";
     }
 
     private File[] carFiles(String depthPath) throws Exception{
@@ -662,11 +660,11 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
     private String outputDestination(String depthPath){
         String testName = getMethodNameOf(depthPath);
         URL resourceUrl = CarAnalyzer.class.getResource("/");
-        return resourceUrl.getPath() + testName + "/" + DEFAULT_ESBDOC_RAW_PATH;
+        return resourceUrl.getPath() + testName + "/";
     }
 
     private String mainModelPathFor(String basePath){
-        return basePath + ".json";
+        return basePath + Constants.PHYSICAL_DEPENDENCY_JSON_FILE;
     }
 
 }
