@@ -84,7 +84,7 @@ public class MyMojo
         try {
             fsm = VFS.getManager();
             // targets for esbdoc source
-            String esbdocRawPath = target.getAbsolutePath() + "/" + esbdocRawFilename;
+            String esbdocRawPath = target.getAbsolutePath() + "/";
  
             // analyze car file and test files, and build esbdoc
             CarAnalyzer car = new CarAnalyzer();
@@ -96,7 +96,8 @@ public class MyMojo
             uiTargetFolder.copyFrom(fsm.resolveFile("zip:" + url.getPath()), Selectors.SELECT_ALL);
 
             // replace UI index.html file with generated esbdoc data
-            String json = FileUtils.fileRead(new File(esbdocRawPath + ".json"));
+            //TODO File name should be dynamic even if default comes from Constants
+            String json = FileUtils.fileRead(new File(esbdocRawPath + Constants.PHYSICAL_DEPENDENCY_JSON_FILE));
             String indexContent = FileUtils.fileRead(new File(uiTargetFolder.getChild("index.html").getURL().getPath()));
             String regexToFindPlaceholder = "window.ESBDOCDATA\\s*=\\s*.[^;]*;";
             indexContent = indexContent.replaceAll(regexToFindPlaceholder, "window.ESBDOCDATA=" + escapeCharsFromJson(json) + ";");
