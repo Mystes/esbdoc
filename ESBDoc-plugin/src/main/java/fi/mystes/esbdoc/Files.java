@@ -1,5 +1,7 @@
 package fi.mystes.esbdoc;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -12,6 +14,7 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static fi.mystes.esbdoc.Constants.FILE_SEPARATOR;
@@ -41,12 +44,32 @@ public class Files {
         return getFileObjects(files, Type.CAR_FILE);
     }
 
-    public static List<FileObject> getTestFileObjects(File[] folders) throws FileSystemException {
-        File[] files = new File[0];
+    public static List<FileObject> getTestFileObjects(File[] filesAndFolders) throws FileSystemException {
+        List<File> files = new ArrayList<File>();
+        List<File> folders = new ArrayList<File>();
+
+        String infoString = "Looking for test files from the following files and folders: ";
+        for(File fileOrFolder : filesAndFolders){
+            if(fileOrFolder.isDirectory()){
+                folders.add(fileOrFolder);
+                infoString += "\n" + fileOrFolder.getAbsolutePath() + " (folder)";
+            } else {
+                files.add(fileOrFolder);
+                infoString += "\n" + fileOrFolder.getAbsolutePath() + " (file)";
+            }
+        }
+        log.info(infoString);
+
         for(File folder : folders){
-            files = ArrayUtils.addAll(files, folder.listFiles());
+            File[] filesInFolder = folder.listFiles();
+            files.addAll(Arrays.asList(filesInFolder));
         }
         return getFileObjects(files, Type.SOAPUI_FILE);
+    }
+
+    private static List<FileObject> getFileObjects(List<File> files, Type type) throws FileSystemException {
+        File[] fileArray = files.toArray(new File[files.size()]);
+        return getFileObjects(fileArray, type);
     }
 
     private static List<FileObject> getFileObjects(File[] files, Type type) throws FileSystemException {
@@ -82,7 +105,9 @@ public class Files {
     }
 
     public static boolean buildDirectoryPathFor(String filename){
-        return new File(filename).getParentFile().mkdirs();
+        log.info("Building directory path for: " + filename);
+        new File(filename).getParentFile().mkdirs();
+        return new File(filename).mkdir();
     }
 
     private static FileOutputStream textOutputFor(String filename) throws FileNotFoundException{
@@ -103,6 +128,7 @@ public class Files {
     }
 
     public static void writeTextTo(String filename, List<String> values) throws IOException {
+        log.info("Writing textual dependency representation to: " + filename);
         FileOutputStream textStream = textOutputFor(filename);
         writeTo(textStream, values);
         textStream.close();
