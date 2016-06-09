@@ -15,15 +15,14 @@ package fi.mystes.esbdoc;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemManager;
-import org.apache.commons.vfs2.Selectors;
-import org.apache.commons.vfs2.VFS;
+import org.apache.commons.vfs2.*;
 import org.apache.maven.model.FileSet;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.FileUtils;
+import org.jaxen.JaxenException;
 
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -38,6 +37,8 @@ import java.util.List;
  */
 public class MyMojo
         extends AbstractMojo {
+
+    private CarAnalyzer carAnalyzer = null;
 
     /**
      * Name of the file where esbdoc raw data is generated (both json and txt)
@@ -87,7 +88,7 @@ public class MyMojo
             String esbdocRawPath = target.getAbsolutePath() + "/";
  
             // analyze car file and test files, and build esbdoc
-            CarAnalyzer car = new CarAnalyzer();
+            CarAnalyzer car = getCarAnalyzer();
             car.run(carFiles, esbdocRawPath, getSoapUIFileSet());
             
             // copy UI to target folder
@@ -151,5 +152,16 @@ public class MyMojo
         } catch (IOException e) {
             throw new MojoExecutionException("Unable to get paths from soapUIFileSet()", e);
         }
+    }
+
+    protected CarAnalyzer getCarAnalyzer() throws FileSystemException, ParserConfigurationException, JaxenException {
+        if(null == this.carAnalyzer){
+            setCarAnalyzer(new CarAnalyzer());
+        }
+        return this.carAnalyzer;
+    }
+
+    protected void setCarAnalyzer(CarAnalyzer carAnalyzer) {
+        this.carAnalyzer = carAnalyzer;
     }
 }
