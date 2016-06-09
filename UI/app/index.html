@@ -27,7 +27,7 @@
     <div ng-if="esbDoc" class="container-fluid" ng-init="selected.resource = ''; search = '';">
         <div class="row">
             <div class="col-sm-4 col-md-3 col-lg-3">
-                <h1 style="font-size: 1.3em;">ESB Doc Viewer - <a href="" ng-click="selected.resource = ''">home</a></h1>
+                <h1 style="font-size: 1.3em;">ESB Doc Viewer - <a href="/" ng-click="selected.resource = ''">home</a></h1>
 
                 <div class="form-group" style="position: relative;">
                     <input class="form-control" type="text" ng-model="search" placeholder="Which resource are you looking for?"/>
@@ -35,7 +35,7 @@
                 </div>
                 <ul class="nav nav-pills nav-stacked" style="max-height: 30em; overflow-y: scroll;">
                     <li ng-repeat="(name, value) in searchResourcesFilter(esbDoc.resources, search)" style="width: 100%; overflow-x: hidden;">
-                        <a href="" ng-click="selected.resource = name" style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis; width: 100%;">{{value.humanizedName}}</a>
+                        <a href="/#/?artifact={{name}}" style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis; width: 100%;">{{value.humanizedName}}</a>
                     </li>
                 </ul>
             </div>
@@ -54,7 +54,7 @@
                             </thead>
                             <tbody>
                                 <tr ng-repeat="(key, resource) in keyResources">
-                                    <td><a href="" ng-click="selected.resource = key">{{resource.humanizedName}}</a></td>
+                                    <td><a href="/#/?artifact={{key}}">{{resource.humanizedName}}</a></td>
                                     <td>{{resource.purpose}}</td>
                                 </tr>
                             </tbody>
@@ -99,7 +99,7 @@
                             <tbody>
                                 <tr ng-repeat="resource in resourcesNotReached">
                                     <td>
-                                        <a href="" ng-click="selected.resource = resource">{{humanizedNameFunc(resource)}}</a>
+                                        <a href="/#/?artifact={{resource}}">{{humanizedNameFunc(resource)}}</a>
                                     </td>
                                 </tr>
                             </tbody>
@@ -130,7 +130,7 @@
                             <tbody>
                                 <tr ng-repeat="resource in resourcesMissingDescription">
                                     <td>
-                                        <a href="" ng-click="selected.resource = resource">{{humanizedNameFunc(resource)}}</a>
+                                        <a href="/#/?artifact={{resource}}">{{humanizedNameFunc(resource)}}</a>
                                     </td>                                    
                                 </tr>
                             </tbody>
@@ -168,9 +168,15 @@
 
 
                     <ul class="nav nav-tabs" role="tablist">
-                        <li ng-class="{active: selected.showDependencyMap}"><a href="#" ng-click="selected.showDependencyMap = true; selected.showTests = false">Dependency Map</a></li>
-                        <li ng-class="{active: !selected.showDependencyMap && !selected.showTests}"><a href="#" ng-click="selected.showDependencyMap = false; selected.showTests = false">Dependencies</a></li>
-                        <li ng-class="{active: selected.showTests}"><a href="#" ng-click="selected.showTests = true; selected.showDependencyMap = false">SoapUI Tests</a></li>
+                        <li ng-class="{active: selected.showDependencyMap}">
+                            <a href="" ng-click="selected.showDependencyMap = true; selected.showTests = false">Dependency Map</a>
+                        </li>
+                        <li ng-class="{active: !selected.showDependencyMap && !selected.showTests}">
+                            <a href="" ng-click="selected.showDependencyMap = false; selected.showTests = false">Dependencies</a>
+                        </li>
+                        <li ng-class="{active: selected.showTests}">
+                            <a href="" ng-click="selected.showTests = true; selected.showDependencyMap = false">SoapUI Tests</a>
+                        </li>
                     </ul>
                 </div>
                 <div ng-if="selected.resource && selected.showDependencyMap">
@@ -183,13 +189,13 @@
                     <h3 ng-if="esbDoc.dependencies.forward[selected.resource]">Calls</h3>
                     <ul class="nav nav-pills nav-stacked">
                         <li ng-repeat="(name, value) in esbDoc.dependencies.forward[selected.resource]" >
-                            <a href="" ng-click="selected.resource = value.source+value.target">{{value.source}}{{value.target}}, {{value.type}}</a>
+                            <a href="/#/?artifact={{value.source+value.target}}">{{value.source}}{{value.target}}, {{value.type}}</a>
                         </li>
                     </ul>
                     <h3 ng-if="esbDoc.dependencies.reverse[selected.resource]">Called by</h3>
                     <ul class="nav nav-pills nav-stacked">
                         <li ng-repeat="(name, value) in esbDoc.dependencies.reverse[selected.resource]" style="color: #007; cursor: pointer;">
-                            <a href="" ng-click="selected.resource = value.source+value.target">{{value.source}}{{value.target}}, {{value.type}}</a>
+                            <a href="/#/?artifact={{value.source+value.target}}">{{value.source}}{{value.target}}, {{value.type}}</a>
                         </li>
                     </ul>
                 </div>
