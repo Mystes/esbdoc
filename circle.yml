@@ -9,10 +9,6 @@ machine:
 
 general:
   build_dir: ESBDoc-plugin
-  branches:
-    only:
-      - master
-      - refactoring
 
 dependencies:
   pre:
