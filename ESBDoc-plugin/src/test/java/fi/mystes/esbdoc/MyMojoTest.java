@@ -65,6 +65,36 @@ public class MyMojoTest {
         ((SelfShunt)mojo.getCarAnalyzer()).assertStatus();
     }
 
+    @Test
+    public void testArtifactNameWithDotInProxyName() throws Exception {
+        String testName = "MyMojoTest_testArtifactNameWithDotInProxyName";
+        File carFile = CarFileUtil.createCarFile(testName, "Deployment");
+
+        File[] carFileArray = ArrayUtils.toArray(carFile);
+        String esbDocRawPath = outputDestination("MyMojoTest_", "..");
+        String targetPath = esbDocRawPath + "target/";
+
+        MyMojo mojo = MojoGenerator.gimmeMojo(targetPath, carFileArray);
+        mojo.setCarAnalyzer(new CarAnalyzerSelfShunt(carFileArray, targetPath));
+        mojo.execute();
+        ((SelfShunt)mojo.getCarAnalyzer()).assertStatus();
+    }
+
+    @Test
+    public void testArtifactNameWithDotInDeploymentFolderName() throws Exception {
+        String testName = "MyMojoTest_testArtifactNameWithDotInDeploymentFolderName";
+        File carFile = CarFileUtil.createCarFile(testName, "Deployment.Dot");
+
+        File[] carFileArray = ArrayUtils.toArray(carFile);
+        String esbDocRawPath = outputDestination("MyMojoTest_", "..");
+        String targetPath = esbDocRawPath + "target/";
+
+        MyMojo mojo = MojoGenerator.gimmeMojo(targetPath, carFileArray);
+        mojo.setCarAnalyzer(new CarAnalyzerSelfShunt(carFileArray, targetPath));
+        mojo.execute();
+        ((SelfShunt)mojo.getCarAnalyzer()).assertStatus();
+    }
+
     /***********************************************************************************************/
 
     private static class MojoGenerator {

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<proxy xmlns="http://ws.apache.org/ns/synapse"
+       name="Proxy1.Dot"
+       transports="https,http"
+       statistics="disable"
+       trace="disable"
+       startOnLoad="true">
+    <target>
+        <inSequence>
+            <respond/>
+        </inSequence>
+    </target>
+    <description>
+        <purpose>Test MyMojo with a dot in deployment folder name: Proxy 1.Dot</purpose>
+    </description>
+</proxy>

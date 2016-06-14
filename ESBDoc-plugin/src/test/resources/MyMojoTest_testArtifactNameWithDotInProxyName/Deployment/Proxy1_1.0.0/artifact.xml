@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<artifact name="Proxy1.Dot" version="1.0.0" type="synapse/proxy-service" serverRole="EnterpriseServiceBus">
+    <file>Proxy1.Dot-1.0.0.xml</file>
+</artifact>
