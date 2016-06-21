@@ -630,6 +630,14 @@ public class CarAnalyzer {
                     if (dependencyType == DependencyType.TASK_TO) {
                         continue;
                     }
+                    
+                    if (dependencyType == DependencyType.AINO_LOG) {
+                    	dependencies.add(new Dependency(artifact, 
+                    					Artifact.with("Aino.io", "v2.0", ArtifactType.EXTERNAL_API, "", "", 
+                    									ArtifactDescription.with(null, null, null, null)), 
+                    					dependencyType));
+                    	continue;
+                    }
 
                     log.debug("Adding dependencies of type " + dependencyType);
                     dependencies.addAll(getDependencySet(artifactMap, artifact, artifactXml, dependencyType));
