@@ -89,7 +89,7 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
         
         String ainoIO = "Aino.io";
 
-        mainModel.dependencyAssertionFor("ProxyWithOneSequence").forwardsTo(EXCLUSIVELY, ainoIO, "TheSequence").asType(AINO_LOG, SEQUENCE);
+        mainModel.dependencyAssertionFor("ProxyWithOneSequence").forwardsTo(EXCLUSIVELY, ainoIO, "TheSequence").asOrderedTypes(AINO_LOG, SEQUENCE);
         mainModel.dependencyAssertionFor("ProxyWithOneSequence").reversesTo(NOWHERE);
 
         
