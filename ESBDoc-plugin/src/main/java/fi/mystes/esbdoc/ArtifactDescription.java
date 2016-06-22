@@ -34,6 +34,10 @@ public class ArtifactDescription {
         }
         return artifactDescription;
     }
+    
+    public static ArtifactDescription withNoDescription() {
+    	return with(null, null, null, null);
+    }
 
     public void setParent(Artifact parent) {
         this.parent = parent;
