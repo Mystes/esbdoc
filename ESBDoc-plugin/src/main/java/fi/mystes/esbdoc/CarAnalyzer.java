@@ -34,6 +34,9 @@ import static fi.mystes.esbdoc.Constants.*;
 public class CarAnalyzer {
 
     private static Log log = LogFactory.getLog(CarAnalyzer.class);
+    
+    public static final String AINO_ARTIFACT_NAME = "Aino.io";
+    public static final String AINO_VERSION = "v2.0";
 
     private List<String> forbiddenArtifactNames = new ArrayList<String>(Arrays.asList("services"));
     private SortedMap<String, String> servicePathMap = new TreeMap<String, String>();
@@ -633,8 +636,8 @@ public class CarAnalyzer {
                     
                     if (dependencyType == DependencyType.AINO_LOG) {
                     	dependencies.add(new Dependency(artifact, 
-                    					Artifact.with("Aino.io", "v2.0", ArtifactType.EXTERNAL_API, "", "", 
-                    									ArtifactDescription.with(null, null, null, null)), 
+                    					Artifact.with(AINO_ARTIFACT_NAME, AINO_VERSION, ArtifactType.EXTERNAL_API, "", "", 
+                    									ArtifactDescription.withNoDescription()), 
                     					dependencyType));
                     	continue;
                     }
