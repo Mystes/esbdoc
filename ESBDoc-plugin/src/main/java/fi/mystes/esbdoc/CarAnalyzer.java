@@ -332,7 +332,7 @@ public class CarAnalyzer {
      */
     private void addTestsToForwardDependencies(ArtifactMap artifactMap, ArtifactDependencyMap forwardDependencyMap, TestMap testsMap, String artifactName, TestProject project, List<String> artifactList) {
         Artifact artifact = ArtifactUtil.getArtifactFromString(servicePathMap, artifactMap, artifactName);
-        if (forwardDependencyMap.containsKey(artifact)) {
+        if (artifact != null && forwardDependencyMap.containsKey(artifact)) {
             for (Dependency d : forwardDependencyMap.get(artifact)) {
                 if (d.getDependency() instanceof Artifact) {
                     Artifact a = (Artifact) d.getDependency();
@@ -633,14 +633,6 @@ public class CarAnalyzer {
                     if (dependencyType == DependencyType.TASK_TO) {
                         continue;
                     }
-                    
-                    if (dependencyType == DependencyType.AINO_LOG) {
-                    	dependencies.add(new Dependency(artifact, 
-                    					Artifact.with(AINO_ARTIFACT_NAME, AINO_VERSION, ArtifactType.EXTERNAL_API, "", "", 
-                    									ArtifactDescription.withNoDescription()), 
-                    					dependencyType));
-                    	continue;
-                    }
 
                     log.debug("Adding dependencies of type " + dependencyType);
                     dependencies.addAll(getDependencySet(artifactMap, artifact, artifactXml, dependencyType));
@@ -740,6 +732,10 @@ public class CarAnalyzer {
                 dependencyObject = dependencyString;
             }
 
+            if (dependencyType == DependencyType.AINO_LOG) {
+            	dependencyObject = AINO_ARTIFACT_NAME;
+            }
+            
             dependencies.add(new Dependency(artifact, dependencyObject, dependencyType));
         }
         return dependencies;
