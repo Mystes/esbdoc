@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<artifact name="SequenceTwo" version="1.0.0" type="synapse/sequence" serverRole="EnterpriseServiceBus">
+    <file>SequenceTwo-1.0.0.xml</file>
+</artifact>
