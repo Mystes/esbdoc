@@ -4,7 +4,6 @@ import net.sf.saxon.s9api.*;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.OMXMLBuilderFactory;
 import org.apache.axiom.om.impl.llom.OMElementImpl;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.vfs2.FileObject;
@@ -20,8 +19,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.text.MessageFormat;
 import java.util.*;
 
@@ -60,26 +57,32 @@ public class CarAnalyzer {
         }
 
         String commonPartOfOutputFilename = CommandLineArguments.getCommonPartOfOutputFilename();
+        boolean validateArtifacts = CommandLineArguments.isValidateArtifacts();
         String commaSeparatedListOfCarFilenames = CommandLineArguments.getCommaSeparatedListOfCarFilenames();
         String commaSeparatedListOfSoapUiFolderNames = CommandLineArguments.getCommaSeparatedListOfSoapUiFolderNames();
 
         File[] carFiles = Files.convertToFileHandles(commaSeparatedListOfCarFilenames);
         File[] testFolders = Files.convertToFileHandles(commaSeparatedListOfSoapUiFolderNames);
 
-        new CarAnalyzer().run(carFiles, commonPartOfOutputFilename, testFolders);
+        new CarAnalyzer().run(validateArtifacts, carFiles, commonPartOfOutputFilename, testFolders);
 
         log.info("Done!");
     }
 
-    public void run(File[] carFiles, String outputDestination, File[] testFolders) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
+    public void run(boolean validateArtifacts, File[] carFiles, String outputDestination, File[] testFolders) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
         List<FileObject> carFileObjects = Files.getCarFileObjects(carFiles);
         List<FileObject> testFileObjects = Files.getTestFileObjects(testFolders);
-        processFileObjects(carFileObjects, outputDestination, testFileObjects);
+        processFileObjects(validateArtifacts, carFileObjects, outputDestination, testFileObjects);
     }
 
-    private void processFileObjects(List<FileObject> carFileObjects, String outputDestination, List<FileObject> testFileObjects) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
+    private void processFileObjects(boolean validateArtifacts, List<FileObject> carFileObjects, String outputDestination, List<FileObject> testFileObjects) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
         //TODO What are all these different maps actually used for? Why not use some easily understandable structure instead?
         ArtifactMap artifactMap = buildArtifactMap(carFileObjects);
+
+        if (validateArtifacts) {
+            ArtifactValidator.validateDescription(artifactMap);
+        }
+
         ArtifactDependencyMap forwardDependencyMap = buildForwardDependencyMap(artifactMap);
         ArtifactDependencyMap reverseDependencyMap = buildReverseDependencyMap(forwardDependencyMap);
         TestMap testsMap = buildTestFileMap(artifactMap, forwardDependencyMap, testFileObjects);

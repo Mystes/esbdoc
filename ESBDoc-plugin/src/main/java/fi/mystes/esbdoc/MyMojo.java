@@ -36,8 +36,7 @@ import java.util.List;
  *
  * @goal generate
  */
-public class MyMojo
-        extends AbstractMojo {
+public class MyMojo extends AbstractMojo {
 
     /**
      * Name of the file where esbdoc raw data is generated (both json and txt)
@@ -53,6 +52,13 @@ public class MyMojo
      * @parameter default-value="${project.build.directory}"
      */
     private File target;
+
+    /**
+     * Will the artifacts validate e.g. description must exist
+     *
+     * @parameter
+     */
+    private boolean validateArtifacts = false;
 
     /**
      * List of car files to process
@@ -88,7 +94,7 @@ public class MyMojo
  
             // analyze car file and test files, and build esbdoc
             CarAnalyzer car = new CarAnalyzer();
-            car.run(carFiles, esbdocRawPath, getSoapUIFileSet());
+            car.run(validateArtifacts, carFiles, esbdocRawPath, getSoapUIFileSet());
             
             // copy UI to target folder
             URL url = this.getClass().getClassLoader().getResource("UI");

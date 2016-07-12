@@ -13,11 +13,13 @@ public class CommandLineArguments {
     private static CommandLineArguments instance = null;
 
     private final String[] args;
+    private boolean validateArtifacts;
     private String commaSeparatedListOfCarFilenames = "";
     private String commonPartOfOutputFilename = "";
     private String commaSeparatedListOfSoapUiFolderNames = "";
 
-    private static final String USAGE_HELP = "Usage: java -jar CarAnalyzer.jar [carFiles] [outputFile] [soapUIFiles]\n"
+    private static final String USAGE_HELP = "Usage: java -jar CarAnalyzer.jar [validateArtifacts] [carFiles] [outputFile] [soapUIFiles]\n"
+            + "  [validateArtifacts]: true if artifacts will be validated otherwise false\n"
             + "  [carFiles]: comma-separated list of car file names\n"
             + "  [outputFile]: full name of the output file WITHOUT extension.\n"
             + "                Two files will be created, one with a .txt extension and another with a .json extension.\n"
@@ -31,10 +33,11 @@ public class CommandLineArguments {
             return;
         }
 
-        commaSeparatedListOfCarFilenames = args[0];
-        commonPartOfOutputFilename = args[1];
-        if(args.length > 2) {
-            commaSeparatedListOfSoapUiFolderNames = args[2];
+        validateArtifacts = Boolean.parseBoolean(args[0]);
+        commaSeparatedListOfCarFilenames = args[1];
+        commonPartOfOutputFilename = args[2];
+        if(args.length > 3) {
+            commaSeparatedListOfSoapUiFolderNames = args[3];
         }
     }
 
@@ -56,11 +59,11 @@ public class CommandLineArguments {
             return false;
         }
 
-        if(args.length < 2){
+        if(args.length < 3){
             return false;
         }
 
-        if(args.length > 2){
+        if(args.length > 3){
             return false;
         }
 
@@ -73,6 +76,10 @@ public class CommandLineArguments {
         }
 
         return true;
+    }
+
+    public static boolean isValidateArtifacts() {
+        return instance.validateArtifacts;
     }
 
     public static String getCommaSeparatedListOfCarFilenames(){

@@ -545,7 +545,7 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
     private MainModelAssertion mainModelWithNoTests() throws Exception {
         String esbDocRawPath =  outputDestination("...");
 
-        new CarAnalyzer().run(carFiles("..."), esbDocRawPath, new File[0]);
+        new CarAnalyzer().run(false, carFiles("..."), esbDocRawPath, new File[0]);
 
         String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
         MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
@@ -563,7 +563,7 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
         File[] testFolderArray = ArrayUtils.toArray(testFolder);
         String esbDocRawPath = outputDestination("...");
 
-        new CarAnalyzer().run(carFileArray, esbDocRawPath, testFolderArray);
+        new CarAnalyzer().run(false, carFileArray, esbDocRawPath, testFolderArray);
 
         String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
         MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
@@ -591,7 +591,7 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
 
         File[] carFileArray = carFileList.toArray(new File[carFileList.size()]);
         File[] testFolderArray = testFolderList.toArray(new File[testFolderList.size()]);
-        new CarAnalyzer().run(carFileArray, esbDocRawPath, testFolderArray);
+        new CarAnalyzer().run(false, carFileArray, esbDocRawPath, testFolderArray);
 
         String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
         MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
