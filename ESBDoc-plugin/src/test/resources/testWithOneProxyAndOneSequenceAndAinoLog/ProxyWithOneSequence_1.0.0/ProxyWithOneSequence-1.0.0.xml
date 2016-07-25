@@ -7,6 +7,17 @@
        startOnLoad="true">
     <target>
         <inSequence>
+
+            <ainoLog status="failure" >
+                <operation key="pickingListExport"/>
+                <message value="Master Order received"/>
+                <ids typeKey="orderId" value="111-000-2222"/>
+                <ids typeKey="productId" value="222-1111"/>
+                <ids typeKey="customerId" value="333-111"/>
+                <from applicationKey="orderManagement"/>
+                <payloadType key="order"/>
+            </ainoLog>
+
             <sequence key="TheSequence"/>
             <respond/>
         </inSequence>

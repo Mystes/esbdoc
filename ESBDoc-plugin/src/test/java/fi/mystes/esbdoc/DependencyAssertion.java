@@ -172,13 +172,13 @@ class DependencyAssertion {
             }
             
             if(expectedTypes.length != this.endpointNames.length){
-                assertTrue("You cannot set different number of expected types than dependencies exist!", false);
+                assertTrue("Number of expected dependency types should match the number of expected dependencies.", false);
             }
 
             for(int i = 0; i < this.endpointNames.length; i++) {
             	String endpointName = this.endpointNames[i];
-            	DependencyType dependencyType = expectedTypes[i];
-            	assertEquals("Dependency from '" + artifactName + "' to '" + endpointName + "' type did not match expectation.", dependencyType.toString(), dependency(endpointName).getType());
+            	DependencyType expectedType = expectedTypes[i];
+            	assertEquals("Dependency from '" + artifactName + "' to '" + endpointName + "' type did not match expectation.", expectedType.toString(), dependency(endpointName).getType());
             }
         }
 

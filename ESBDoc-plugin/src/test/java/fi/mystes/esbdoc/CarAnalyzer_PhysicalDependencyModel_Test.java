@@ -86,18 +86,8 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
     @Test
     public void testWithOneProxyAndOneSequenceAndAinoLog() throws Exception {
         MainModelAssertion mainModel = mainModelWithNoTests();
-        
-        String ainoIO = "Aino.io";
-
-        mainModel.dependencyAssertionFor("ProxyWithOneSequence").forwardsTo(EXCLUSIVELY, "TheSequence").asType(SEQUENCE);
-        mainModel.dependencyAssertionFor("ProxyWithOneSequence").reversesTo(NOWHERE);
-
-        
-        mainModel.dependencyAssertionFor("TheSequence").forwardsTo(EXCLUSIVELY, ainoIO);
-        mainModel.dependencyAssertionFor("TheSequence").reversesTo(NON_EXCLUSIVELY, "ProxyWithOneSequence");
-
-        mainModel.proxyAssertionFor("ProxyWithOneSequence").assertPurpose("Test ESBDoc with one proxy and one sequence: The proxy");
-        mainModel.sequenceAssertionFor("TheSequence").assertPurpose("Test ESBDoc with one proxy and one sequence: The sequence");
+        mainModel.dependencyAssertionFor("ProxyWithOneSequence").forwardsTo(NON_EXCLUSIVELY, "Aino.io").asType(AINO_LOG);
+        mainModel.dependencyAssertionFor("TheSequence").forwardsTo(EXCLUSIVELY, "Aino.io").asType(AINO_LOG);
     }
 
     @Test
