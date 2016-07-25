@@ -12,6 +12,7 @@ public enum ArtifactType {
     SEQUENCE("synapse/sequence", "sequence"),
     ENDPOINT("synapse/endpoint", "endpoint"),
     API("synapse/api", "api"),
+    EXTERNAL_API("external", "api"),
     RESOURCE("registry/resource", "resource"),
     MESSAGE_PROCESSOR("synapse/message-processors", "messageProcessor"),
     MESSAGE_STORE("synapse/message-store", "messageStore"),

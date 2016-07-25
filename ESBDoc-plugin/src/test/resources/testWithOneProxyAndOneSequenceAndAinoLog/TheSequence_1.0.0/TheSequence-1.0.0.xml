@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sequence xmlns="http://ws.apache.org/ns/synapse" name="TheSequence">
+
+    <ainoLog status="success" >
+        <operation key="pickingListExport"/>
+        <message value="Master Order received"/>
+        <ids typeKey="orderId" value="111-000-2222"/>
+        <ids typeKey="productId" value="222-1111"/>
+        <ids typeKey="customerId" value="333-111"/>
+        <from applicationKey="orderManagement"/>
+        <payloadType key="order"/>
+    </ainoLog>
+
+    <description>
+        <purpose>Test ESBDoc with one proxy and one sequence: The sequence</purpose>
+    </description>
+</sequence>

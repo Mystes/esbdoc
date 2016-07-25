@@ -9,9 +9,12 @@
  * Controller of the esbdocPocApp
  */
 angular.module('esbdocPocApp')
-  .controller('MainCtrl', function ($scope, $timeout) {
+  .controller('MainCtrl', function ($scope, $timeout, $location) {
+
 
     $scope.selected = {resource: null, showDependencyMap: true};
+
+    $scope.location = $location;
 
     if(window.ESBDOCDATA) {
       $scope.esbDoc = window.ESBDOCDATA;
@@ -21,6 +24,19 @@ angular.module('esbdocPocApp')
     } else {
       return;
     }
+
+    $scope.$on('$locationChangeSuccess', function(newState, oldState) {
+          var artifactUrlParameter = $location.search().artifact;
+
+          if (artifactUrlParameter) {
+            if ($scope.esbDoc.resources[artifactUrlParameter]) {
+                $scope.selected.resource = artifactUrlParameter;
+            } else {
+                artifactUrlParameter = '';
+            }
+          }
+          $scope.selected.resource = artifactUrlParameter;
+        }, true);
 
     var countObjectKeys = function(obj) {
       var keys = 0;
@@ -280,10 +296,11 @@ angular.module('esbdocPocApp')
 
                 // Set the title on each of the nodes and use tipsy to display the tooltip on hover
                 svgNodes.attr('class', function(d) { return g.node(d).class;})
-                .attr('onClick', function(d) { return 'selected.resource = "' + d + '"';})
+                //.attr('onClick', function(d) { return 'selected.resource = "' + d + '"';})
                 .each(function(d) {
                     angular.element(this).on('click', function(e) {
-                        angular.element(e.target).scope().selected.resource = d;
+//                        angular.element(e.target).scope().selected.resource = d;
+                        angular.element(e.target).scope().location.search('artifact', d);
                         angular.element(e.target).scope().$apply();
                     });
                 });

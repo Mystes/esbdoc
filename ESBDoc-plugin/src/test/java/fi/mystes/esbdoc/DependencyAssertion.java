@@ -152,9 +152,33 @@ class DependencyAssertion {
             if(null == this.endpointNames){
                 assertTrue("You cannot set type expectations when there are no dependencies!", false);
             }
+            
+            if(null == expectedType){
+                assertTrue("You cannot set null type!", false);
+            }
 
             for(String endpointName : this.endpointNames){
-                assertEquals("Dependency from '" + artifactName + "' to '" + endpointName + "' type did not match expectation.", expectedType.toString(), dependency(endpointName).getType());
+            	assertEquals("Dependency from '" + artifactName + "' to '" + endpointName + "' type did not match expectation.", expectedType.toString(), dependency(endpointName).getType());
+            }
+        }
+        
+        public void asOrderedTypes(DependencyType...expectedTypes){
+            if(null == this.endpointNames){
+                assertTrue("You cannot set type expectations when there are no dependencies!", false);
+            }
+            
+            if(null == expectedTypes){
+                assertTrue("You cannot set null type!", false);
+            }
+            
+            if(expectedTypes.length != this.endpointNames.length){
+                assertTrue("You cannot set different number of expected types than dependencies exist!", false);
+            }
+
+            for(int i = 0; i < this.endpointNames.length; i++) {
+            	String endpointName = this.endpointNames[i];
+            	DependencyType dependencyType = expectedTypes[i];
+            	assertEquals("Dependency from '" + artifactName + "' to '" + endpointName + "' type did not match expectation.", dependencyType.toString(), dependency(endpointName).getType());
             }
         }
 

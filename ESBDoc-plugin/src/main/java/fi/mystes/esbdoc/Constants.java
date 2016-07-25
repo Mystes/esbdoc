@@ -108,4 +108,6 @@ public class Constants {
     public static final String TASK_TARGET_XPATH_STRING = "/s:task/s:property[@name = 'sequenceName']/@value | /s:task/s:property[@name = 'proxyName']/@value";
     public static final String TASK_TO_XPATH_STRING = "/s:task/s:property[@name = 'to']/@value";
 
+    public static final String AINO_XPATH_STRING = "//s:ainoLog";
+
 }
