@@ -30,7 +30,6 @@ public class MyMojoTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-
     }
 
     @Before
@@ -84,6 +83,66 @@ public class MyMojoTest {
     public void testArtifactNameWithDotInDeploymentFolderName() throws Exception {
         String testName = "MyMojoTest_testArtifactNameWithDotInDeploymentFolderName";
         File carFile = CarFileUtil.createCarFile(testName, "Deployment.Dot");
+
+        File[] carFileArray = ArrayUtils.toArray(carFile);
+        String esbDocRawPath = outputDestination("MyMojoTest_", "..");
+        String targetPath = esbDocRawPath + "target/";
+
+        MyMojo mojo = MojoGenerator.gimmeMojo(targetPath, carFileArray);
+        mojo.setCarAnalyzer(new CarAnalyzerSelfShunt(carFileArray, targetPath));
+        mojo.execute();
+        ((SelfShunt)mojo.getCarAnalyzer()).assertStatus();
+    }
+
+    @Test
+    public void testArtifactNameWithDotInSoapUiFolderName() throws Exception {
+        String testName = "MyMojoTest_testArtifactNameWithDotInSoapUiFolderName";
+        File carFile = CarFileUtil.createCarFile(testName, "Deployment.Dot");
+
+        File[] carFileArray = ArrayUtils.toArray(carFile);
+        String esbDocRawPath = outputDestination("MyMojoTest_", "..");
+        String targetPath = esbDocRawPath + "target/";
+
+        MyMojo mojo = MojoGenerator.gimmeMojo(targetPath, carFileArray);
+        mojo.setCarAnalyzer(new CarAnalyzerSelfShunt(carFileArray, targetPath));
+        mojo.execute();
+        ((SelfShunt)mojo.getCarAnalyzer()).assertStatus();
+    }
+
+    @Test
+    public void testArtifactNameWithDotInSoapUiFileName() throws Exception {
+        String testName = "MyMojoTest_testArtifactNameWithDotInSoapUiFileName";
+        File carFile = CarFileUtil.createCarFile(testName, "Deployment.Dot");
+
+        File[] carFileArray = ArrayUtils.toArray(carFile);
+        String esbDocRawPath = outputDestination("MyMojoTest_", "..");
+        String targetPath = esbDocRawPath + "target/";
+
+        MyMojo mojo = MojoGenerator.gimmeMojo(targetPath, carFileArray);
+        mojo.setCarAnalyzer(new CarAnalyzerSelfShunt(carFileArray, targetPath));
+        mojo.execute();
+        ((SelfShunt)mojo.getCarAnalyzer()).assertStatus();
+    }
+
+    @Test
+    public void testArtifactNameWithDotInOutputFolderName() throws Exception {
+        String testName = "MyMojoTest_testArtifactNameWithDotInOutputFolderName.Dot";
+        File carFile = CarFileUtil.createCarFile(testName, "Deployment.Dot");
+
+        File[] carFileArray = ArrayUtils.toArray(carFile);
+        URL resourceUrl = CarAnalyzer.class.getResource("/");
+        String targetPath = resourceUrl.getPath() + "MyMojoTest_testArtifactNameWithDotInOutputFolderName.Dot/" + "target/";
+
+        MyMojo mojo = MojoGenerator.gimmeMojo(targetPath, carFileArray);
+        mojo.setCarAnalyzer(new CarAnalyzerSelfShunt(carFileArray, targetPath));
+        mojo.execute();
+        ((SelfShunt)mojo.getCarAnalyzer()).assertStatus();
+    }
+
+    @Test
+    public void testArtifactNameWithDotInProxyFolderName() throws Exception {
+        String testName = "MyMojoTest_testArtifactNameWithDotInProxyFolderName";
+        File carFile = CarFileUtil.createCarFile(testName, "Deployment");
 
         File[] carFileArray = ArrayUtils.toArray(carFile);
         String esbDocRawPath = outputDestination("MyMojoTest_", "..");
@@ -163,7 +222,7 @@ public class MyMojoTest {
         }
 
         @Override
-        public void run(File[] carFiles, String outputDestination, File[] testFolders) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
+        public void run(boolean validateArtifacts, File[] carFiles, String outputDestination, File[] testFolders) throws IOException, SaxonApiException, ParserConfigurationException, SAXException, XPathExpressionException, JaxenException {
             this.called = true;
             this.actualCarFiles = carFiles;
             this.actualDestination = outputDestination;
