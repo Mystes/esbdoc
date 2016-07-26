@@ -5,15 +5,15 @@
     <con:settings/>
     
     <con:definitionCache type="TEXT"/><con:endpoints>
-      <con:endpoint>http://localhost:8280/services/Proxy1.Proxy1HttpSoap12Endpoint</con:endpoint>
-      <con:endpoint>https://localhost:8243/services/Proxy1.Proxy1HttpsSoap12Endpoint</con:endpoint>
+      <con:endpoint>http://localhost:8280/services/Proxy1.Dot.Proxy1HttpSoap12Endpoint</con:endpoint>
+      <con:endpoint>https://localhost:8243/services/Proxy1.Dot.Proxy1HttpsSoap12Endpoint</con:endpoint>
     </con:endpoints>
     <con:operation id="38fd8c27-e0ac-40e3-a2f5-9210c2137d59" isOneWay="false" action="urn:someProxy1Method" name="someProxy1Method" bindingOperationName="someProxy1Method" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional">
       <con:settings/>
       <con:call id="859b7bc9-97a3-4cc4-8555-b7fe38b4c797" name="Request 1">
         <con:settings/>
         <con:encoding>UTF-8</con:encoding>
-        <con:endpoint>http://localhost:8280/services/Proxy1.Proxy1HttpSoap12Endpoint</con:endpoint>
+        <con:endpoint>http://localhost:8280/services/Proxy1.Dot.Proxy1HttpSoap12Endpoint</con:endpoint>
         <con:request><![CDATA[<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:Proxy1="http://ws.apache.org/axis2">
    <soap:Header/>
    <soap:Body>
@@ -27,11 +27,11 @@
       </con:call>
     </con:operation>
   </con:interface>
-  <con:interface xsi:type="con:WsdlInterface" id="a38b917d-f3c7-49f7-b974-0a193df1b785" wsaVersion="NONE" name="Proxy1Soap11Binding" type="wsdl" bindingName="{http://ws.apache.org/axis2}Proxy1Soap11Binding" soapVersion="1_1" anonymous="optional" definition="http://localhost:8280/services/Proxy1?wsdl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <con:interface xsi:type="con:WsdlInterface" id="a38b917d-f3c7-49f7-b974-0a193df1b785" wsaVersion="NONE" name="Proxy1Soap11Binding" type="wsdl" bindingName="{http://ws.apache.org/axis2}Proxy1Soap11Binding" soapVersion="1_1" anonymous="optional" definition="http://localhost:8280/services/Proxy1.Dot?wsdl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <con:settings/>
-    <con:definitionCache type="TEXT" rootPart="http://localhost:8280/services/Proxy1?wsdl">
+    <con:definitionCache type="TEXT" rootPart="http://localhost:8280/services/Proxy1.Dot?wsdl">
       <con:part>
-        <con:url>http://localhost:8280/services/Proxy1?wsdl</con:url>
+        <con:url>http://localhost:8280/services/Proxy1.Dot?wsdl</con:url>
         <con:content><![CDATA[<wsdl:definitions 
     xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
     xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/"
@@ -79,16 +79,16 @@
     </wsdl:binding>
     <wsdl:service name="Proxy1">
         <wsdl:port name="Proxy1HttpsSoap11Endpoint" binding="tns:Proxy1Soap11Binding">
-            <soap:address location="https://localhost:8243/services/Proxy1.Proxy1HttpsSoap11Endpoint"/>
+            <soap:address location="https://localhost:8243/services/Proxy1.Dot.Proxy1HttpsSoap11Endpoint"/>
         </wsdl:port>
         <wsdl:port name="Proxy1HttpSoap11Endpoint" binding="tns:Proxy1Soap11Binding">
-            <soap:address location="http://localhost:8280/services/Proxy1.Proxy1HttpSoap11Endpoint"/>
+            <soap:address location="http://localhost:8280/services/Proxy1.Dot.Proxy1HttpSoap11Endpoint"/>
         </wsdl:port>
         <wsdl:port name="Proxy1HttpSoap12Endpoint" binding="tns:Proxy1Soap12Binding">
-            <soap12:address location="http://localhost:8280/services/Proxy1.Proxy1HttpSoap12Endpoint"/>
+            <soap12:address location="http://localhost:8280/services/Proxy1.Dot.Proxy1HttpSoap12Endpoint"/>
         </wsdl:port>
         <wsdl:port name="Proxy1HttpsSoap12Endpoint" binding="tns:Proxy1Soap12Binding">
-            <soap12:address location="https://localhost:8243/services/Proxy1.Proxy1HttpsSoap12Endpoint"/>
+            <soap12:address location="https://localhost:8243/services/Proxy1.Dot.Proxy1HttpsSoap12Endpoint"/>
         </wsdl:port>
     </wsdl:service>
 </wsdl:definitions>
@@ -97,15 +97,15 @@
       </con:part>
     </con:definitionCache>
     <con:endpoints>
-      <con:endpoint>http://localhost:8280/services/Proxy1.Proxy1HttpSoap11Endpoint</con:endpoint>
-      <con:endpoint>https://localhost:8243/services/Proxy1.Proxy1HttpsSoap11Endpoint</con:endpoint>
+      <con:endpoint>http://localhost:8280/services/Proxy1.Dot.Proxy1HttpSoap11Endpoint</con:endpoint>
+      <con:endpoint>https://localhost:8243/services/Proxy1.Dot.Proxy1HttpsSoap11Endpoint</con:endpoint>
     </con:endpoints>
     <con:operation id="19ba5d0d-3716-44e4-b16e-efca80c0434c" isOneWay="false" action="urn:someProxy1Method" name="someProxy1Method" bindingOperationName="someProxy1Method" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional">
       <con:settings/>
       <con:call id="f7854d34-81f0-480d-86fa-93ade804a661" name="Request 1">
         <con:settings/>
         <con:encoding>UTF-8</con:encoding>
-        <con:endpoint>http://localhost:8280/services/Proxy1.Proxy1HttpSoap11Endpoint</con:endpoint>
+        <con:endpoint>http://localhost:8280/services/Proxy1.Dot.Proxy1HttpSoap11Endpoint</con:endpoint>
         <con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:Proxy1="http://ws.apache.org/axis2">
    <soapenv:Header/>
    <soapenv:Body>
@@ -119,7 +119,7 @@
       </con:call>
     </con:operation>
   </con:interface>
-  <con:testSuite id="bcfc9e5b-408e-43df-b8eb-bf4a55182d42" name="Proxy1TestSuite"><con:settings/><con:runType>SEQUENTIAL</con:runType><con:testCase id="88ee7afa-39fb-4ecd-bfba-baad17d29215" failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="Proxy1TestCase" searchProperties="true"><con:settings/><con:testStep type="request" name="Proxy 1 SOAP Request" id="36b4fb41-c89f-4fbc-8083-841661e04111"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>Proxy1Soap12Binding</con:interface><con:operation>someProxy1Method</con:operation><con:request name="Proxy 1 SOAP Request" id="1c715983-fee0-4301-83f9-28e132b4cba7"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://localhost:8280/services/Proxy1.Proxy1HttpSoap12Endpoint</con:endpoint><con:request xsi:nil="true"/><con:assertion type="SOAP Response" id="33fa10dc-d51c-454a-8e3e-a5c487961465"/><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/><con:wsrmConfig version="1.2"/></con:request></con:config></con:testStep><con:properties/></con:testCase><con:properties/></con:testSuite><con:properties/>
+  <con:testSuite id="bcfc9e5b-408e-43df-b8eb-bf4a55182d42" name="Proxy1TestSuite"><con:settings/><con:runType>SEQUENTIAL</con:runType><con:testCase id="88ee7afa-39fb-4ecd-bfba-baad17d29215" failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="Proxy1TestCase" searchProperties="true"><con:settings/><con:testStep type="request" name="Proxy 1 SOAP Request" id="36b4fb41-c89f-4fbc-8083-841661e04111"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>Proxy1Soap12Binding</con:interface><con:operation>someProxy1Method</con:operation><con:request name="Proxy 1 SOAP Request" id="1c715983-fee0-4301-83f9-28e132b4cba7"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://localhost:8280/services/Proxy1.Dot.Proxy1HttpSoap12Endpoint</con:endpoint><con:request xsi:nil="true"/><con:assertion type="SOAP Response" id="33fa10dc-d51c-454a-8e3e-a5c487961465"/><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/><con:wsrmConfig version="1.2"/></con:request></con:config></con:testStep><con:properties/></con:testCase><con:properties/></con:testSuite><con:properties/>
   <con:wssContainer/>
   <con:oAuth2ProfileContainer/>
   <con:sensitiveInformation/>
