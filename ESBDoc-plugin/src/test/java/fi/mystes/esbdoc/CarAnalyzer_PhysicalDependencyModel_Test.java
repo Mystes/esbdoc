@@ -532,6 +532,100 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
 
     /***********************************************************************************************/
 
+
+    @Test
+    public void testArtifactNameWithNoDot() throws Exception {
+        MainModelAssertion mainModel = mainModelWithBasicTestSetup();
+        mainModel.assertHasTests();
+
+        mainModel.dependencyAssertionFor("Proxy1").testedBy("OneSoapUiTestReferencingOneProxy");
+        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("Proxy1").reversesTo(NOWHERE);
+
+        mainModel.soapUiAssertionFor("OneSoapUiTestReferencingOneProxy").assertFilename("OneSoapUiTestReferencingOneProxy-soapui-project.xml");
+        mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test with no dot in artifact name: Proxy 1");
+    }
+
+    @Test
+    public void testArtifactNameWithDotInProxyName() throws Exception {
+        MainModelAssertion mainModel = mainModelWithBasicTestSetup();
+        mainModel.assertHasTests();
+
+        mainModel.dependencyAssertionFor("Proxy1.Dot").testedBy("OneSoapUiTestReferencingOneProxy");
+        mainModel.dependencyAssertionFor("Proxy1.Dot").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("Proxy1.Dot").reversesTo(NOWHERE);
+
+        mainModel.soapUiAssertionFor("OneSoapUiTestReferencingOneProxy").assertFilename("OneSoapUiTestReferencingOneProxy-soapui-project.xml");
+        mainModel.proxyAssertionFor("Proxy1.Dot").assertPurpose("Test with a dot in proxy name: Proxy 1.Dot");
+    }
+
+    @Test
+    public void testArtifactNameWithDotInProxyFolderName() throws Exception {
+        MainModelAssertion mainModel = mainModelWithBasicTestSetup();
+        mainModel.assertHasTests();
+
+        mainModel.dependencyAssertionFor("Proxy1.Dot").testedBy("OneSoapUiTestReferencingOneProxy");
+        mainModel.dependencyAssertionFor("Proxy1.Dot").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("Proxy1.Dot").reversesTo(NOWHERE);
+
+        mainModel.soapUiAssertionFor("OneSoapUiTestReferencingOneProxy").assertFilename("OneSoapUiTestReferencingOneProxy-soapui-project.xml");
+        mainModel.proxyAssertionFor("Proxy1.Dot").assertPurpose("Test with a dot in proxy folder name: Proxy 1.Dot");
+    }
+
+    @Test
+    public void testArtifactNameWithDotInDeploymentFolderName() throws Exception {
+        MainModelAssertion mainModel = mainModelWithCustomSetup(DeploymentFolders.are("Deployment.Dot"), TestFolders.are("SoapUi"));
+        mainModel.assertHasTests();
+
+        mainModel.dependencyAssertionFor("Proxy1.Dot").testedBy("OneSoapUiTestReferencingOneProxy");
+        mainModel.dependencyAssertionFor("Proxy1.Dot").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("Proxy1.Dot").reversesTo(NOWHERE);
+
+        mainModel.soapUiAssertionFor("OneSoapUiTestReferencingOneProxy").assertFilename("OneSoapUiTestReferencingOneProxy-soapui-project.xml");
+        mainModel.proxyAssertionFor("Proxy1.Dot").assertPurpose("Test with a dot in deployment folder name: Proxy 1.Dot");
+    }
+
+    @Test
+    public void testArtifactNameWithDotInSoapUiFolderName() throws Exception {
+        MainModelAssertion mainModel = mainModelWithCustomSetup(DeploymentFolders.are("Deployment.Dot"), TestFolders.are("Soap.Ui"));
+        mainModel.assertHasTests();
+
+        mainModel.dependencyAssertionFor("Proxy1.Dot").testedBy("OneSoapUiTestReferencingOneProxy");
+        mainModel.dependencyAssertionFor("Proxy1.Dot").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("Proxy1.Dot").reversesTo(NOWHERE);
+
+        mainModel.soapUiAssertionFor("OneSoapUiTestReferencingOneProxy").assertFilename("OneSoapUiTestReferencingOneProxy-soapui-project.xml");
+        mainModel.proxyAssertionFor("Proxy1.Dot").assertPurpose("Test with a dot in SoapUI folder name: Proxy 1.Dot");
+    }
+
+    @Test
+    public void testArtifactNameWithDotInSoapUiFileName() throws Exception {
+        MainModelAssertion mainModel = mainModelWithCustomSetup(DeploymentFolders.are("Deployment.Dot"), TestFolders.are("Soap.Ui"));
+        mainModel.assertHasTests();
+
+        mainModel.dependencyAssertionFor("Proxy1.Dot").testedBy("OneSoapUiTestReferencingOneProxy");
+        mainModel.dependencyAssertionFor("Proxy1.Dot").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("Proxy1.Dot").reversesTo(NOWHERE);
+
+        mainModel.soapUiAssertionFor("OneSoapUiTestReferencingOneProxy").assertFilename("OneSoapUiTestReferencingOneProxy.Dot-soapui-project.xml");
+        mainModel.proxyAssertionFor("Proxy1.Dot").assertPurpose("Test with a dot in SoapUI file name: Proxy 1.Dot");
+    }
+
+    @Test
+    public void testArtifactNameWithDotInOutputFolderName() throws Exception {
+        MainModelAssertion mainModel = mainModelWithCustomSetup("testArtifactNameWithDotInOutputFolderName.Dot", DeploymentFolders.are("Deployment.Dot"), TestFolders.are("Soap.Ui"));
+        mainModel.assertHasTests();
+
+        mainModel.dependencyAssertionFor("Proxy1.Dot").testedBy("OneSoapUiTestReferencingOneProxy");
+        mainModel.dependencyAssertionFor("Proxy1.Dot").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("Proxy1.Dot").reversesTo(NOWHERE);
+
+        mainModel.soapUiAssertionFor("OneSoapUiTestReferencingOneProxy").assertFilename("OneSoapUiTestReferencingOneProxy.Dot-soapui-project.xml");
+        mainModel.proxyAssertionFor("Proxy1.Dot").assertPurpose("Test with a dot in output folder name: Proxy 1.Dot");
+    }
+
+    /***********************************************************************************************/
+
     private MainModelAssertion mainModelWithNoTests() throws Exception {
         String esbDocRawPath =  outputDestination("...");
 
@@ -564,6 +658,32 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
     private MainModelAssertion mainModelWithCustomSetup(DeploymentFolders deploymentFolders, TestFolders testFolders) throws Exception {
         String testName = getMethodNameOf("..");
 
+        List<File> carFileList = new ArrayList<File>();
+        List<File> testFolderList = new ArrayList<File>();
+
+        for(String folder : deploymentFolders.list()){
+            File carFile = CarFileUtil.createCarFile(testName, folder);
+            carFileList.add(carFile);
+        }
+
+        for(String folder : testFolders.list()){
+            File testFolder = CarFileUtil.getTestFolder(testName, folder);
+            testFolderList.add(testFolder);
+        }
+
+        String esbDocRawPath = outputDestination("...");
+
+        File[] carFileArray = carFileList.toArray(new File[carFileList.size()]);
+        File[] testFolderArray = testFolderList.toArray(new File[testFolderList.size()]);
+        new CarAnalyzer().run(false, carFileArray, esbDocRawPath, testFolderArray);
+
+        String esbDocMainModelPath = mainModelPathFor(esbDocRawPath);
+        MainModelAssertion mainModel = new MainModelAssertion(esbDocMainModelPath);
+
+        return mainModel;
+    }
+
+    private MainModelAssertion mainModelWithCustomSetup(String testName, DeploymentFolders deploymentFolders, TestFolders testFolders) throws Exception {
         List<File> carFileList = new ArrayList<File>();
         List<File> testFolderList = new ArrayList<File>();
 
