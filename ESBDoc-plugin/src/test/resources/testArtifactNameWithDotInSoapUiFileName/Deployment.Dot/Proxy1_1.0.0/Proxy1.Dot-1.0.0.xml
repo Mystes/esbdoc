@@ -11,6 +11,6 @@
         </inSequence>
     </target>
     <description>
-        <purpose>Test MyMojo with a dot in deployment folder name: Proxy 1.Dot</purpose>
+        <purpose>Test with a dot in SoapUI file name: Proxy 1.Dot</purpose>
     </description>
 </proxy>

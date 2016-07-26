@@ -11,6 +11,6 @@
         </inSequence>
     </target>
     <description>
-        <purpose>Test MyMojo with no dot in artifact name: Proxy 1</purpose>
+        <purpose>Test with no dot in artifact name: Proxy 1</purpose>
     </description>
 </proxy>
