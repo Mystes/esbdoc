@@ -241,10 +241,14 @@ angular.module('esbdocPocApp')
                 angular.forEach(data, function (value, k) {
                     var key = backward ? value.source : value.target;
                     if(!g.hasNode(key)) {
-                        g.addNode(key, { label: scope.esbDoc.resources[key].humanizedName });
-                        if(scope.esbDoc.resources[key] && nodeTypeStyles[scope.esbDoc.resources[key].type]) {
-                            //g.node(key).style = nodeTypeStyles[$scope.esbDoc.resources[key].type];
-                            g.node(key).class = scope.esbDoc.resources[key].type;
+                        if (!scope.esbDoc.resources[key]) {
+                            g.addNode(key, { label: key });
+                        } else {
+                            g.addNode(key, { label: scope.esbDoc.resources[key].humanizedName });
+                            if(scope.esbDoc.resources[key] && nodeTypeStyles[scope.esbDoc.resources[key].type]) {
+                                //g.node(key).style = nodeTypeStyles[$scope.esbDoc.resources[key].type];
+                                g.node(key).class = scope.esbDoc.resources[key].type;
+                            }
                         }
                     }
 
