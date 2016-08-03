@@ -49,7 +49,7 @@ public class Artifact implements Comparable<Artifact> {
     }
 
     public boolean isDescriptionDefined(){
-        return null != this.description;
+        return null != this.description && null != this.description.purpose;
     }
 
     public String getPath() {

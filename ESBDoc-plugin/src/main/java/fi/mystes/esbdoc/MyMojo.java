@@ -114,7 +114,11 @@ public class MyMojo extends AbstractMojo {
                     + "(Tip! In Mac OS X CMD+Double click)\n"
                     + "file://" + uiTargetFolder.getURL().getPath() + "/index.html\n");
 
+        } catch (EsbDocException e) {
+            // ESBDoc validation failed, lets brake the build
+            throw new MojoExecutionException(e.getMessage());
         } catch (Exception e) {
+            // ESBDoc broke down in unexpected way, lets not brake the build
             e.printStackTrace();
         }
     }
