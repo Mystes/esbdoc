@@ -60,6 +60,7 @@ public class Constants {
     public static final String FILE_SEPARATOR = ",";
 
     public static final String DEPENDENCY_XPATH_STRING = "/artifacts/artifact[@type = 'carbon/application']/dependency";
+    public static final String TASK_XPATH_STRING = "/artifacts/artifact[@type = 'synapse/task']";
     public static final String ARTIFACT_FILENAME_XPATH_STRING = "/artifact/file/text()";
     public static final String TESTCASE_XPATH_STRING = "/con:soapui-project";
 

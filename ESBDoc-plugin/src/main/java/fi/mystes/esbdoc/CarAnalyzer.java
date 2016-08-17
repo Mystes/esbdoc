@@ -123,14 +123,20 @@ public class CarAnalyzer {
     private ArtifactMap buildArtifactMap(FileObject carFileObject) throws SaxonApiException, IOException, SAXException, XPathExpressionException, JaxenException {
         FileObject artifactsFileObject = carFileObject.getChild("artifacts.xml");
         log.info(MessageFormat.format("Processing artifacts.xml file: [{0}]", artifactsFileObject.getURL().toString()));
-        XdmValue value = SaxonXPath.apply(DEPENDENCY_XPATH_STRING).to(artifactsFileObject).andReturnAnXdmValue();
         ArtifactMap artifactMap = new ArtifactMap();
+        populateArtifactMap(carFileObject, artifactsFileObject, DEPENDENCY_XPATH_STRING, artifactMap);
+        populateArtifactMap(carFileObject, artifactsFileObject, TASK_XPATH_STRING, artifactMap);
+        return artifactMap;
+    }
+
+	private void populateArtifactMap(FileObject carFileObject, FileObject artifactsFileObject, String xpath, ArtifactMap artifactMap)
+			throws SaxonApiException, IOException, SAXException, XPathExpressionException, JaxenException {
+		XdmValue value = SaxonXPath.apply(xpath).to(artifactsFileObject).andReturnAnXdmValue();
         for (XdmItem item : value) {
             Artifact artifact = getArtifact((XdmNode) item, carFileObject);
             artifactMap.addValid(artifact);
         }
-        return artifactMap;
-    }
+	}
 
     /**
      * Returns a map mapping artifact names to the SoapUI tests in given
@@ -422,21 +428,44 @@ public class CarAnalyzer {
         String dependencyDirectory = dependencyArtifactFilePathBuilder.toString();
 
         dependencyArtifactFilePathBuilder.append("artifact.xml");
+        
+        String dependencyArtifactFilePath = dependencyArtifactFilePathBuilder.toString();
+        
+        String dependencyType = dependencyNode.getAttributeValue(TYPE_Q);
+        if (dependencyType != null && ArtifactType.correspondingTo(dependencyType) == ArtifactType.TASK) {
+        	dependencyName = dependencyNode.getAttributeValue(NAME_Q);
+        	dependencyArtifactFilePath = dependencyNode.itemAt(0).getStringValue().trim();
+        	dependencyDirectory = "";
+        }
 
-        FileObject artifactFileObject = carFile.resolveFile(dependencyArtifactFilePathBuilder.toString());
+        return extractArtifactFromCar(carFile, dependencyName, dependencyVersion, dependencyType, dependencyArtifactFilePath, dependencyDirectory);
+
+    }
+
+	private Artifact extractArtifactFromCar(FileObject carFile, String dependencyName, String dependencyVersion, String dependencyType,
+			String dependencyArtifactFilePath, String dependencyDirectory)
+					throws FileSystemException, SaxonApiException, IOException, JaxenException {
+		FileObject artifactFileObject = carFile.resolveFile(dependencyArtifactFilePath);
 
         if (artifactFileObject == null || !artifactFileObject.exists()) {
             return null;
         }
 
         XdmNode artifactFileXml = getNodeFromFileObject(artifactFileObject);
-        String artifactFilePath = SaxonXPath.apply(ARTIFACT_FILENAME_XPATH_STRING).to(artifactFileXml).andReturnA(String.class);
-        String artifactTypeString = artifactFileXml.getAttributeValue(TYPE_Q);
+        String artifactFilePath = null;
+        String artifactTypeString = null;
+        if (dependencyType != null && ArtifactType.correspondingTo(dependencyType) == ArtifactType.TASK) {
+        	artifactTypeString = dependencyType;
+        	artifactFilePath = dependencyArtifactFilePath;
+        } else {
+        	artifactTypeString = artifactFileXml.getAttributeValue(TYPE_Q);
+        	artifactFilePath = SaxonXPath.apply(ARTIFACT_FILENAME_XPATH_STRING).to(artifactFileXml).andReturnA(String.class);
+        }
 
         ArtifactType artifactType = ArtifactType.correspondingTo(artifactTypeString);
 
         String artifactName = null;
-        if (artifactType == ArtifactType.RESOURCE) {
+        if (artifactType == ArtifactType.RESOURCE || artifactType == ArtifactType.TASK) {
             artifactName = dependencyName;
         } else {
             artifactName = getRealNameForArtifact(carFile.toString() + dependencyDirectory + artifactFilePath);
@@ -460,8 +489,7 @@ public class CarAnalyzer {
         }
 
         return Artifact.with(artifactName, dependencyVersion, artifactType, dependencyDirectory + artifactFilePath, carFile.toString(), description);
-
-    }
+	}
 
     private void getServicePath(ArtifactType artifactType, String artifactName, String artifactFilePath) throws FileSystemException, JaxenException {
         //TODO this is NOT A GETTER!!
@@ -473,7 +501,7 @@ public class CarAnalyzer {
         OMElement root = getRootOfXmlFile(artifactFilePath);
 
         String context = root.getAttributeValue(CONTEXT_Q);
-        Iterator resourceElements = root.getChildrenWithName(RESOURCE_Q);
+        Iterator<?> resourceElements = root.getChildrenWithName(RESOURCE_Q);
         while (resourceElements.hasNext()) {
             OMElement resourceElement = (OMElement) resourceElements.next();
             String urlMapping = resourceElement.getAttributeValue(URL_MAPPING_Q);
@@ -501,7 +529,7 @@ public class CarAnalyzer {
             return null;
         }
 
-        List resultList = (List) evaluationResult;
+        List<?> resultList = (List<?>) evaluationResult;
 
         if (!resultList.isEmpty()) {
             OMElement descriptionElement = (OMElement) resultList.get(0);
@@ -527,7 +555,7 @@ public class CarAnalyzer {
                 OMElement dependeciesElement = descriptionElement.getFirstChildWithName(DEPENDENCIES_Q);
                 List<String> programmerDefinedDependencies = null;
                 if (dependeciesElement != null) {
-                    Iterator gator = dependeciesElement.getChildren();
+                    Iterator<?> gator = dependeciesElement.getChildren();
                     programmerDefinedDependencies = new ArrayList<String>();
                     while (gator.hasNext()) {
                         Object element = gator.next();
@@ -578,7 +606,8 @@ public class CarAnalyzer {
             }
         }
 
-        Iterator<OMElement> fields = infoElement.getChildrenWithName(FIELD_Q);
+        @SuppressWarnings("unchecked")
+		Iterator<OMElement> fields = infoElement.getChildrenWithName(FIELD_Q);
         while (fields.hasNext()) {
             OMElement field = fields.next();
 
@@ -634,7 +663,7 @@ public class CarAnalyzer {
                 for (DependencyType dependencyType : DependencyType.values()) {
                     // TASK_TO has special handling
                     if (dependencyType == DependencyType.TASK_TO) {
-                        continue;
+                        //continue;
                     }
 
                     log.debug("Adding dependencies of type " + dependencyType);
@@ -663,12 +692,15 @@ public class CarAnalyzer {
                         if (taskTo != null) {
                             try {
                                 Artifact dependency = (Artifact) dependencies.iterator().next().dependency;
-                                Set<Dependency> artifactDependencies = forwardDependencyMap.get(dependency);
-                                if (artifactDependencies == null) {
-                                    artifactDependencies = new HashSet<Dependency>();
-                                    forwardDependencyMap.put(dependency, artifactDependencies);
+                                // taskTo should not depend on itself
+                                if (!taskTo.equals(dependency)) {
+	                                Set<Dependency> artifactDependencies = forwardDependencyMap.get(dependency);
+	                                if (artifactDependencies == null) {
+	                                    artifactDependencies = new HashSet<Dependency>();
+	                                    forwardDependencyMap.put(dependency, artifactDependencies);
+	                                }
+	                                artifactDependencies.add(new Dependency(dependency, taskTo, dt));
                                 }
-                                artifactDependencies.add(new Dependency(dependency, taskTo, dt));
                             } catch (ClassCastException e) {
                                 System.out.println("Unable to map TASK_TO to an Artifact.");
                             }

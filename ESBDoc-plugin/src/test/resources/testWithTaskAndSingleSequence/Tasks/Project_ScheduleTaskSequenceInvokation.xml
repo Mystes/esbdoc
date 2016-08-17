@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<task class="org.apache.synapse.startup.tasks.MessageInjector"
+	group="synapse.simple.quartz" name="SequenceTask" xmlns="http://ws.apache.org/ns/synapse">
+	<trigger cron="0 5/7 ? " />
+	<property name="soapAction" value="mediate"/>
+	<property name="sequenceName" value="TheSequence" />
+	<property name="format" value="soap11" />
+	<property name="injectTo" value="sequence" />
+	<property name="message">
+		<test xmlns="" />
+	</property>
+</task>

@@ -13,3 +13,9 @@ target
 ESBDoc-plugin/resources/UI/.bowerrc
 ESBDoc-plugin/resources/UI/.jshintrc
 ESBDoc-plugin/resources/UI/.travis.yml
+.classpath
+.metadata
+.recommenders
+.project
+.settings
+RemoteSystemsTempFiles

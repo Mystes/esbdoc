@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<task xmlns="http://ws.apache.org/ns/synapse" class="org.apache.synapse.startup.tasks.MessageInjector"
+	group="synapse.simple.quartz" name="ProxyTask">
+	<trigger cron="0 5/7 ? " />
+	<property name="format" value="soap11" />
+	<property name="message">
+		<mediate />
+	</property>
+	<property name="to" value="http://localhost:8280/services/Proxy" />
+	<property name="soapAction" value="mediate" />
+</task>

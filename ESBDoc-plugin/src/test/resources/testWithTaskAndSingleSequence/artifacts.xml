@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<artifacts>
+    <artifact name="testWithSingleSequence" version="1.0.0" type="carbon/application">
+        <dependency artifact="TheSequence" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+    </artifact>
+    <artifact name="Project_ScheduleTaskSequenceInvokation" groupId="fi.mystes.mediators.task" version="1.0.0" type="synapse/task" serverRole="EnterpriseServiceBus">
+	    <file>Tasks/Project_ScheduleTaskSequenceInvokation.xml</file>
+	</artifact>
+</artifacts>

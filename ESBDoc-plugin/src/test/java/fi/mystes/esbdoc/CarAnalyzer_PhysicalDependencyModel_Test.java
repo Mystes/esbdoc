@@ -623,6 +623,30 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
         mainModel.soapUiAssertionFor("OneSoapUiTestReferencingOneProxy").assertFilename("OneSoapUiTestReferencingOneProxy.Dot-soapui-project.xml");
         mainModel.proxyAssertionFor("Proxy1.Dot").assertPurpose("Test with a dot in output folder name: Proxy 1.Dot");
     }
+    
+    /***********************************************************************************************/
+    
+    @Test
+    public void testWithTaskAndSingleProxy() throws Exception{
+    	MainModelAssertion mainModel = mainModelWithNoTests();
+    	mainModel.dependencyAssertionFor("Proxy").forwardsTo(NOWHERE);
+    	mainModel.dependencyAssertionFor("Project_ScheduleTaskProxyCall").forwardsTo(EXCLUSIVELY, "Proxy").asType(DependencyType.TASK_TO);
+    }
+    
+    @Test
+    public void testWithTaskAndSingleSequence() throws Exception{
+    	MainModelAssertion mainModel = mainModelWithNoTests();
+    	mainModel.dependencyAssertionFor("TheSequence").forwardsTo(NOWHERE);
+    	mainModel.dependencyAssertionFor("Project_ScheduleTaskSequenceInvokation").forwardsTo(EXCLUSIVELY, "TheSequence").asType(DependencyType.TASK_INJECT);
+    }
+    
+    @Test
+    public void testWithTaskAndSingleProxyAndSingleSequence() throws Exception{
+    	MainModelAssertion mainModel = mainModelWithNoTests();
+    	mainModel.dependencyAssertionFor("ProxyWithOneSequence").forwardsTo(EXCLUSIVELY, "TheSequence").asType(SEQUENCE);
+    	mainModel.dependencyAssertionFor("TheSequence").forwardsTo(EXCLUSIVELY, "Aino.io").asType(AINO_LOG);
+    	mainModel.dependencyAssertionFor("Project_ScheduleTaskProxyCall").forwardsTo(EXCLUSIVELY, "ProxyWithOneSequence").asType(DependencyType.TASK_TO);
+    }
 
     /***********************************************************************************************/
 
