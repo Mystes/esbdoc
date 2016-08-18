@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<proxy xmlns="http://ws.apache.org/ns/synapse"
+       name="Proxy1"
+       transports="https,http"
+       statistics="disable"
+       trace="disable"
+       startOnLoad="true">
+    <target>
+        <inSequence>
+            <xslt key="gov:/trunk/xslt/Xslt1.xsl">
+            	<resource key="gov:/trunk/xslt/Xslt2.xsl" location="Xslt2.xsl"/>
+            </xslt>
+            <respond/>
+        </inSequence>
+    </target>
+    <description>
+        <purpose>Test ESBDoc with one proxy referencing an XSLT: Proxy 1</purpose>
+    </description>
+</proxy>

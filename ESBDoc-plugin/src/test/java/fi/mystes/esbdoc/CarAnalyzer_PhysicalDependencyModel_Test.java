@@ -371,20 +371,32 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
         mainModel.sequenceAssertionFor("Sequence2").assertPurpose("Test ESBDoc with circular dependency across two sequences: Sequence 2");
     }
 
-    //TODO @Test
+    @Test
     public void testWithProxyReferencingXslt() throws Exception {
         MainModelAssertion mainModel = mainModelWithNoTests();
 
-        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "Xslt1"); //TODO asType
+        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "Xslt1.xsl").asType(DependencyType.REGISTRY);
         mainModel.dependencyAssertionFor("Proxy1").reversesTo(NOWHERE);
 
-        mainModel.dependencyAssertionFor("Xslt1").forwardsTo(NOWHERE);
-        mainModel.dependencyAssertionFor("Xslt1").reversesTo(NON_EXCLUSIVELY, "Proxy1");
+        mainModel.dependencyAssertionFor("Xslt1.xsl").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("Xslt1.xsl").reversesTo(NOWHERE);
 
         mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with one proxy referencing an XSLT: Proxy 1");
-        //TODO XSLT Assertion
     }
+    
+    //@Test
+    public void testWithProxyReferencingXsltReferencingXslt() throws Exception {
+        MainModelAssertion mainModel = mainModelWithNoTests();
 
+        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "Xslt1.xsl").asType(DependencyType.REGISTRY);
+        mainModel.dependencyAssertionFor("Proxy1").reversesTo(NOWHERE);
+
+        mainModel.dependencyAssertionFor("Xslt1.xsl").forwardsTo(EXCLUSIVELY, "Xslt2.xsl");
+        mainModel.dependencyAssertionFor("Xslt1.xsl").reversesTo(NOWHERE);
+
+        mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with one proxy referencing an XSLT: Proxy 1");
+    }
+    
     @Test
     public void testWithProxyReferencingWsdlReferencingXsd () throws Exception {
         MainModelAssertion mainModel = mainModelWithNoTests();

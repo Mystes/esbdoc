@@ -769,6 +769,8 @@ public class CarAnalyzer {
 
             if (dependencyType == DependencyType.AINO_LOG) {
             	dependencyObject = AINO_ARTIFACT_NAME;
+            } else if (dependencyType == DependencyType.REGISTRY) {
+            	dependencyObject = new File(dependencyString).getName();
             }
             
             dependencies.add(new Dependency(artifact, dependencyObject, dependencyType));

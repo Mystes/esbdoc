@@ -83,9 +83,11 @@ public class JsonWriter {
             for (Dependency dependency : entry.getValue()) {
                 // Currently only Artifacts are included in the JSON output
             	boolean ainoDependency = dependency.getType() == DependencyType.AINO_LOG;
-                if (dependency.getDependency() instanceof Artifact || ainoDependency) {
+            	boolean registryDependency = dependency.getType() == DependencyType.REGISTRY;
+            	boolean isArtifact = dependency.getDependency() instanceof Artifact;
+                if (isArtifact || ainoDependency || registryDependency) {
                     generator.writeStartObject();
-                    generator.writeStringField(TARGET, ainoDependency?dependency.getDependency().toString():((Artifact) dependency.getDependency()).getName());
+                    generator.writeStringField(TARGET, isArtifact?((Artifact) dependency.getDependency()).getName():dependency.getDependency().toString());
                     generator.writeStringField(TYPE, dependency.getType().toString());
                     generator.writeEndObject();
                 }
