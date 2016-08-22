@@ -7,7 +7,10 @@
        startOnLoad="true">
     <target>
         <inSequence>
-            <xslt key="gov:/trunk/xslt/Xslt1.xsl" />
+            <script language="groovy" key="gov:/trunk/scripts/GroovyScript.groovy" function="folderExists"/>
+            <script language="js"><![CDATA[
+            mc.setPayloadXML(<message>This script should be ignored</message);
+         	]]></script>
             <respond/>
         </inSequence>
     </target>

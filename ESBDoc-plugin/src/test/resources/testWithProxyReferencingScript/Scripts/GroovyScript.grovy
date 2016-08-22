@@ -1,0 +1,12 @@
+<x><![CDATA[
+
+import javax.xml.namespace.QName
+import javax.xml.xpath.*
+import javax.xml.parsers.DocumentBuilderFactory
+import org.apache.axiom.om.util.AXIOMUtil
+
+def entry(mc, key) {
+    mc.getConfiguration().getEntry(key)
+}
+
+]]></x>

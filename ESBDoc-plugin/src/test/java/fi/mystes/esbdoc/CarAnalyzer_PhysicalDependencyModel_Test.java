@@ -398,6 +398,19 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
     }
     
     @Test
+    public void testWithProxyReferencingScript() throws Exception {
+        MainModelAssertion mainModel = mainModelWithNoTests();
+
+        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "GroovyScript.groovy").asType(DependencyType.REGISTRY);
+        mainModel.dependencyAssertionFor("Proxy1").reversesTo(NOWHERE);
+
+        mainModel.dependencyAssertionFor("GroovyScript.groovy").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("GroovyScript.groovy").reversesTo(NOWHERE);
+
+        mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with one proxy referencing an XSLT: Proxy 1");
+    }
+
+    @Test
     public void testWithProxyReferencingWsdlReferencingXsd () throws Exception {
         MainModelAssertion mainModel = mainModelWithNoTests();
 
