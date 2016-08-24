@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<proxy xmlns="http://ws.apache.org/ns/synapse"
+       name="Proxy1"
+       transports="https,http"
+       statistics="disable"
+       trace="disable"
+       startOnLoad="true">
+    <target>
+        <inSequence>
+            <send>
+                <endpoint key="AddressEndpoint"/>
+            </send>
+            <send>
+            	<endpoint key="FailoverGroupEndpoint"/>
+            </send>
+            <call>
+            	<endpoint key="HttpEndpoint"/>
+            </call>
+            <call>
+            	<endpoint key="LoadBalanceEndpoint"/>
+            </call>
+            <send>
+            	<endpoint key="RecipientListEndpoint"/>
+            </send>
+        </inSequence>
+    </target>
+    <description>
+        <purpose>Test ESBDoc with one proxy referencing another proxy via send using address endpoint: Proxy 1</purpose>
+    </description>
+</proxy>

@@ -126,6 +126,7 @@ public class CarAnalyzer {
         ArtifactMap artifactMap = new ArtifactMap();
         populateArtifactMap(carFileObject, artifactsFileObject, DEPENDENCY_XPATH_STRING, artifactMap);
         populateArtifactMap(carFileObject, artifactsFileObject, TASK_XPATH_STRING, artifactMap);
+        populateArtifactMap(carFileObject, artifactsFileObject, ENDPOINT_XPATH_STRING, artifactMap);
         return artifactMap;
     }
 
@@ -432,10 +433,13 @@ public class CarAnalyzer {
         String dependencyArtifactFilePath = dependencyArtifactFilePathBuilder.toString();
         
         String dependencyType = dependencyNode.getAttributeValue(TYPE_Q);
-        if (dependencyType != null && ArtifactType.correspondingTo(dependencyType) == ArtifactType.TASK) {
-        	dependencyName = dependencyNode.getAttributeValue(NAME_Q);
-        	dependencyArtifactFilePath = dependencyNode.itemAt(0).getStringValue().trim();
-        	dependencyDirectory = "";
+        if (dependencyType != null) {
+        	ArtifactType artifactType = ArtifactType.correspondingTo(dependencyType);
+        	if(artifactType == ArtifactType.TASK || artifactType == ArtifactType.ENDPOINT) {
+	        	dependencyName = dependencyNode.getAttributeValue(NAME_Q);
+	        	dependencyArtifactFilePath = dependencyNode.itemAt(0).getStringValue().trim();
+	        	dependencyDirectory = "";
+        	}
         }
 
         return extractArtifactFromCar(carFile, dependencyName, dependencyVersion, dependencyType, dependencyArtifactFilePath, dependencyDirectory);
@@ -454,10 +458,14 @@ public class CarAnalyzer {
         XdmNode artifactFileXml = getNodeFromFileObject(artifactFileObject);
         String artifactFilePath = null;
         String artifactTypeString = null;
-        if (dependencyType != null && ArtifactType.correspondingTo(dependencyType) == ArtifactType.TASK) {
-        	artifactTypeString = dependencyType;
-        	artifactFilePath = dependencyArtifactFilePath;
-        } else {
+        if (dependencyType != null) {
+        	ArtifactType artifactType = ArtifactType.correspondingTo(dependencyType);
+        	if (artifactType == ArtifactType.TASK || artifactType == ArtifactType.ENDPOINT) {
+		    	artifactTypeString = dependencyType;
+		    	artifactFilePath = dependencyArtifactFilePath;
+        	}
+        } 
+        if (dependencyType == null){
         	artifactTypeString = artifactFileXml.getAttributeValue(TYPE_Q);
         	artifactFilePath = SaxonXPath.apply(ARTIFACT_FILENAME_XPATH_STRING).to(artifactFileXml).andReturnA(String.class);
         }

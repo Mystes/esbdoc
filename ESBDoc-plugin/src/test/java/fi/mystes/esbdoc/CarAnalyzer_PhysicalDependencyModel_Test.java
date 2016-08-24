@@ -219,6 +219,52 @@ public class CarAnalyzer_PhysicalDependencyModel_Test {
 
         mainModel.endpointAssertionFor("AddressEndpointToProxy2").assertPurpose("Test ESBDoc with one proxy referencing another proxy via independent address endpoint: Address endpoint to Proxy 2");
     }
+    
+    @Test
+    public void testWithOneProxyReferencingAnotherViaSendUsingSeveralEndpoints() throws Exception {
+        MainModelAssertion mainModel = mainModelWithNoTests();
+
+        mainModel.dependencyAssertionFor("Proxy1").forwardsTo(EXCLUSIVELY, "AddressEndpoint", 
+        																   "FailoverGroupEndpoint",
+        																   "HttpEndpoint",
+        																   "LoadBalanceEndpoint",
+        																   "RecipientListEndpoint"
+        																   )
+        										  .asOrderedTypes(SEND, SEND, CALL, CALL,SEND);
+
+        mainModel.dependencyAssertionFor("AddressEndpoint").forwardsTo(EXCLUSIVELY, "Proxy2");
+        mainModel.dependencyAssertionFor("AddressEndpoint").reversesTo(EXCLUSIVELY, "Proxy1");
+        
+        mainModel.dependencyAssertionFor("FailoverGroupEndpoint").forwardsTo(EXCLUSIVELY, "Proxy2", "Proxy3");
+        mainModel.dependencyAssertionFor("FailoverGroupEndpoint").reversesTo(EXCLUSIVELY, "Proxy1");
+        
+        mainModel.dependencyAssertionFor("HttpEndpoint").forwardsTo(EXCLUSIVELY, "Proxy2");
+        mainModel.dependencyAssertionFor("HttpEndpoint").reversesTo(EXCLUSIVELY, "Proxy1");
+        
+        mainModel.dependencyAssertionFor("LoadBalanceEndpoint").forwardsTo(EXCLUSIVELY, "Proxy2", "Proxy3");
+        mainModel.dependencyAssertionFor("LoadBalanceEndpoint").reversesTo(EXCLUSIVELY, "Proxy1");
+        
+        mainModel.dependencyAssertionFor("RecipientListEndpoint").forwardsTo(EXCLUSIVELY, "Proxy2", "Proxy3");
+        mainModel.dependencyAssertionFor("RecipientListEndpoint").reversesTo(EXCLUSIVELY, "Proxy1");
+
+        mainModel.dependencyAssertionFor("Proxy1").reversesTo(NOWHERE);
+        
+        mainModel.dependencyAssertionFor("Proxy2").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("Proxy2").reversesTo(EXCLUSIVELY, "AddressEndpoint", 
+        																   "FailoverGroupEndpoint", 
+        																   "HttpEndpoint",
+        																   "LoadBalanceEndpoint",
+        																   "RecipientListEndpoint");
+        
+        mainModel.dependencyAssertionFor("Proxy3").forwardsTo(NOWHERE);
+        mainModel.dependencyAssertionFor("Proxy3").reversesTo(EXCLUSIVELY, "FailoverGroupEndpoint",
+        																   "LoadBalanceEndpoint",
+				   														   "RecipientListEndpoint");
+
+        mainModel.proxyAssertionFor("Proxy1").assertPurpose("Test ESBDoc with one proxy referencing another proxy via send using address endpoint: Proxy 1");
+        mainModel.proxyAssertionFor("Proxy2").assertPurpose("Test ESBDoc with one proxy referencing another proxy via send using address endpoint: Proxy 2");
+        mainModel.proxyAssertionFor("Proxy3").assertPurpose("Test ESBDoc with one proxy referencing another proxy via send using address endpoint: Proxy 2");
+    }
 
     @Test
     public void testWithOneProxyReferencingAnotherViaIterateMediator() throws Exception {

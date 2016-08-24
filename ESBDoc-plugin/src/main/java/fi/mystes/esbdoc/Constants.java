@@ -61,6 +61,7 @@ public class Constants {
 
     public static final String DEPENDENCY_XPATH_STRING = "/artifacts/artifact[@type = 'carbon/application']/dependency";
     public static final String TASK_XPATH_STRING = "/artifacts/artifact[@type = 'synapse/task']";
+    public static final String ENDPOINT_XPATH_STRING = "/artifacts/artifact[@type = 'synapse/endpoint']";
     public static final String ARTIFACT_FILENAME_XPATH_STRING = "/artifact/file/text()";
     public static final String TESTCASE_XPATH_STRING = "/con:soapui-project";
 
@@ -75,6 +76,13 @@ public class Constants {
 
     public static final String PROXY_ENDPOINT_XPATH_STRING = "/s:proxy/s:target/@endpoint";
     public static final String PROXY_ENDPOINT_ADDRESS_XPATH_STRING = "/s:proxy/s:target/s:endpoint/s:address/@uri";
+    public static final String PROXY_ENDPOINT_FAILOVER_GROUP_ADDRESS_XPATH_STRING = "/s:endpoint/s:failover/s:endpoint/s:address/@uri";
+    public static final String PROXY_ENDPOINT_FAILOVER_GROUP_HTTP_XPATH_STRING = "/s:endpoint/s:failover/s:endpoint/s:http/@uri-template";
+    public static final String PROXY_ENDPOINT_HTTP_XPATH_STRING = "/s:endpoint/s:http/@uri-template";
+    public static final String PROXY_ENDPOINT_LOADBALANCE_ADDRESS_XPATH_STRING = "/s:endpoint/s:loadbalance/s:endpoint/s:address/@uri";
+    public static final String PROXY_ENDPOINT_LOADBALANCE_HTTP_XPATH_STRING = "/s:endpoint/s:loadbalance/s:endpoint/s:http/@uri-template";
+    public static final String PROXY_ENDPOINT_RECIPIENT_LIST_ADDRESS_XPATH_STRING = "/s:endpoint/s:recipientlist/s:endpoint/s:address/@uri";
+    public static final String PROXY_ENDPOINT_RECIPIENT_LIST_HTTP_XPATH_STRING = "/s:endpoint/s:recipientlist/s:endpoint/s:http/@uri-template";
 
     public static final String CLONE_SEQUENCE_XPATH_STRING = "//s:clone/s:target/@sequence";
     public static final String CLONE_ENDPOINT_XPATH_STRING = "//s:clone/s:target/@endpoint";

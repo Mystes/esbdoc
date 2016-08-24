@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<artifacts>
+    <artifact name="testWithOneProxyReferencingAnotherViaSendUsingAddressEndpoint" version="1.0.0" type="carbon/application">
+        <dependency artifact="Proxy1" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+        <dependency artifact="Proxy2" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+        <dependency artifact="Proxy3" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+    </artifact>
+    <artifact name="AddressEndpoint" version="1.0.0" type="synapse/endpoint">
+    	<file>AddressEndpoint/AddressEndpoint.xml</file>
+    </artifact>
+    <artifact name="FailoverGroupEndpoint" version="1.0.0" type="synapse/endpoint">
+    	<file>FailoverGroupEndpoint/FailoverGroupEndpoint.xml</file>
+    </artifact>
+    <artifact name="HttpEndpoint" version="1.0.0" type="synapse/endpoint">
+    	<file>HttpEndpoint/HttpEndpoint.xml</file>
+    </artifact>
+    
+    <artifact name="LoadBalanceEndpoint" version="1.0.0" type="synapse/endpoint">
+    	<file>LoadBalanceEndpoint/LoadBalanceEndpoint.xml</file>
+    </artifact>
+    <artifact name="RecipientListEndpoint" version="1.0.0" type="synapse/endpoint">
+    	<file>RecipientListEndpoint/RecipientListEndpoint.xml</file>
+    </artifact>
+</artifacts>

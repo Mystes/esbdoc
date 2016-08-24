@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<artifact name="Proxy3" version="1.0.0" type="synapse/proxy-service" serverRole="EnterpriseServiceBus">
+    <file>Proxy3-1.0.0.xml</file>
+</artifact>
