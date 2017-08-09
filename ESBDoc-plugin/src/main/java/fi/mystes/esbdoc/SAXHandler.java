@@ -1,5 +1,7 @@
 package fi.mystes.esbdoc;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -19,6 +21,8 @@ import static fi.mystes.esbdoc.Element.Springproperty.*;
  */
 public class SAXHandler extends DefaultHandler {
 
+    private static Log log = LogFactory.getLog(CarAnalyzer.class);
+
     private SequenceDiagramBuilder diagramBuilder;
 
     private String root;
@@ -33,6 +37,8 @@ public class SAXHandler extends DefaultHandler {
     private static final String PROXY_DIRECTORY = "proxy-services";
     private static final String ENDPOINT_DIRECTORY = "endpoints";
 
+    private static final String SYNAPSE_NAMESPACE = "http://ws.apache.org/ns/synapse";
+
     private static final String FILE_SUFFIX = "-1.0.0.xml";
 
     public SAXHandler(SequenceDiagramBuilder builder) {
@@ -43,6 +49,13 @@ public class SAXHandler extends DefaultHandler {
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
         super.startElement(uri, localName, qName, attributes);
         Element element = new Element(qName, attributes);
+
+        if (!uri.equals(SYNAPSE_NAMESPACE)) {
+            log.info("Skipping an element that does not belong to the Synapse namespace.");
+            log.info("uri: " + uri + " localName: " + localName + " qName: " + qName);
+            return;
+        }
+
         if (element.is(PROXY)) {
             String proxyName = element.get(NAME);
             root = proxyName;
@@ -62,6 +75,7 @@ public class SAXHandler extends DefaultHandler {
             }
         }
         if (element.is(ADDRESS)) {
+
             String uriTarget = element.get(URI);
             if (uriTarget.toLowerCase().contains("proxy")) {
                 String proxy = new EndpointURI(element.get(URI)).getTarget();

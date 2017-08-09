@@ -53,6 +53,7 @@ public class SequenceDiagramBuilder {
     private SAXParser parser() throws SAXException, ParserConfigurationException{
         log.debug("Instantiating a new SAX Parser...");
         SAXParserFactory parserFactory = SAXParserFactory.newInstance();
+        parserFactory.setNamespaceAware(true);
         return parserFactory.newSAXParser();
     }
 
