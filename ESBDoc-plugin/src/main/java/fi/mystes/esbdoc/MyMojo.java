@@ -106,6 +106,7 @@ public class MyMojo extends AbstractMojo {
             //TODO File name should be dynamic even if default comes from Constants
             String json = FileUtils.fileRead(new File(esbdocRawPath + Constants.PHYSICAL_DEPENDENCY_JSON_FILE));
             String indexContent = FileUtils.fileRead(new File(uiTargetFolder.getChild("index.html").getURL().getPath()));
+            System.out.println("JSONData="+json);
             String regexToFindPlaceholder = "window.ESBDOCDATA\\s*=\\s*.[^;]*;";
             indexContent = indexContent.replaceAll(regexToFindPlaceholder, "window.ESBDOCDATA=" + escapeCharsFromJson(json) + ";");
             FileUtils.fileWrite(uiTargetFolder.getChild("index.html").getURL().getPath(), indexContent);
@@ -151,7 +152,10 @@ public class MyMojo extends AbstractMojo {
             String dir=soapUIFileSet.getDirectory();
             // No absolute directory set, use parent basedir as a default
             if(dir==null){
-                dir = this.projectParentdDir.getAbsolutePath();
+                if(projectParentdDir != null)
+                    dir = this.projectParentdDir.getAbsolutePath();
+                else
+                    return (new File[0]); // No test directories available
             }
             
             File directory = new File(dir);

@@ -1,5 +1,6 @@
 package fi.mystes.esbdoc;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.sf.saxon.s9api.*;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.OMXMLBuilderFactory;
@@ -15,10 +16,7 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.text.MessageFormat;
 import java.util.*;
 
@@ -33,8 +31,6 @@ public class CarAnalyzer {
     private static Log log = LogFactory.getLog(CarAnalyzer.class);
     
     public static final String AINO_ARTIFACT_NAME = "Aino.io";
-    public static final String AINO_VERSION = "v2.0";
-
     private List<String> forbiddenArtifactNames = new ArrayList<String>(Arrays.asList("services"));
     private SortedMap<String, String> servicePathMap = new TreeMap<String, String>();
 
@@ -449,8 +445,8 @@ public class CarAnalyzer {
 	private Artifact extractArtifactFromCar(FileObject carFile, String dependencyName, String dependencyVersion, String dependencyType,
 			String dependencyArtifactFilePath, String dependencyDirectory)
 					throws FileSystemException, SaxonApiException, IOException, JaxenException {
-		FileObject artifactFileObject = carFile.resolveFile(dependencyArtifactFilePath);
-
+            
+            FileObject artifactFileObject = carFile.resolveFile(dependencyArtifactFilePath);
         if (artifactFileObject == null || !artifactFileObject.exists()) {
             return null;
         }
@@ -476,6 +472,10 @@ public class CarAnalyzer {
         if (artifactType == ArtifactType.RESOURCE || artifactType == ArtifactType.TASK) {
             artifactName = dependencyName;
         } else {
+            if(artifactFilePath.contains(".zip")){
+                System.out.println("Wrong ARTIFACT name:"+carFile.toString() + dependencyDirectory + artifactFilePath );
+                return null;
+            }
             artifactName = getRealNameForArtifact(carFile.toString() + dependencyDirectory + artifactFilePath);
         }
 
@@ -525,6 +525,9 @@ public class CarAnalyzer {
     }
 
     private ArtifactDescription getArtifactDescription(String artifactFilePath) throws IOException, JaxenException {
+        ObjectMapper mapper = new ObjectMapper();
+        StringWriter writer = new StringWriter();
+
         OMElement root = getRootOfXmlFile(artifactFilePath);
 
         Object evaluationResult = SynapseXPath.evaluateOmElement(root);
@@ -547,7 +550,11 @@ public class CarAnalyzer {
 
                 OMElement purposeElement = descriptionElement.getFirstChildWithName(PURPOSE_Q);
                 if (purposeElement != null) {
-                    purpose = purposeElement.getText();
+                    // Purpose may contain "-chars so those must be escaped
+                    mapper.writeValue(writer,purposeElement.getText());
+                    purpose = writer.toString();
+                    // Rip of start and end "-chars
+                    purpose = purpose.substring(1,purpose.length()-1);
                 }
 
                 OMElement receivesElement = descriptionElement.getFirstChildWithName(RECEIVES_Q);
@@ -710,7 +717,7 @@ public class CarAnalyzer {
 	                                artifactDependencies.add(new Dependency(dependency, taskTo, dt));
                                 }
                             } catch (ClassCastException e) {
-                                System.out.println("Unable to map TASK_TO to an Artifact.");
+                                log.debug("Unable to map TASK_TO to an Artifact.");
                             }
                         }
                     }

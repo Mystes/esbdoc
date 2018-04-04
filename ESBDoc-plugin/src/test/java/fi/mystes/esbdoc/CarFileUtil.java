@@ -2,8 +2,6 @@ package fi.mystes.esbdoc;
 
 import java.io.File;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by mystes-am on 5.4.2016.
