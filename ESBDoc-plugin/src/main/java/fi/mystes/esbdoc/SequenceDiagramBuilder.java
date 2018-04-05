@@ -1,3 +1,18 @@
+/**
+ * Copyright 2018 Mystes Oy
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package fi.mystes.esbdoc;
 
 import com.fasterxml.jackson.core.JsonFactory;
@@ -105,7 +120,8 @@ public class SequenceDiagramBuilder {
     }
 
     private SequenceDiagramBuilder build(InputStream is) throws SAXException, IOException, ParserConfigurationException {
-        log.info("Trying to parse from InputStream...: ");
+        if(log.isDebugEnabled())
+            log.debug("Trying to parse from InputStream...: ");
         parser().parse(is, getNewHandler());
         return this;
     }
@@ -130,14 +146,14 @@ public class SequenceDiagramBuilder {
     }
 
     public void writeOutputFile(String outputFilename) throws IOException {
-        log.info("Writing out: " + outputFilename);
+        if(log.isDebugEnabled())
+            log.debug("Writing out: " + outputFilename);
 
         JsonGenerator generator = createJsonGenerator(outputFilename);
 
         generator.writeStartObject();
         generator.writeObjectFieldStart("models");
         generator.writeArrayFieldStart("sequence-models");
-
         writeSequenceItems(generator);
 
         generator.writeEndArray();
@@ -148,7 +164,8 @@ public class SequenceDiagramBuilder {
     private void writeSequenceItems(JsonGenerator generator) throws IOException {
         Set<String> keys = getSequenceItemMap().keySet();
         for (String key : keys) {
-            log.info("Jasonifying: " + key);
+            if(log.isDebugEnabled())
+                log.debug("Jasonifying: " + key);
             generator.writeStartObject();
             generator.writeStringField("name", key);
             generator.writeStringField("description", "");

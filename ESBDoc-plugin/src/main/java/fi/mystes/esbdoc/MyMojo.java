@@ -1,13 +1,11 @@
-package fi.mystes.esbdoc;
-
-/*
- * Copyright 2001-2005 The Apache Software Foundation.
+/**
+ * Copyright 2018 Mystes Oy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,6 +13,9 @@ package fi.mystes.esbdoc;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package fi.mystes.esbdoc;
+
 import org.apache.commons.vfs2.*;
 import org.apache.maven.model.FileSet;
 import org.apache.maven.plugin.AbstractMojo;
@@ -106,7 +107,6 @@ public class MyMojo extends AbstractMojo {
             //TODO File name should be dynamic even if default comes from Constants
             String json = FileUtils.fileRead(new File(esbdocRawPath + Constants.PHYSICAL_DEPENDENCY_JSON_FILE));
             String indexContent = FileUtils.fileRead(new File(uiTargetFolder.getChild("index.html").getURL().getPath()));
-            System.out.println("JSONData="+json);
             String regexToFindPlaceholder = "window.ESBDOCDATA\\s*=\\s*.[^;]*;";
             indexContent = indexContent.replaceAll(regexToFindPlaceholder, "window.ESBDOCDATA=" + escapeCharsFromJson(json) + ";");
             FileUtils.fileWrite(uiTargetFolder.getChild("index.html").getURL().getPath(), indexContent);

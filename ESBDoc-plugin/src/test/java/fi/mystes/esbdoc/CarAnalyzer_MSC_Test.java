@@ -90,7 +90,6 @@ public class CarAnalyzer_MSC_Test {
     public void testWithTwoIndependentProxiesReferencingTwoSequencesEach() throws Exception {
         String esbDocRawPath = outputDestination();
         new CarAnalyzer().run(false, carFiles(), esbDocRawPath, new File[0]);
-        System.out.println("CarFiles="+carFiles()+"RawPath="+esbDocRawPath);
         assertSequenceModelContains(esbDocRawPath, "Proxy1", "Proxy2", "SequenceOne", "SequenceTwo");
     }
 
