@@ -4,11 +4,13 @@
 [WSO2 ESB](http://wso2.com/products/enterprise-service-bus/) is an open source Enterprise Service Bus that enables interoperability among various heterogeneous systems and business applications.
 
 ## ESBDoc features
-ESBDoc reads WSO2 ESB deployment car, analyzes it and generate dependency graphs from endpoints, proxies and sequences. Implmentation is Maven plugin
-which can be added as part of the build process.
-Resulting graph can be navigated with HTML-UI.
- 
+ESBDoc reads WSO2 ESB deployment car, analyzes it and generate dependency graphs from end-points, proxies and sequences. 
+Resulting graph can be navigated with included HTML-UI.
+Implementation is Maven plugin which can be added as part of the build process.
 
+### UI
+Documentation consist of main window with search and list of found resources.
+![MainWindow](https://github.com/Mystes/esbdoc/blob/master/ESBDoc-plugin/images/main.png)
 
 #### File system specific options
 These options are not specified in mediator configuration as they are applicable to certain file systems only. Instead, they are configured using properties synapse message context ($ctx) scope. The properties must be applied before VFS mediator is used.

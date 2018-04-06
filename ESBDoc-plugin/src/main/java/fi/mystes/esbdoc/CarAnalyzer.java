@@ -133,7 +133,8 @@ public class CarAnalyzer {
 
     private ArtifactMap buildArtifactMap(FileObject carFileObject) throws SaxonApiException, IOException, SAXException, XPathExpressionException, JaxenException {
         FileObject artifactsFileObject = carFileObject.getChild("artifacts.xml");
-        log.info(MessageFormat.format("Processing artifacts.xml file: [{0}]", artifactsFileObject.getURL().toString()));
+        if(log.isDebugEnabled())
+            log.debug(MessageFormat.format("Processing artifacts.xml file: [{0}]", artifactsFileObject.getURL().toString()));
         ArtifactMap artifactMap = new ArtifactMap();
         populateArtifactMap(carFileObject, artifactsFileObject, DEPENDENCY_XPATH_STRING, artifactMap);
         populateArtifactMap(carFileObject, artifactsFileObject, TASK_XPATH_STRING, artifactMap);
