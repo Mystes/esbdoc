@@ -107,7 +107,14 @@ SoapUI-test part can be also empty so it is not added to generated graph.
   </build>
 ```
 ### 3. Result
-After mvn clean install
+Run build
+```
+     mvn clean install
+```
+
+Navigate browser to file://path_to_buil/target/UI/index.html
+  
+Documentation can be published to some store if needed. Just copy contents of the UI-directory to the appropriate location.
 
 ## Technical Requirements
 
@@ -121,6 +128,6 @@ After mvn clean install
 
 * All above + Maven 3.0.X
 
-## [License](LICENSE)
+## [License](LICENSE.txt)
 
 Copyright &copy; 2018 [Mystes Oy](http://www.mystes.fi). Licensed under the [Apache 2.0 License](LICENSE.txt).
