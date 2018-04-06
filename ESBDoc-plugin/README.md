@@ -9,8 +9,13 @@ Resulting graph can be navigated with included HTML-UI.
 Implementation is Maven plugin which can be added as part of the build process.
 
 ### UI
+UI is available as embedded HTML-document. Here are samples of the main functionality,
+#### Home screen
 Documentation consist of main window with search and list of found resources.
 ![MainWindow](https://github.com/Mystes/esbdoc/blob/master/ESBDoc-plugin/images/main.png)
+![GraphWindow](https://github.com/Mystes/esbdoc/blob/master/ESBDoc-plugin/images/depencencygraph.png)
+![ListWindow](https://github.com/Mystes/esbdoc/blob/master/ESBDoc-plugin/images/dependencylist.png)
+![TesttWindow](https://github.com/Mystes/esbdoc/blob/master/ESBDoc-plugin/images/testlist.png)
 
 #### File system specific options
 These options are not specified in mediator configuration as they are applicable to certain file systems only. Instead, they are configured using properties synapse message context ($ctx) scope. The properties must be applied before VFS mediator is used.
