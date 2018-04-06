@@ -1,4 +1,4 @@
-# WSO2 ESB Dpendency Document generator /ESBDoc)
+# WSO2 ESB Dependency Document generator /ESBDoc)
 ![Build status](https://circleci.com/gh/Mystes/wso2-esb-vfs-mediator.svg?style=shield&circle-token=1d26db62821d6a3f03e9780657db6af6757e4fd2)
 ## What is WSO2 ESB?
 [WSO2 ESB](http://wso2.com/products/enterprise-service-bus/) is an open source Enterprise Service Bus that enables interoperability among various heterogeneous systems and business applications.
@@ -7,14 +7,18 @@
 ESBDoc reads WSO2 ESB deployment car, analyzes it and generate dependency graphs from end-points, proxies and sequences. 
 Resulting graph can be navigated with included HTML-UI.
 Implementation is Maven plugin which can be added as part of the build process.
-
 ### UI
 UI is available as embedded HTML-document. Here are samples of the main functionality,
 #### Home screen
 Documentation consist of main window with search and list of found resources.
 ![MainWindow](https://github.com/Mystes/esbdoc/blob/master/ESBDoc-plugin/images/main.png)
-![GraphWindow](https://github.com/Mystes/esbdoc/blob/master/ESBDoc-plugin/images/depencencygraph.png)
+#### Dependency graph
+This window contains graphical dependency graph.  Different graphical cues are used when documenting
+node types(proxy, api, sequence...) and edges (call, send...). Click node to see it's parameters and dependencies.
+![GraphWindow](https://github.com/Mystes/esbdoc/blob/master/ESBDoc-plugin/images/dependencygraph.png)
+#### Dependency list
 ![ListWindow](https://github.com/Mystes/esbdoc/blob/master/ESBDoc-plugin/images/dependencylist.png)
+####SoapUI Test coverage
 ![TesttWindow](https://github.com/Mystes/esbdoc/blob/master/ESBDoc-plugin/images/testlist.png)
 
 #### File system specific options

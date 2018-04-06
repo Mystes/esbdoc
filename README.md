@@ -13,6 +13,8 @@ UI is available as embedded HTML-document. Here are samples of the main function
 Documentation consist of main window with search and list of found resources.
 ![MainWindow](https://github.com/Mystes/esbdoc/blob/master/ESBDoc-plugin/images/main.png)
 #### Dependency graph
+This window contains graphical dependency graph.  Different graphical cues are used when documenting
+node types(proxy, api, sequence...) and edges (call, send...). Click node to see it's parameters and dependencies.
 ![GraphWindow](https://github.com/Mystes/esbdoc/blob/master/ESBDoc-plugin/images/dependencygraph.png)
 #### Dependency list
 ![ListWindow](https://github.com/Mystes/esbdoc/blob/master/ESBDoc-plugin/images/dependencylist.png)
