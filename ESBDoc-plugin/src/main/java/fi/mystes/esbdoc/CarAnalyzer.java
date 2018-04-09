@@ -125,8 +125,10 @@ public class CarAnalyzer {
     private ArtifactMap buildArtifactMap(List<FileObject> carFileObjects) throws IOException, SaxonApiException, SAXException, XPathExpressionException, JaxenException {
         ArtifactMap artifactMap = new ArtifactMap();
         for (FileObject carFileObject : carFileObjects) {
-            ArtifactMap partialArtifactMap = buildArtifactMap(carFileObject);
-            artifactMap.putAll(partialArtifactMap);
+            if(carFileObject != null && carFileObject.exists()) {
+                ArtifactMap partialArtifactMap = buildArtifactMap(carFileObject);
+                artifactMap.putAll(partialArtifactMap);
+            }
         }
         return artifactMap;
     }

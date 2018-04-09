@@ -19,30 +19,73 @@ node types(proxy, api, sequence...) and edges (call, send...). Click node to see
 #### Dependency list
 Offers list for directly called stpes and also reverse caller list. 
 ![ListWindow](https://github.com/Mystes/esbdoc/blob/master/ESBDoc-plugin/images/dependencylist.png)
-####SoapUI Test coverage
+#### SoapUI Test coverage
 Offers list of those SoapUI tests, which tests given proxy or sequence.
 ![TesttWindow](https://github.com/Mystes/esbdoc/blob/master/ESBDoc-plugin/images/testlist.png)
-
 ## Usage
 Whole process is  packed as a maven plugin so it is relatively easy to add existing build process.
-
 #### Configuration 
 User can  add several car-files for analysis and if they refer to each other, their dependencies are shown.
 
 | Part | Usage 
 | --- | --- 
-| carFile |	Specifies car-file location for analysis |
-| soapUIFileSet |	Specifies SoapUI-test locations for analysis |
-
+| carFiles |	Specifies car-file location  |
+| soapUIFileSet |	Specifies SoapUI-test locations |
 ### 1. Add following plugin to pom.xml
 
 You have two options:
 
 a) Add as a Maven/Gradle/Ivy dependency to your project. Get the dependency snippet from [here](https://bintray.com/mystes/maven/esbdoc/view).
 
-b) Download it manually from [here](https://github.com/Mystes/esbdoc/releases/tag/release-1.11).
+b) Download it manually from [here](https://github.com/Mystes/esbdoc/releases/tag/release-1.0.11).
 
 ### 2. Use it to generate documentation
+Additional parameter information can be added to proxies and sequences with following description fields.
+
+| Field | Usage 
+| --- | --- 
+| purpose |	Free text field  describing purpose of this proxy/sequence/endpoint  |
+| receives | Incoming parameters and whether it is mandatory or optional |
+| returns |	outgoing values. They can be saved into contexts or just values like HTTP status code depending upon case |
+
+#### Sample proxy 
+Here is a sample of proxy description where you can see how these fields are used. 
+```xml
+   <description>
+        <purpose>
+            Public API for managing users.
+        </purpose>
+        <receives>
+            Create
+            <field path="$.givenName" optional="false" description="User given name"/>
+            <field path="$.sn" optional="false" description="User surname"/>
+            <field path="$.mail" optional="false" description="User email"/>
+            <field path="$.uniqueId" optional="true" description="User unique ID"/>
+            <field path="$.verified" optional="false" description="If user is verified or not"/>
+
+            Update
+            <field path="$.givenName" optional="true" description="User given name"/>
+            <field path="$.middleName" optional="true" description="User middle name"/>
+            <field path="$.sn" optional="true" description="User surname"/>
+            <field path="$.mail" optional="true" description="User email"/>
+            <field path="$.status" optional="true" description="User status"/>
+            <field path="$.uniqueId" optional="true" description="User unique ID"/>
+
+            Remove
+            <field path="$.uniqueId" optional="true" description="User unique ID"/>
+
+            Check Email
+            <field path="$.email" optional="false" description="Email to check if available"/>
+        </receives>
+        <returns>
+            Response returned by email checker
+            <field path="$.status" optional="false" description="success|failure|error"/>
+            <field path="$.message" optional="false" description="Result of the email check"/>
+        </returns>
+    </description>
+```
+
+#### Generate documentation usin maven
 Notice that  plugin is bound to install phase so it get called after build has created deployable car. But that is not mandatory as long as  analyzable file can be found  somewhere.
 
 ```xml
