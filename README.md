@@ -37,7 +37,7 @@ You have two options:
 
 a) Add as a Maven/Gradle/Ivy dependency to your project. Get the dependency snippet from [here](https://bintray.com/mystes/maven/esbdoc/view).
 
-b) Download it manually from [here](https://github.com/Mystes/esbdoc/releases/tag/release-1.0.11).
+b) Download it manually from [here](https://github.com/Mystes/esbdoc/releases/tag/release_1.0.11).
 
 ### 2. Use it to generate documentation
 Additional parameter information can be added to proxies and sequences with following description fields.
