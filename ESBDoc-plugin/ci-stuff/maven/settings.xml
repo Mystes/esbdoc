@@ -27,41 +27,11 @@ under the License.
   <proxies> </proxies>
 
   <servers>
-    <server>
-      <id>central</id>
-      <username>deployment</username>
-      <password>my3te3dep</password>
-    </server>
-    <server>
-      <id>mystesNexus</id>
-      <username>Nexus_reader</username>
-      <password>my3te3read</password>
-    </server>
-    <server>
-      <id>mystesNexusReleases</id>
-      <username>Nexus_reader</username>
-      <password>my3te3read</password>
-    </server>
-    <server>
-      <id>MystesMavenRepo</id>
-      <username>deployment</username>
-      <password>my3te3dep</password>
-    </server>
-    <server>
-      <id>mystes-thirdparty</id>
-      <username>Nexus_reader</username>
-      <password>my3te3read</password>
-    </server>
-    <server>
-      <id>archetype</id>
-      <username>Nexus_reader</username>
-      <password>my3te3read</password>
-    </server>
-    <server>
-      <id>wso2-base-project-archetype-repo</id>
-      <username>Nexus_reader</username>
-      <password>my3te3read</password>
-    </server>
+        <server>
+            <id>bintray-mystes-maven</id>
+            <username>${env.MYSTES_BINTRAY_USERNAME}</username>
+            <password>${env.MYSTES_BINTRAY_API_KEY}</password>
+        </server>	
   </servers>
 
   <mirrors>
@@ -111,49 +81,6 @@ under the License.
   <profiles>
 
     <profile>
-      <id>nexus</id>
-      <repositories>
-        <repository>
-          <id>Snapshots</id>
-          <url>https://nexus.mystes.fi:8081/nexus/</url>
-          <releases>
-            <enabled>true</enabled>
-          </releases>
-          <snapshots>
-            <enabled>true</enabled>
-          </snapshots>
-        </repository>
-        <repository>
-          <releases>
-            <updatePolicy>daily</updatePolicy>
-            <checksumPolicy>ignore</checksumPolicy>
-          </releases>
-          <id>wso2-nexus</id>
-          <url>http://maven.wso2.org/nexus/content/groups/wso2-public/</url>
-        </repository>
-      </repositories>
-
-      <pluginRepositories>
-        <pluginRepository>
-          <id>Snapshots</id>
-          <url>https://nexus.mystes.fi:8081/nexus/</url>
-          <releases>
-            <enabled>true</enabled>
-          </releases>
-          <snapshots>
-            <enabled>true</enabled>
-          </snapshots>
-        </pluginRepository>
-        <pluginRepository>
-          <releases>
-            <updatePolicy>daily</updatePolicy>
-            <checksumPolicy>ignore</checksumPolicy>
-          </releases>
-          <id>wso2-nexus</id>
-          <url>http://maven.wso2.org/nexus/content/groups/wso2-public/</url>
-        </pluginRepository>
-      </pluginRepositories>
-
     </profile>
   </profiles>
 </settings>
