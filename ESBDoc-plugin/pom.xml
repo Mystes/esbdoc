@@ -10,13 +10,10 @@
 
   <distributionManagement>
         <repository>
-            <id>MystesMavenRepo</id>
-            <url>https://nexus.mystes.fi:8081/nexus/content/repositories/releases</url>
+            <id>bintray-mystes-maven</id>
+            <name>mystes-maven</name>
+            <url>https://api.bintray.com/maven/mystes/maven/esbdoc/;publish=1</url>
         </repository>
-        <snapshotRepository>
-            <id>MystesMavenRepo</id>
-            <url>https://nexus.mystes.fi:8081/nexus/content/repositories/snapshots</url>
-        </snapshotRepository>
   </distributionManagement>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
