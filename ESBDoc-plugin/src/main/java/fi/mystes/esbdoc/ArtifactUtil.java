@@ -62,14 +62,16 @@ public class ArtifactUtil {
 
     private static URI stringToUri(String string){
         if(StringUtils.isBlank(string)){
-            log.warn("Null string submitted, cannot parse to URI. Returning as null.");
+            if(log.isDebugEnabled())
+                log.warn("Null string submitted, cannot parse to URI. Returning as null.");
             return null;
         }
         String urifiedString = urifyString(string);
         try {
             return new URI(urifiedString);
         } catch (URISyntaxException e) {
-            log.warn("Unparseable URI: " + urifiedString + ". Returning as null.");
+            if(log.isDebugEnabled())
+                log.warn("Unparseable URI: " + urifiedString + ". Returning as null.");
             return null;
         }
     }

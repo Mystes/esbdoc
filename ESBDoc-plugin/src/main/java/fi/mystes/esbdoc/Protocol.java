@@ -35,13 +35,15 @@ public class Protocol {
 
     public static Scheme scheme(URI uri) throws EsbDocException {
         if(null == uri){
-            log.warn("Null URI submitted. Cannot extract URI Scheme.");
+            if(log.isDebugEnabled())
+                log.info("Null URI submitted. Cannot extract URI Scheme.");
             return Scheme.NULL;
         }
 
         String schemeString = uri.getScheme();
         if(StringUtils.isBlank(schemeString)){
-            log.warn("Blank URI scheme for URI: " + uri.toString());
+            if(log.isDebugEnabled())
+                log.warn("Blank URI scheme for URI: " + uri.toString());
             return Scheme.NULL;
         }
 

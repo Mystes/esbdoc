@@ -166,7 +166,8 @@ public class CarAnalyzer {
         TestMap testsMap = new TestMap();
         if (testFileObjects != null) {
             for (FileObject testFileObject : testFileObjects) {
-                log.info(MessageFormat.format("Processing SoapUI file: [{0}]", testFileObject.getURL().toString()));
+                if(log.isDebugEnabled())
+                    log.info(MessageFormat.format("Processing SoapUI file: [{0}]", testFileObject.getURL().toString()));
 
                 XdmValue value = SaxonXPath.apply(TESTCASE_XPATH_STRING).to(testFileObject).andReturnAnXdmValue();
                 XdmNode rootElement = (XdmNode) value.itemAt(0);

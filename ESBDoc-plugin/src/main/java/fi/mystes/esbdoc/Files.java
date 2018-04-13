@@ -73,7 +73,8 @@ public class Files {
                 infoString += "\n" + fileOrFolder.getAbsolutePath() + " (file)";
             }
         }
-        log.info(infoString);
+        if(log.isDebugEnabled())
+            log.debug(infoString);
 
         for(File folder : folders){
             File[] filesInFolder = folder.listFiles();

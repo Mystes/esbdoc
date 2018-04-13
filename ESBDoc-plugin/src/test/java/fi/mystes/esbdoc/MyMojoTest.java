@@ -3,7 +3,8 @@ package fi.mystes.esbdoc;
 import net.sf.saxon.s9api.SaxonApiException;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.*;
+import org.apache.commons.vfs2.provider.zip.ZipFileObject;
 import org.apache.maven.model.FileSet;
 import org.jaxen.JaxenException;
 import org.junit.*;
@@ -15,9 +16,15 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import static org.junit.Assert.*;
 
 /**
@@ -25,6 +32,7 @@ import static org.junit.Assert.*;
  */
 public class MyMojoTest {
 
+    private         Path sourcePath;
     public static final String PREFIX = "";
 
     /***********************************************************************************************/
@@ -35,12 +43,89 @@ public class MyMojoTest {
 
     @Before
     public void setUp() throws Exception {
+        FileSystemManager fsm;
+        // zip UI-directory and copy it to correct place
+        fsm = VFS.getManager();
+        // copy UI to target zip
+        URL url = this.getClass().getClassLoader().getResource("UI");
+        sourcePath =  Paths.get(url.getPath());
+        Path targetPath =  Paths.get(url.getPath()+".zip");
 
+        String parent=sourcePath.toFile().getParent();
+
+        File directoryToZip = sourcePath.toFile();
+
+        List<File> fileList = new ArrayList<File>();
+        System.out.println("---Getting references to all files in: " + directoryToZip.getCanonicalPath());
+        getAllFiles(directoryToZip, fileList);
+        System.out.println("---Creating zip file:"+        Paths.get(parent+"/UI.zip").toFile());
+        writeZipFile(targetPath.toFile(),directoryToZip, fileList);
+        System.out.println("---Done");
+        // Rename odiginal as backup and change zip name
+        Paths.get(parent+"/UI").toFile().renameTo(Paths.get(parent+"/UI_DIR").toFile());
+        Paths.get(parent+"/UI.zip").toFile().renameTo(Paths.get(parent+"/UI").toFile());
+    }
+
+    public static void getAllFiles(File dir, List<File> fileList) {
+            File[] files = dir.listFiles();
+            for (File file : files) {
+                fileList.add(file);
+                if (file.isDirectory()) {
+                    getAllFiles(file, fileList);
+                }
+            }
+    }
+
+    public static void writeZipFile(File targetZip, File directoryToZip, List<File> fileList) {
+
+        try {
+            FileOutputStream fos = new FileOutputStream(targetZip.getAbsoluteFile() );
+            ZipOutputStream zos = new ZipOutputStream(fos);
+
+            for (File file : fileList) {
+                if (!file.isDirectory()) { // we only zip files, not directories
+                    addToZip(directoryToZip, file, zos);
+                }
+            }
+
+            zos.close();
+            fos.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void addToZip(File directoryToZip, File file, ZipOutputStream zos) throws FileNotFoundException,
+            IOException {
+
+        FileInputStream fis = new FileInputStream(file);
+
+        // we want the zipEntry's path to be a relative path that is relative
+        // to the directory being zipped, so chop off the rest of the path
+        String zipFilePath = file.getCanonicalPath().substring(directoryToZip.getCanonicalPath().length() + 1,
+                file.getCanonicalPath().length());
+        ZipEntry zipEntry = new ZipEntry(zipFilePath);
+        zos.putNextEntry(zipEntry);
+
+        byte[] bytes = new byte[1024];
+        int length;
+        while ((length = fis.read(bytes)) >= 0) {
+            zos.write(bytes, 0, length);
+        }
+
+        zos.closeEntry();
+        fis.close();
     }
 
     @After
     public void tearDown() throws Exception {
-
+        String parent=sourcePath.toFile().getParent();
+        // Remove zip
+        Paths.get(parent+"/UI").toFile().delete();
+        // Rename backup back to original
+        Paths.get(parent+"/UI_DIR").toFile().renameTo(Paths.get(parent+"/UI").toFile());
     }
 
     @AfterClass
@@ -57,7 +142,7 @@ public class MyMojoTest {
 
         File[] carFileArray = ArrayUtils.toArray(carFile);
         String esbDocRawPath = outputDestination(PREFIX, "..");
-        String targetPath = esbDocRawPath + "target/";
+        String targetPath = esbDocRawPath;
 
         MyMojo mojo = MojoGenerator.gimmeMojo(targetPath, carFileArray);
         mojo.setCarAnalyzer(new CarAnalyzerSelfShunt(carFileArray, targetPath));
@@ -72,7 +157,7 @@ public class MyMojoTest {
 
         File[] carFileArray = ArrayUtils.toArray(carFile);
         String esbDocRawPath = outputDestination(PREFIX, "..");
-        String targetPath = esbDocRawPath + "target/";
+        String targetPath = esbDocRawPath;
 
         MyMojo mojo = MojoGenerator.gimmeMojo(targetPath, carFileArray);
         mojo.setCarAnalyzer(new CarAnalyzerSelfShunt(carFileArray, targetPath));
@@ -87,7 +172,7 @@ public class MyMojoTest {
 
         File[] carFileArray = ArrayUtils.toArray(carFile);
         String esbDocRawPath = outputDestination(PREFIX, "..");
-        String targetPath = esbDocRawPath + "target/";
+        String targetPath = esbDocRawPath;
 
         MyMojo mojo = MojoGenerator.gimmeMojo(targetPath, carFileArray);
         mojo.setCarAnalyzer(new CarAnalyzerSelfShunt(carFileArray, targetPath));
@@ -102,7 +187,7 @@ public class MyMojoTest {
 
         File[] carFileArray = ArrayUtils.toArray(carFile);
         String esbDocRawPath = outputDestination(PREFIX, "..");
-        String targetPath = esbDocRawPath + "target/";
+        String targetPath = esbDocRawPath;
 
         MyMojo mojo = MojoGenerator.gimmeMojo(targetPath, carFileArray);
         mojo.setCarAnalyzer(new CarAnalyzerSelfShunt(carFileArray, targetPath));
@@ -117,7 +202,7 @@ public class MyMojoTest {
 
         File[] carFileArray = ArrayUtils.toArray(carFile);
         String esbDocRawPath = outputDestination(PREFIX, "..");
-        String targetPath = esbDocRawPath + "target/";
+        String targetPath = esbDocRawPath;
 
         MyMojo mojo = MojoGenerator.gimmeMojo(targetPath, carFileArray);
         mojo.setCarAnalyzer(new CarAnalyzerSelfShunt(carFileArray, targetPath));
@@ -132,7 +217,7 @@ public class MyMojoTest {
 
         File[] carFileArray = ArrayUtils.toArray(carFile);
         URL resourceUrl = CarAnalyzer.class.getResource("/");
-        String targetPath = resourceUrl.getPath() + PREFIX + "testArtifactNameWithDotInOutputFolderName.Dot/" + "target/";
+        String targetPath = resourceUrl.getPath() + PREFIX + "testArtifactNameWithDotInOutputFolderName.Dot/";
 
         MyMojo mojo = MojoGenerator.gimmeMojo(targetPath, carFileArray);
         mojo.setCarAnalyzer(new CarAnalyzerSelfShunt(carFileArray, targetPath));
@@ -147,7 +232,7 @@ public class MyMojoTest {
 
         File[] carFileArray = ArrayUtils.toArray(carFile);
         String esbDocRawPath = outputDestination(PREFIX, "..");
-        String targetPath = esbDocRawPath + "target/";
+        String targetPath = esbDocRawPath;
 
         MyMojo mojo = MojoGenerator.gimmeMojo(targetPath, carFileArray);
         mojo.setCarAnalyzer(new CarAnalyzerSelfShunt(carFileArray, targetPath));
@@ -227,6 +312,7 @@ public class MyMojoTest {
             this.called = true;
             this.actualCarFiles = carFiles;
             this.actualDestination = outputDestination;
+            super.run(validateArtifacts, carFiles, outputDestination, testFolders);
         }
 
         public void assertStatus(){
