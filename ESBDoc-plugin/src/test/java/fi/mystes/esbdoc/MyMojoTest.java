@@ -56,11 +56,8 @@ public class MyMojoTest {
         File directoryToZip = sourcePath.toFile();
 
         List<File> fileList = new ArrayList<File>();
-        System.out.println("---Getting references to all files in: " + directoryToZip.getCanonicalPath());
         getAllFiles(directoryToZip, fileList);
-        System.out.println("---Creating zip file:"+        Paths.get(parent+"/UI.zip").toFile());
         writeZipFile(targetPath.toFile(),directoryToZip, fileList);
-        System.out.println("---Done");
         // Rename odiginal as backup and change zip name
         Paths.get(parent+"/UI").toFile().renameTo(Paths.get(parent+"/UI_DIR").toFile());
         Paths.get(parent+"/UI.zip").toFile().renameTo(Paths.get(parent+"/UI").toFile());
