@@ -1,5 +1,5 @@
 # WSO2 ESB Dependency Document generator /ESBDoc)
-![Build status](https://circleci.com/gh/Mystes/esbdoc.svg?style=shield&circle-token=1d26db62821d6a3f03e9780657db6af6757e4fd2)
+![Build status](https://circleci.com/gh/Mystes/esbdoc.svg?style=svg)
 ## What is WSO2 ESB?
 [WSO2 ESB](http://wso2.com/products/enterprise-service-bus/) is an open source Enterprise Service Bus that enables interoperability among various heterogeneous systems and business applications.
 
@@ -37,7 +37,7 @@ You have two options:
 
 a) Add as a Maven/Gradle/Ivy dependency to your project. Get the dependency snippet from [here](https://bintray.com/mystes/maven/esbdoc/view).
 
-b) Download it manually from [here](https://github.com/Mystes/esbdoc/releases/tag/release_1.0.11).
+b) Download it manually from [here](https://github.com/Mystes/esbdoc/releases/latest).
 
 ### 2. Use it to generate documentation
 Additional parameter information can be added to proxies and sequences with following description fields.
